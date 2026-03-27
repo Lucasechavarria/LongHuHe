@@ -46,27 +46,27 @@
 
         <!-- Field 3: Celular -->
         <div x-show="step === 3" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">Tu número de Celular</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">Tu número de Celular</label>
             <div class="relative font-mono text-center">
                 {{ form.celular }}
             </div>
-            <p class="text-brown-700/60 text-xl font-bold text-center">Para que podamos contactarte</p>
+            <p class="text-white/60 text-xl font-bold text-center">Para que podamos contactarte</p>
             {% if form.celular.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.celular.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 4: DNI -->
         <div x-show="step === 4" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">Número de DNI</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">Número de DNI</label>
             <div class="relative">
                 {{ form.dni }}
             </div>
-            <p class="text-brown-700/60 text-xl font-bold text-center">Necesario para el seguro médico</p>
+            <p class="text-white/60 text-xl font-bold text-center">Necesario para el seguro médico</p>
             {% if form.dni.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 5: Fecha de Nacimiento -->
         <div x-show="step === 5" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿Cuándo naciste?</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cuándo naciste?</label>
             <div class="relative">
                 {{ form.fecha_nacimiento }}
             </div>
@@ -75,8 +75,8 @@
 
         <!-- Field 6: Domicilio -->
         <div x-show="step === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿Dónde vives?</label>
-            <p class="text-sm font-black text-brown-700/40 text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Dónde vives?</label>
+            <p class="text-sm font-black text-white/40 text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
             <div class="relative">
                 {{ form.domicilio }}
             </div>
@@ -85,7 +85,7 @@
 
         <!-- Field 7: Localidad -->
         <div x-show="step === 7" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿En qué ciudad / localidad?</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿En qué ciudad / localidad?</label>
             <div class="relative">
                 {{ form.localidad }}
             </div>
@@ -94,7 +94,7 @@
 
         <!-- Field 8: Locacion -->
         <div x-show="step === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿A qué lugar irás?</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué lugar irás?</label>
             <div class="relative">
                 {{ form.locacion }}
             </div>
@@ -103,7 +103,7 @@
 
         <!-- Field 9: Actividad Inicial -->
         <div x-show="step === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿Qué actividad quieres hoy?</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Qué actividad quieres hoy?</label>
             <div class="relative">
                 {{ form.actividad_inicial }}
             </div>
