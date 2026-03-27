@@ -7,7 +7,24 @@
     <h2 class="text-6xl font-black tracking-tight uppercase text-white">Inscripción</h2>
 </div>
 
-<div class="premium-card rounded-[3rem] p-10 shadow-2xl relative" x-data="{ step: 1, totalSteps: 10 }">
+<div class="premium-card rounded-[3rem] p-12 shadow-2xl relative" 
+     x-data="{ 
+        step: 1, 
+        totalSteps: 10,
+        init() {
+            {% if form.nombre.errors or form.errors.nombre %} this.step = 1;
+            {% elif form.apellido.errors or form.errors.apellido %} this.step = 2;
+            {% elif form.celular.errors or form.errors.celular %} this.step = 3;
+            {% elif form.dni.errors or form.errors.dni %} this.step = 4;
+            {% elif form.fecha_nacimiento.errors or form.errors.fecha_nacimiento %} this.step = 5;
+            {% elif form.domicilio.errors or form.errors.domicilio %} this.step = 6;
+            {% elif form.localidad.errors or form.errors.localidad %} this.step = 7;
+            {% elif form.locacion.errors or form.errors.locacion %} this.step = 8;
+            {% elif form.actividad_inicial.errors or form.errors.actividad_inicial %} this.step = 9;
+            {% elif form.errors %} this.step = 1;
+            {% endif %}
+        }
+     }">
     <!-- Progress Indicator -->
     <div class="mb-10 flex justify-between items-center bg-white/5 rounded-full p-2 border border-white/5">
         <template x-for="i in totalSteps">
@@ -15,7 +32,7 @@
         </template>
     </div>
 
-    <form method="post" class="relative overflow-hidden min-h-[400px]">
+    <form method="post" class="relative min-h-[400px]" novalidate>
         {% csrf_token %}
         
         {% if form.errors %}
@@ -144,13 +161,19 @@
         </div>
 
         <!-- Step 10: Final Confirmation -->
-        <div x-show="step === 10" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+        <div x-show="step === 10" 
+             x-transition:enter="transition ease-out duration-500" 
+             x-transition:enter-start="opacity-0 translate-x-12" 
+             x-transition:enter-end="opacity-100 translate-x-0" 
+             class="space-y-10 text-center py-4 overflow-visible relative">
             <h2 class="text-5xl font-black uppercase text-white leading-tight">¡Todo Listo!</h2>
             <p class="text-xl font-bold text-white/40">Haz clic abajo para comenzar tu entrenamiento.</p>
             
-            <button type="submit" class="w-full bg-orange-500 text-white rounded-[2rem] py-8 text-3xl font-black shadow-2xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 uppercase tracking-wide">
-                INGRESAR AHORA
-            </button>
+            <div class="px-2 py-4 overflow-visible">
+                <button type="submit" class="w-full relative z-10 bg-orange-500 text-white rounded-[2rem] py-8 text-3xl font-black shadow-2xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 uppercase tracking-wide">
+                    INGRESAR AHORA
+                </button>
+            </div>
         </div>
 
         <!-- Navigation Buttons -->
