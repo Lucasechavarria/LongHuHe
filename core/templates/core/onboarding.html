@@ -1,0 +1,139 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Bienvenidos - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="text-center mb-10 pt-4">
+    <h2 class="text-6xl font-black tracking-tight uppercase text-white">Inscripción</h2>
+</div>
+
+<div class="premium-card rounded-[3rem] p-10 shadow-2xl relative" x-data="{ step: 1, totalSteps: 10 }">
+    <!-- Progress Indicator -->
+    <div class="mb-10 flex justify-between items-center bg-white/5 rounded-full p-2 border border-white/5">
+        <template x-for="i in totalSteps">
+            <div :class="{'bg-orange-500 w-full rounded-full h-4 transition-all duration-500': step >= i, 'bg-brown-700/10 w-full rounded-full h-4 mx-1': step < i}"></div>
+        </template>
+    </div>
+
+    <form method="post" class="relative overflow-hidden min-h-[400px]">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div x-show="step === 1" class="bg-red-500/10 border border-red-500/20 rounded-3xl p-6 mb-8">
+                <p class="text-red-700 text-lg font-black uppercase text-center tracking-tight">
+                    Por favor revisa los datos ingresados
+                </p>
+            </div>
+        {% endif %}
+        
+        <!-- Field 1: Nombre -->
+        <div x-show="step === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cómo te llamas?</label>
+            <div class="relative">
+                {{ form.nombre }}
+            </div>
+            {% if form.nombre.errors %}<p class="text-red-600 text-sm font-black uppercase mt-4 text-center tracking-widest">{{ form.nombre.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 2: Apellido -->
+        <div x-show="step === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cuál es tu apellido?</label>
+            <div class="relative">
+                {{ form.apellido }}
+            </div>
+            {% if form.apellido.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.apellido.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 3: Celular -->
+        <div x-show="step === 3" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">Tu número de Celular</label>
+            <div class="relative font-mono text-center">
+                {{ form.celular }}
+            </div>
+            <p class="text-brown-700/60 text-xl font-bold text-center">Para que podamos contactarte</p>
+            {% if form.celular.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.celular.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 4: DNI -->
+        <div x-show="step === 4" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">Número de DNI</label>
+            <div class="relative">
+                {{ form.dni }}
+            </div>
+            <p class="text-brown-700/60 text-xl font-bold text-center">Necesario para el seguro médico</p>
+            {% if form.dni.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 5: Fecha de Nacimiento -->
+        <div x-show="step === 5" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿Cuándo naciste?</label>
+            <div class="relative">
+                {{ form.fecha_nacimiento }}
+            </div>
+            {% if form.fecha_nacimiento.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.fecha_nacimiento.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 6: Domicilio -->
+        <div x-show="step === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿Dónde vives?</label>
+            <p class="text-sm font-black text-brown-700/40 text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
+            <div class="relative">
+                {{ form.domicilio }}
+            </div>
+            {% if form.domicilio.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.domicilio.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 7: Localidad -->
+        <div x-show="step === 7" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿En qué ciudad / localidad?</label>
+            <div class="relative">
+                {{ form.localidad }}
+            </div>
+            {% if form.localidad.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.localidad.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 8: Locacion -->
+        <div x-show="step === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿A qué lugar irás?</label>
+            <div class="relative">
+                {{ form.locacion }}
+            </div>
+            {% if form.locacion.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.locacion.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Field 9: Actividad Inicial -->
+        <div x-show="step === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
+            <label class="block text-3xl font-black uppercase text-brown-950 text-center mb-10 tracking-tight">¿Qué actividad quieres hoy?</label>
+            <div class="relative">
+                {{ form.actividad_inicial }}
+            </div>
+            {% if form.actividad_inicial.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.actividad_inicial.errors.0 }}</p>{% endif %}
+        </div>
+
+        <!-- Step 10: Final Confirmation -->
+        <div x-show="step === 10" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+            <h2 class="text-5xl font-black uppercase text-white leading-tight">¡Todo Listo!</h2>
+            <p class="text-xl font-bold text-white/40">Haz clic abajo para comenzar tu entrenamiento.</p>
+            
+            <button type="submit" class="w-full bg-orange-500 text-white rounded-[2rem] py-8 text-3xl font-black shadow-2xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 uppercase tracking-wide">
+                INGRESAR AHORA
+            </button>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="mt-16 flex gap-6" x-show="step < 10">
+            <button type="button" 
+                    @click="if(step > 1) step--" 
+                    x-show="step > 1"
+                    class="flex-1 bg-white/5 text-white/40 rounded-[2rem] py-6 text-2xl font-black uppercase hover:bg-white/10 transition-all">
+                ATRÁS
+            </button>
+            <button type="button" 
+                    @click="step++" 
+                    class="flex-[2] bg-orange-500 text-white rounded-[1.5rem] py-6 text-2xl font-black uppercase shadow-xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 tracking-widest">
+                SIGUIENTE
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
