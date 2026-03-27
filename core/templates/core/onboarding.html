@@ -41,7 +41,7 @@
             <div class="relative">
                 {{ form.apellido }}
             </div>
-            {% if form.apellido.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.apellido.errors.0 }}</p>{% endif %}
+            {% if form.apellido.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.apellido.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 3: Celular -->
@@ -50,8 +50,8 @@
             <div class="relative font-mono text-center">
                 {{ form.celular }}
             </div>
-            <p class="text-white/60 text-xl font-bold text-center">Para que podamos contactarte</p>
-            {% if form.celular.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.celular.errors.0 }}</p>{% endif %}
+            <p class="text-white text-xl font-bold text-center">Para que podamos contactarte</p>
+            {% if form.celular.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.celular.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 4: DNI -->
@@ -60,27 +60,60 @@
             <div class="relative">
                 {{ form.dni }}
             </div>
-            <p class="text-white/60 text-xl font-bold text-center">Necesario para el seguro médico</p>
-            {% if form.dni.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
+            <p class="text-white text-xl font-bold text-center">Necesario para el seguro médico</p>
+            {% if form.dni.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 5: Fecha de Nacimiento -->
         <div x-show="step === 5" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cuándo naciste?</label>
-            <div class="relative">
-                {{ form.fecha_nacimiento }}
+            <div class="relative flex items-center gap-4">
+                <div class="relative flex-1" x-data="{ 
+                    mask(e) {
+                        let value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                        if (value.length >= 5) {
+                            value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4);
+                        } else if (value.length >= 3) {
+                            value = value.slice(0, 2) + '/' + value.slice(2);
+                        }
+                        e.target.value = value;
+                    }
+                }">
+                    {{ form.fecha_nacimiento }}
+                    <div x-init="$el.querySelector('input').addEventListener('input', (e) => mask(e))"></div>
+                </div>
+                
+                <!-- Icono secundario para abrir calendario nativo -->
+                <div class="relative" x-data="{ 
+                    openPicker() {
+                        const input = $refs.dateInput;
+                        input.showPicker();
+                    }
+                }">
+                    <!-- Input invisible pero funcional para el selector nativo -->
+                    <input type="date" x-ref="dateInput" class="absolute inset-0 opacity-0 pointer-events-none" 
+                           @change="$el.closest('.space-y-6').querySelector('input[type=text]').value = $el.value.split('-').reverse().join('/')">
+                    
+                    <button type="button" @click="openPicker()" 
+                            class="bg-white/10 hover:bg-white/20 text-white p-6 rounded-3xl border-4 border-white/10 transition-all">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            {% if form.fecha_nacimiento.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.fecha_nacimiento.errors.0 }}</p>{% endif %}
+            <p class="text-white text-center text-xl font-bold">Formato: DD/MM/AAAA</p>
+            {% if form.fecha_nacimiento.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.fecha_nacimiento.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 6: Domicilio -->
         <div x-show="step === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Dónde vives?</label>
-            <p class="text-sm font-black text-white/40 text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
+            <p class="text-sm font-black text-white text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
             <div class="relative">
                 {{ form.domicilio }}
             </div>
-            {% if form.domicilio.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.domicilio.errors.0 }}</p>{% endif %}
+            {% if form.domicilio.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.domicilio.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 7: Localidad -->
@@ -89,7 +122,7 @@
             <div class="relative">
                 {{ form.localidad }}
             </div>
-            {% if form.localidad.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.localidad.errors.0 }}</p>{% endif %}
+            {% if form.localidad.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.localidad.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 8: Locacion -->
@@ -98,16 +131,16 @@
             <div class="relative">
                 {{ form.locacion }}
             </div>
-            {% if form.locacion.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.locacion.errors.0 }}</p>{% endif %}
+            {% if form.locacion.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.locacion.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 9: Actividad Inicial -->
         <div x-show="step === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Qué actividad quieres hoy?</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué actividad quieres inscribirte?</label>
             <div class="relative">
                 {{ form.actividad_inicial }}
             </div>
-            {% if form.actividad_inicial.errors %}<p class="text-shaolin-red text-xl font-black italic mt-4 text-center">🚫 {{ form.actividad_inicial.errors.0 }}</p>{% endif %}
+            {% if form.actividad_inicial.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.actividad_inicial.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Step 10: Final Confirmation -->
@@ -125,7 +158,7 @@
             <button type="button" 
                     @click="if(step > 1) step--" 
                     x-show="step > 1"
-                    class="flex-1 bg-white/5 text-white/40 rounded-[2rem] py-6 text-2xl font-black uppercase hover:bg-white/10 transition-all">
+                    class="flex-1 bg-white/10 text-white rounded-[2rem] py-6 text-2xl font-black uppercase hover:bg-white/20 transition-all">
                 ATRÁS
             </button>
             <button type="button" 

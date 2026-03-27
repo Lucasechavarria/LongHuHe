@@ -9,7 +9,7 @@ class AlumnoOnboardingForm(forms.ModelForm):
     from .models import Actividad
     actividad_inicial = forms.ModelChoiceField(
         queryset=Actividad.objects.all(),
-        label="Actividad que vas a realizar",
+        label="¿A qué actividad quieres inscribirte?",
         empty_label="Selecciona una actividad",
         widget=forms.Select(attrs={
             'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold'
@@ -31,15 +31,21 @@ class AlumnoOnboardingForm(forms.ModelForm):
             }),
             'celular': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
-                'placeholder': 'Ej: 11 1234 5678'
+                'placeholder': 'Ej: 1112345678',
+                'type': 'tel',
+                'pattern': '[0-9]*',
+                'inputmode': 'numeric'
             }),
             'dni': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold',
-                'placeholder': 'Ej: 12.345.678'
+                'placeholder': 'Ej: 12345678',
+                'pattern': '[0-9]*',
+                'inputmode': 'numeric'
             }),
-            'fecha_nacimiento': forms.DateInput(attrs={
-                'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 outline-none transition-all shaolin-shadow font-bold',
-                'type': 'date'
+            'fecha_nacimiento': forms.TextInput(attrs={
+                'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 outline-none transition-all shaolin-shadow font-bold text-center',
+                'placeholder': 'DD/MM/AAAA',
+                'inputmode': 'numeric'
             }),
             'domicilio': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold',
@@ -66,6 +72,54 @@ class AlumnoOnboardingForm(forms.ModelForm):
             'localidad': {'required': 'Dinos en qué localidad vives.'},
             'locacion': {'required': 'Selecciona dónde vas a tomar las clases.'},
         }
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre')
+        if nombre and any(char.isdigit() for char in nombre):
+            raise forms.ValidationError("El nombre no debe contener números.")
+        return nombre
+
+    def clean_apellido(self):
+        apellido = self.cleaned_data.get('apellido')
+        if apellido and any(char.isdigit() for char in apellido):
+            raise forms.ValidationError("El apellido no debe contener números.")
+        return apellido
+
+    def clean_celular(self):
+        celular = self.cleaned_data.get('celular')
+        if celular:
+            celular = celular.replace(" ", "").replace("-", "")
+            if not celular.isdigit():
+                raise forms.ValidationError("El celular debe contener solo números.")
+            if len(celular) > 20:
+                raise forms.ValidationError("El celular no puede tener más de 20 dígitos.")
+        return celular
+
+    def clean_fecha_nacimiento(self):
+        fecha_str = self.cleaned_data.get('fecha_nacimiento')
+        if not fecha_str:
+            return None
+        
+        # Si ya es un objeto date (poco probable con TextInput pero por las dudas)
+        from datetime import datetime
+        if isinstance(fecha_str, datetime):
+            return fecha_str.date()
+        
+        try:
+            # Intentamos parsear el formato DD/MM/AAAA
+            return datetime.strptime(fecha_str, '%d/%m/%Y').date()
+        except (ValueError, TypeError):
+            raise forms.ValidationError("Usa el formato DD/MM/AAAA (ej: 15/05/1980)")
+
+    def clean_dni(self):
+        dni = self.cleaned_data.get('dni')
+        if dni:
+            dni = dni.replace(".", "").replace("-", "").replace(" ", "")
+            if not dni.isdigit():
+                raise forms.ValidationError("El DNI debe contener solo números.")
+            if len(dni) > 8:
+                raise forms.ValidationError("El DNI no puede tener más de 8 dígitos.")
+        return dni
 
 
 class PagoTipoForm(forms.Form):
