@@ -9,11 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            background: #000000;
             overflow: hidden;
             height: 100vh;
             margin: 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-family: 'Montserrat', sans-serif;
@@ -40,14 +41,15 @@
 
         .logo-img {
             display: block;
-            width: 280px;
+            width: 300px;
             height: auto;
-            max-width: 80vw;
+            max-width: 82vw;
             background: transparent;
             border: none;
             outline: none;
-            filter: drop-shadow(0 15px 35px rgba(255, 140, 0, 0.6))
-                    drop-shadow(0 0 80px rgba(255, 100, 0, 0.25));
+            mix-blend-mode: screen;
+            filter: drop-shadow(0 10px 30px rgba(255, 140, 0, 0.7))
+                    drop-shadow(0 0 60px rgba(255, 100, 0, 0.3));
         }
 
         /* Efecto de sombra dinámica */
