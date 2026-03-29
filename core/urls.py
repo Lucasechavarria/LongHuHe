@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.splash, name='splash'),
+    path('acceso/', views.acceso_opciones, name='acceso_opciones'),
     path('ingresar/', views.identificacion, name='identificacion'),
     path('dashboard/', views.inicio, name='inicio'),
     path('onboarding/', views.onboarding, name='onboarding'),

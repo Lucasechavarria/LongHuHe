@@ -34,6 +34,16 @@ def splash(request):
     return render(request, 'core/splash.html')
 
 
+def acceso_opciones(request):
+    """
+    Pantalla intermedia para elegir entre loguearse como alumno existente
+    o iniciar el proceso de inscripción.
+    """
+    if 'alumno_id' in request.session:
+        return redirect('inicio')
+    return render(request, 'core/acceso_opciones.html')
+
+
 def identificacion(request):
     """
     Paso de identificación mediante DNI o Celular para alumnos existentes.
