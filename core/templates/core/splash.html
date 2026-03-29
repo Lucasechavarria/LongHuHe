@@ -29,16 +29,15 @@
 
         /* La imagen flota libre, sin contenedor cuadrado ni fondo */
         .logo-img {
-            width: 300px;
-            max-width: 80vw;
+            width: 380px; /* Un poco más grande para que destaque */
+            max-width: 85vw;
             height: auto;
             display: block;
             animation: float3d 6s ease-in-out infinite;
-            /* multiply: hace que el blanco restante desaparezca sobre fondo oscuro */
-            mix-blend-mode: multiply;
+            /* SE ELIMINA mix-blend-mode PARA QUE NO SE APAGUE */
             filter:
-                drop-shadow(0 0 25px rgba(255, 140, 0, 0.6))
-                drop-shadow(0 15px 30px rgba(0, 0, 0, 0.8));
+                drop-shadow(0 0 30px rgba(255, 140, 0, 0.4))
+                drop-shadow(0 15px 40px rgba(0, 0, 0, 0.9));
         }
 
         @keyframes float3d {
