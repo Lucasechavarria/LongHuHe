@@ -33,8 +33,9 @@
             max-width: 80vw;
             height: auto;
             display: block;
-            /* SIN background, SIN border, SIN border-radius, SIN overflow */
             animation: float3d 6s ease-in-out infinite;
+            /* multiply: hace que el blanco restante desaparezca sobre fondo oscuro */
+            mix-blend-mode: multiply;
             filter:
                 drop-shadow(0 0 25px rgba(255, 140, 0, 0.6))
                 drop-shadow(0 15px 30px rgba(0, 0, 0, 0.8));
@@ -100,7 +101,7 @@
 
     <!-- Logo PNG transparente flotando libre -->
     <img
-        src="{% static 'img/Logo Long Hu He.png' %}"
+        src="{% static 'img/Logo Long Hu He Transparent.png' %}"
         alt="Long Hu He Logo"
         class="logo-img"
     >
