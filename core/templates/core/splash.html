@@ -33,7 +33,9 @@
             position: relative;
             transform-style: preserve-3d;
             animation: float 6s ease-in-out infinite, rotate3d 12s linear infinite;
-            filter: drop-shadow(0 0 30px rgba(255, 140, 0, 0.2));
+            background: transparent;
+            border: none;
+            outline: none;
         }
 
         .logo-img {
@@ -42,6 +44,9 @@
             object-fit: contain;
             backface-visibility: visible;
             transform: translateZ(20px);
+            background: transparent;
+            filter: drop-shadow(0 15px 35px rgba(255, 140, 0, 0.5))
+                    drop-shadow(0 0 60px rgba(255, 100, 0, 0.2));
         }
 
         /* Efecto de sombra dinámica */
@@ -107,7 +112,7 @@
     <div id="main-scene" class="scene">
         <div class="shadow"></div>
         <div class="logo-container">
-            <img src="{% static 'img/logo_long_hu_he.png' %}" alt="Long Hu He Logo" class="logo-img">
+            <img src="{% static 'img/Logo Long Hu He.png' %}" alt="Long Hu He Logo" class="logo-img">
         </div>
         <div class="pulse-text">Toca para entrar</div>
     </div>
