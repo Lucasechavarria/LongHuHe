@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Identificación - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh] space-y-12">
+    <div class="text-center space-y-4">
+        <h2 class="text-6xl font-black tracking-tighter uppercase text-white leading-tight">
+            Ingresa a la App
+        </h2>
+        <p class="text-white/40 text-xl font-bold uppercase tracking-widest">
+            Usa tu DNI o Celular
+        </p>
+    </div>
+
+    <div class="premium-card w-full rounded-[3rem] p-10 shadow-2xl">
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+            
+            <div class="relative group">
+                <input type="text" 
+                       name="identificador" 
+                       required
+                       placeholder="Ej: 35123456 / 1122334455"
+                       class="w-full bg-white/5 border-4 border-white/5 rounded-3xl py-8 px-10 text-4xl font-black text-center text-white placeholder-white/20 focus:border-orange-500 focus:bg-orange-500/5 transition-all outline-none uppercase tracking-tighter shadow-inner">
+                
+                <!-- Micro-icon indicando input manual -->
+                <div class="absolute right-6 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">
+                    <svg class="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0014 20h1v-3c0-1.1-.9-2-2-2h-3l-1 1z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="pt-4 flex flex-col gap-4">
+                <button type="submit" 
+                        class="w-full bg-orange-500 text-white rounded-[2.5rem] py-8 text-3xl font-black uppercase shadow-2xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 tracking-widest">
+                    ENTRAR
+                </button>
+                
+                <a href="{% url 'onboarding' %}" 
+                   class="w-full text-center py-4 text-white/40 font-black uppercase text-sm tracking-[0.3em] hover:text-white transition-colors">
+                    Aún no soy alumno · Inscribirme
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Decoration subtle -->
+    <div class="opacity-20 flex gap-12 pt-10">
+        <div class="w-2 h-2 rounded-full bg-white animate-ping"></div>
+        <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+        <div class="w-2 h-2 rounded-full bg-white animate-ping"></div>
+    </div>
+</div>
+{% endblock %}

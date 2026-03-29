@@ -50,6 +50,12 @@
                 {{ form.nombre }}
             </div>
             {% if form.nombre.errors %}<p class="text-red-600 text-sm font-black uppercase mt-4 text-center tracking-widest">{{ form.nombre.errors.0 }}</p>{% endif %}
+            
+            <div class="text-center pt-10">
+                <a href="{% url 'identificacion' %}" class="text-white/20 font-black uppercase text-sm tracking-[0.2em] hover:text-orange-500 transition-all">
+                    ¿Ya eres alumno? Haz clic aquí
+                </a>
+            </div>
         </div>
 
         <!-- Field 2: Apellido -->
@@ -77,7 +83,6 @@
             <div class="relative">
                 {{ form.dni }}
             </div>
-            <p class="text-white text-xl font-bold text-center">Necesario para el seguro médico</p>
             {% if form.dni.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
         </div>
 
@@ -144,7 +149,7 @@
 
         <!-- Field 8: Locacion -->
         <div x-show="step === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué lugar irás?</label>
+            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué sede te inscribes?</label>
             <div class="relative">
                 {{ form.locacion }}
             </div>

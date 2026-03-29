@@ -1,3 +1,5 @@
+from django.db import models
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario, Asistencia, Pago, Locacion, Actividad
@@ -21,6 +23,41 @@ def alumno_requerido(view_func):
             
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def splash(request):
+    """
+    Pantalla de inicio premium con el logo 3D.
+    """
+    if 'alumno_id' in request.session:
+        return redirect('inicio')
+    return render(request, 'core/splash.html')
+
+
+def identificacion(request):
+    """
+    Paso de identificación mediante DNI o Celular para alumnos existentes.
+    Si no se encuentra el alumno, se le redirige al onboarding para que se inscriba.
+    """
+    if 'alumno_id' in request.session:
+        return redirect('inicio')
+
+    if request.method == 'POST':
+        identificador = request.POST.get('identificador', '').strip()
+        if identificador:
+            # Buscamos por celular o DNI
+            alumno = Usuario.objects.filter(Q(celular__icontains=identificador) | Q(dni=identificador)).first()
+            
+            if alumno:
+                request.session['alumno_id'] = alumno.id
+                messages.success(request, f"¡Bienvenido nuevamente, {alumno.nombre}!")
+                return redirect('inicio')
+            else:
+                # No se encontró, lo enviamos a inscribirse (onboarding)
+                messages.info(request, "No encontramos tus datos. ¡Por favor, completa tu inscripción!")
+                return redirect('onboarding')
+
+    return render(request, 'core/identificacion.html')
 
 
 def onboarding(request):
