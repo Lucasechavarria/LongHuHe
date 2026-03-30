@@ -68,6 +68,10 @@ class Usuario(AbstractUser):
     )
     es_profe = models.BooleanField(default=False)
 
+    # Campos de Mercado Pago para Profesores (Marketplace)
+    mp_access_token = models.CharField("MP Access Token", max_length=255, blank=True, null=True)
+    mp_public_key = models.CharField("MP Public Key", max_length=255, blank=True, null=True)
+
     # Nuevos campos para adultos mayores
     dni = models.CharField("DNI", max_length=15, blank=True)
     fecha_nacimiento = models.DateField("Fecha de Nacimiento", null=True, blank=True)
@@ -125,6 +129,62 @@ class Asistencia(models.Model):
         return f"Asistencia de {self.alumno.nombre_completo} - {fecha}"
 
 
+class Horario(models.Model):
+    """
+    Día y hora de una clase.
+    """
+    class DiasSemana(models.TextChoices):
+        LUNES = "LU", "Lunes"
+        MARTES = "MA", "Martes"
+        MIERCOLES = "MI", "Miércoles"
+        JUEVES = "JU", "Jueves"
+        VIERNES = "VI", "Viernes"
+        SABADO = "SA", "Sábado"
+        DOMINGO = "DO", "Domingo"
+
+    dia = models.CharField(max_length=2, choices=DiasSemana.choices)
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+
+    class Meta:
+        verbose_name = "Horario"
+        verbose_name_plural = "Horarios"
+        ordering = ["dia", "hora_inicio"]
+
+    def __str__(self):
+        return f"{self.get_dia_display()} - {self.hora_inicio.strftime('%H:%M')} a {self.hora_fin.strftime('%H:%M')}"
+
+
+class ClaseProgramada(models.Model):
+    """
+    El 'corazón' del sistema Marketplace: Vincula Profe + Actividad + Sede + Horario.
+    """
+    profesor = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        related_name="clases_dictadas",
+        limit_choices_to={'es_profe': True}
+    )
+    actividad = models.ForeignKey(
+        Actividad,
+        on_delete=models.CASCADE,
+        related_name="clases_asignadas"
+    )
+    locacion = models.ForeignKey(
+        Locacion,
+        on_delete=models.CASCADE,
+        related_name="clases_asignadas"
+    )
+    horarios = models.ManyToManyField(Horario, related_name="clases_asignadas")
+
+    class Meta:
+        verbose_name = "Clase Programada"
+        verbose_name_plural = "Clases Programadas"
+
+    def __str__(self):
+        return f"{self.actividad.nombre} en {self.locacion.nombre} - Prof. {self.profesor.nombre_completo}"
+
+
 class Pago(models.Model):
     """
     Aviso de pago generado por el alumno.
@@ -159,6 +219,14 @@ class Pago(models.Model):
         on_delete=models.CASCADE,
         related_name="pagos",
         null=True
+    )
+    clase_programada = models.ForeignKey(
+        ClaseProgramada,
+        on_delete=models.SET_NULL,
+        related_name="pagos",
+        null=True,
+        blank=True,
+        help_text="Clase específica a la cual pertenece este pago (Sede + Actividad + Horario)."
     )
     tipo = models.CharField(max_length=20, choices=TipoPago.choices)
     cantidad_clases = models.IntegerField(null=True, blank=True)
