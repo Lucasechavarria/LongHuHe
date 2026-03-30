@@ -313,7 +313,13 @@ def pago_mercadopago_checkout(request, pago_id):
     Genera la preferencia de pago en Mercado Pago y redirige al alumno.
     """
     pago = get_object_or_404(Pago, id=pago_id, alumno_id=request.session['alumno_id'])
-    mp_service = MercadoPagoService()
+    
+    # Triangulación Perfecta: Buscar token del profesor si exite clase programada
+    access_token = None
+    if pago.clase_programada and getattr(pago.clase_programada.profesor, 'mp_access_token', None):
+        access_token = pago.clase_programada.profesor.mp_access_token
+        
+    mp_service = MercadoPagoService(access_token)
     
     try:
         init_point = mp_service.crear_preferencia(pago)
@@ -336,7 +342,16 @@ def mercadopago_webhook(request):
             resource_id = request.GET.get("id") or (data.get("data", {}).get("id"))
 
             if topic == "payment" and resource_id:
-                mp_service = MercadoPagoService()
+                # Recibimos el parámetro para saber de qué profesor es el token
+                identificador_pago = request.GET.get('identificador_pago')
+                access_token = None
+                
+                if identificador_pago:
+                    pago_original = Pago.objects.filter(id=identificador_pago).first()
+                    if pago_original and pago_original.clase_programada and getattr(pago_original.clase_programada.profesor, 'mp_access_token', None):
+                        access_token = pago_original.clase_programada.profesor.mp_access_token
+                
+                mp_service = MercadoPagoService(access_token)
                 payment_info = mp_service.obtener_pago(resource_id)
                 
                 # Buscamos el pago en la base de datos usando external_reference

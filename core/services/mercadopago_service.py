@@ -2,8 +2,8 @@ import mercadopago
 import os
 from django.conf import settings
 class MercadoPagoService:
-    def __init__(self):
-        self.access_token = os.environ.get("MP_ACCESS_TOKEN")
+    def __init__(self, custom_access_token=None):
+        self.access_token = custom_access_token or os.environ.get("MP_ACCESS_TOKEN")
         self.sdk = mercadopago.SDK(self.access_token)
 
     def crear_preferencia(self, pago):
@@ -22,10 +22,24 @@ class MercadoPagoService:
             # Si es paquete, podríamos calcular precio_clase * cantidad_clases
             unit_price = float(pago.actividad.precio_clase) * (pago.cantidad_clases or 1)
 
+        # Generación del título descriptivo del ticket ("Triangulación Perfecta")
+        if pago.clase_programada:
+            dias_abrev = "-".join([h.get_dia_display()[:3].upper() for h in pago.clase_programada.horarios.all()])
+            hs_inicio = pago.clase_programada.horarios.first()
+            hora_str = hs_inicio.hora_inicio.strftime('%Hhs') if hs_inicio else ""
+            
+            titulo_ticket = f"Cuota {dias_abrev} {hora_str} - {pago.clase_programada.actividad.nombre} - Prof. {pago.clase_programada.profesor.nombre_completo}"
+        else:
+            titulo_ticket = f"Clase de {pago.actividad.nombre} - {pago.get_tipo_display()}"
+
+        # URL del webhook con parámetro identificador para rutear la credencial
+        base_url = os.environ.get('WEBHOOK_URL_BASE', '')
+        webhook_url = f"{base_url}/mercadopago/webhook/?identificador_pago={pago.id}"
+
         preference_data = {
             "items": [
                 {
-                    "title": f"Clase de {pago.actividad.nombre} - {pago.get_tipo_display()}",
+                    "title": titulo_ticket,
                     "quantity": 1,
                     "unit_price": unit_price,
                     "currency_id": "ARS"
@@ -37,12 +51,12 @@ class MercadoPagoService:
                 "surname": pago.alumno.apellido
             },
             "back_urls": {
-                "success": f"{os.environ.get('WEBHOOK_URL_BASE')}/gracias/",
-                "failure": f"{os.environ.get('WEBHOOK_URL_BASE')}/pago-tipo/",
-                "pending": f"{os.environ.get('WEBHOOK_URL_BASE')}/gracias/"
+                "success": f"{base_url}/gracias/",
+                "failure": f"{base_url}/pago-tipo/",
+                "pending": f"{base_url}/gracias/"
             },
             "auto_return": "approved",
-            "notification_url": f"{os.environ.get('WEBHOOK_URL_BASE')}/mercadopago/webhook/",
+            "notification_url": webhook_url,
             "external_reference": str(pago.id)
         }
 
