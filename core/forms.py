@@ -101,9 +101,9 @@ class AlumnoOnboardingForm(forms.ModelForm):
             return None
         
         # Si ya es un objeto date (poco probable con TextInput pero por las dudas)
-        from datetime import datetime
-        if isinstance(fecha_str, datetime):
-            return fecha_str.date()
+        from datetime import datetime, date
+        if isinstance(fecha_str, date):
+            return fecha_str
         
         try:
             # Intentamos parsear el formato DD/MM/AAAA
