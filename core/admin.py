@@ -4,7 +4,11 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
 
-from .models import Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, Examen, CategoriaProducto, Producto, Pedido, PedidoItem
+from .models import (
+    Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, 
+    Examen, CategoriaProducto, Producto, Pedido, PedidoItem,
+    CategoriaContenido, Documento, VideoTutorial
+)
 
 
 # =========================================================
@@ -344,3 +348,25 @@ class PedidoAdmin(admin.ModelAdmin):
     @admin.action(description="Marcar pedidos como ENTREGADOS")
     def marcar_como_entregado(self, request, queryset):
         queryset.update(estado=Pedido.Estado.ENTREGADO)
+
+
+# =========================================================
+# Admin de Academia Digital (Biblioteca)
+# =========================================================
+
+@admin.register(CategoriaContenido)
+class CategoriaContenidoAdmin(admin.ModelAdmin):
+    list_display = ("nombre",)
+    search_fields = ("nombre",)
+
+@admin.register(Documento)
+class DocumentoAdmin(admin.ModelAdmin):
+    list_display = ("titulo", "categoria", "nivel_acceso", "descargable", "fecha_subida")
+    list_filter = ("categoria", "nivel_acceso", "descargable")
+    search_fields = ("titulo", "descripcion")
+
+@admin.register(VideoTutorial)
+class VideoTutorialAdmin(admin.ModelAdmin):
+    list_display = ("titulo", "categoria", "nivel_acceso", "youtube_id", "fecha_subida")
+    list_filter = ("categoria", "nivel_acceso")
+    search_fields = ("titulo", "descripcion", "youtube_id")

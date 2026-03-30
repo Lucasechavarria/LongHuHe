@@ -20,4 +20,7 @@ urlpatterns = [
     # Tienda E-Commerce
     path('tienda/', views.tienda_inicio, name='tienda_inicio'),
     path('tienda/comprar/<int:producto_id>/', views.tienda_comprar, name='tienda_comprar'),
+
+    # Academia Digital
+    path('biblioteca/', views.biblioteca_inicio, name='biblioteca_inicio'),
 ]

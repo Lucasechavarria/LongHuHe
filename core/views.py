@@ -568,3 +568,50 @@ def tienda_comprar(request, producto_id):
     return render(request, 'core/tienda_comprar.html', {
         'producto': producto
     })
+
+
+# =========================================================
+# FASE 4: Academia Digital (Biblioteca)
+# =========================================================
+
+@alumno_requerido
+def biblioteca_inicio(request):
+    """
+    Vista principal de la Academia Digital.
+    Filtra documentos y videos según el nivel del alumno.
+    """
+    from .models import NivelAcceso, CategoriaContenido, Documento, VideoTutorial
+    
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    
+    # Lógica de Niveles (MVP simplificado)
+    # Todos acceden a TODOS y PRINCIPIANTE.
+    # 1+ exámenes = INTERMEDIO
+    # 3+ exámenes = AVANZADO
+    niveles_permitidos = [NivelAcceso.TODOS, NivelAcceso.PRINCIPIANTE]
+    cant_examenes = alumno.examenes.count()
+    if cant_examenes >= 1:
+        niveles_permitidos.append(NivelAcceso.INTERMEDIO)
+    if cant_examenes >= 3:
+        niveles_permitidos.append(NivelAcceso.AVANZADO)
+        
+    categorias = CategoriaContenido.objects.all().prefetch_related('documentos', 'videos')
+    
+    # Estructura de contexto filtrada
+    data_biblioteca = []
+    
+    for cat in categorias:
+        docs = cat.documentos.filter(nivel_acceso__in=niveles_permitidos)
+        vids = cat.videos.filter(nivel_acceso__in=niveles_permitidos)
+        
+        if docs.exists() or vids.exists():
+            data_biblioteca.append({
+                'categoria': cat,
+                'documentos': docs,
+                'videos': vids
+            })
+            
+    return render(request, 'core/biblioteca.html', {
+        'data_biblioteca': data_biblioteca,
+        'nivel_actual': niveles_permitidos[-1].upper() # Muestra el rango más alto habilitado
+    })

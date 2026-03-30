@@ -458,3 +458,62 @@ class PedidoItem(models.Model):
 
     def __str__(self):
         return f"{self.cantidad}x {self.producto.nombre} (Pedido #{self.pedido.id})"
+
+
+# =========================================================
+# FASE 4: Academia Digital (Biblioteca)
+# =========================================================
+
+class CategoriaContenido(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Categoría de Contenido"
+        verbose_name_plural = "Categorías de Contenido"
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class NivelAcceso(models.TextChoices):
+    TODOS = "todos", "Público / Todos los Alumnos"
+    PRINCIPIANTE = "principiante", "Solo Principiantes y superior"
+    INTERMEDIO = "intermedio", "Solo Intermedios y superior"
+    AVANZADO = "avanzado", "Solo Avanzados / Maestros"
+
+
+class Documento(models.Model):
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    categoria = models.ForeignKey(CategoriaContenido, on_delete=models.SET_NULL, null=True, blank=True, related_name="documentos")
+    archivo = models.FileField(upload_to="biblioteca/documentos/")
+    descargable = models.BooleanField(default=False, help_text="Si es Falso, el alumno solo podrá verlo en la app sin un botón de descarga expuesto.")
+    nivel_acceso = models.CharField(max_length=20, choices=NivelAcceso.choices, default=NivelAcceso.TODOS)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Documento"
+        verbose_name_plural = "Documentos"
+        ordering = ["-fecha_subida"]
+
+    def __str__(self):
+        return self.titulo
+
+
+class VideoTutorial(models.Model):
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    categoria = models.ForeignKey(CategoriaContenido, on_delete=models.SET_NULL, null=True, blank=True, related_name="videos")
+    youtube_id = models.CharField(max_length=50, help_text="ID del video de YouTube (ej. dQw4w9WgXcQ de https://www.youtube.com/watch?v=dQw4w9WgXcQ)")
+    nivel_acceso = models.CharField(max_length=20, choices=NivelAcceso.choices, default=NivelAcceso.TODOS)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Video Tutorial"
+        verbose_name_plural = "Videos Tutoriales"
+        ordering = ["-fecha_subida"]
+
+    def __str__(self):
+        return self.titulo
