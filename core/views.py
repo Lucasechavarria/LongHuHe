@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuario, Asistencia, Pago, Locacion, Actividad
+from .models import Usuario, Asistencia, Pago, Locacion, Actividad, ClaseProgramada
 from .forms import AlumnoOnboardingForm, PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from .services.mercadopago_service import MercadoPagoService # Importar el servicio
 from functools import wraps
@@ -132,9 +132,16 @@ def inicio(request):
     """
     alumno = Usuario.objects.get(id=request.session['alumno_id'])
     locaciones = Locacion.objects.prefetch_related('actividades').all()
+    
+    clases_programadas = ClaseProgramada.objects.filter(
+        locacion=alumno.locacion,
+        actividad__in=alumno.actividades.all()
+    ).select_related('profesor', 'actividad').prefetch_related('horarios').order_by('actividad__nombre', 'profesor__nombre')
+
     return render(request, 'core/inicio.html', {
         'alumno': alumno,
-        'locaciones': locaciones
+        'locaciones': locaciones,
+        'clases_programadas': clases_programadas
     })
 
 
@@ -166,16 +173,28 @@ def pago_tipo(request):
             form_metodo = PagoMetodoForm(request.POST)
             if form_tipo.is_valid() and form_metodo.is_valid():
                 alumno = Usuario.objects.get(id=request.session['alumno_id'])
-                Pago.objects.create(
+                
+                # Triangulación Perfecta: Ligar con la clase específica
+                clase_prog_id = request.POST.get('clase_programada')
+                clase_prog = ClaseProgramada.objects.filter(id=clase_prog_id).first() if clase_prog_id else None
+                
+                pago = Pago.objects.create(
                     alumno=alumno,
                     actividad=form_tipo.cleaned_data['actividad'],
+                    clase_programada=clase_prog,
                     tipo=form_tipo.cleaned_data['tipo'],
                     cantidad_clases=form_tipo.cleaned_data.get('cantidad_clases'),
                     metodo=form_metodo.cleaned_data['metodo'],
                     comprobante=request.FILES.get('comprobante')
                 )
+                
                 if 'pago_data' in request.session:
                     del request.session['pago_data']
+                    
+                # Si el método es Mercado Pago, redirigimos al checkout Automático
+                if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
+                    return redirect('pago_mercadopago_checkout', pago_id=pago.id)
+                    
                 return redirect('gracias')
 
         # Flujo tradicional paso a paso
