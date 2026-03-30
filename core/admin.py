@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
 
-from .models import Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada
+from .models import Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, Examen
 
 
 # =========================================================
@@ -132,7 +132,10 @@ class UsuarioAdmin(UserAdmin):
             "fields": ("username", "password")
         }),
         ("Información Marcial", {
-            "fields": ("nombre", "apellido", "celular", "locacion", "actividades", "es_profe")
+            "fields": ("nombre", "apellido", "celular", "locacion", "actividades", "es_profe", "fecha_ingreso_real")
+        }),
+        ("Salud y Seguridad", {
+            "fields": ("alergias", "condiciones_medicas", "contacto_emergencia_nombre", "contacto_emergencia_telefono", "apto_medico")
         }),
         ("Datos Personales (SeniorUX)", {
             "fields": ("dni", "fecha_nacimiento", "domicilio", "localidad")
@@ -172,6 +175,17 @@ class UsuarioAdmin(UserAdmin):
     )
 
 
+# =========================================================
+# Admin de Examen / Evolución
+# =========================================================
+
+@admin.register(Examen)
+class ExamenAdmin(admin.ModelAdmin):
+    list_display = ("alumno", "grado", "fecha", "examinador")
+    list_filter = ("grado", "fecha", "examinador")
+    search_fields = ("alumno__nombre", "alumno__apellido", "grado")
+    autocomplete_fields = ("alumno", "examinador")
+    
 # =========================================================
 # Admin de Asistencia
 # =========================================================

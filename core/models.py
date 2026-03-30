@@ -78,6 +78,14 @@ class Usuario(AbstractUser):
     domicilio = models.CharField("Domicilio", max_length=255, blank=True)
     localidad = models.CharField("Localidad", max_length=150, blank=True)
 
+    # Campos de Vida Marcial y Salud (Fase 2)
+    fecha_ingreso_real = models.DateField("Fecha de Ingreso a la Asociación", null=True, blank=True)
+    alergias = models.TextField("Alergias Conocidas", blank=True)
+    condiciones_medicas = models.TextField("Condiciones Médicas", blank=True)
+    contacto_emergencia_nombre = models.CharField("Nombre Contacto Emergencia", max_length=120, blank=True)
+    contacto_emergencia_telefono = models.CharField("Teléfono Contacto Emergencia", max_length=50, blank=True)
+    apto_medico = models.FileField("Certificado Apto Médico", upload_to="aptos_medicos/", null=True, blank=True)
+
     actividades = models.ManyToManyField(Actividad, blank=True, related_name="alumnos")
 
     class Meta:
@@ -99,6 +107,48 @@ class Usuario(AbstractUser):
     @property
     def nombre_completo(self):
         return f"{self.nombre} {self.apellido}".strip()
+
+    @property
+    def antiguedad_anios(self):
+        """Calcula los años de antigüedad en la asociación."""
+        from datetime import date
+        inicio = self.fecha_ingreso_real or self.date_joined.date()
+        hoy = date.today()
+        # Resta 1 si el mes/día actual es anterior al de inicio
+        anios = hoy.year - inicio.year - ((hoy.month, hoy.day) < (inicio.month, inicio.day))
+        return anios
+
+    @property
+    def estado_morosidad(self):
+        """
+        Calcula el estado de morosidad:
+        'al_dia' -> Tiene pago de mes aprobado en el mes actual.
+        'atrasado' -> No tiene pago, pero estamos entre el día 1 y 15 del mes.
+        'vencido' -> No tiene pago, y pasamos el día 15.
+        """
+        from datetime import date
+        hoy = date.today()
+        # Buscamos si hay un pago de "mes" aprobado en este mes actual
+        pago_mes_actual = self.pagos.filter(
+            tipo=self.pagos.model.TipoPago.MES,
+            estado=self.pagos.model.EstadoPago.APROBADO,
+            fecha_registro__year=hoy.year,
+            fecha_registro__month=hoy.month
+        ).exists()
+
+        if pago_mes_actual:
+            return "al_dia"
+        
+        if hoy.day <= 15:
+            return "atrasado"
+        return "vencido"
+
+    @property
+    def color_estado(self):
+        estado = self.estado_morosidad
+        if estado == "al_dia": return "green"
+        if estado == "atrasado": return "yellow"
+        return "red"
 
 
 class Asistencia(models.Model):
@@ -127,6 +177,25 @@ class Asistencia(models.Model):
     def __str__(self):
         fecha = self.fecha_hora.strftime("%d/%m/%Y %H:%M")
         return f"Asistencia de {self.alumno.nombre_completo} - {fecha}"
+
+
+class Examen(models.Model):
+    """
+    Registro de la línea de tiempo de graduaciones del alumno.
+    """
+    alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="examenes")
+    grado = models.CharField("Grado Alcanzado", max_length=100)
+    fecha = models.DateField("Fecha del Examen")
+    examinador = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="examenes_tomados")
+    observaciones = models.TextField("Observaciones / Detalles", blank=True)
+
+    class Meta:
+        verbose_name = "Examen / Graduación"
+        verbose_name_plural = "Exámenes y Graduaciones"
+        ordering = ["-fecha"]
+
+    def __str__(self):
+        return f"{self.alumno.nombre_completo} - {self.grado} ({self.fecha})"
 
 
 class Horario(models.Model):

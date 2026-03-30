@@ -9,6 +9,29 @@ from functools import wraps
 from django.views.decorators.csrf import csrf_exempt # Para el webhook
 import json
 
+def profe_requerido(view_func):
+    """
+    Decorador para asegurar que el usuario es profesor.
+    Requiere que esté logueado (sesión o Django Auth).
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        # Primero revisamos si hay alumno_id en sesión y si es profe
+        if 'alumno_id' in request.session:
+            usuario = Usuario.objects.filter(id=request.session['alumno_id']).first()
+            if usuario and usuario.es_profe:
+                request.user_obj = usuario # Guardamos el objeto para la vista
+                return view_func(request, *args, **kwargs)
+        
+        # Si no, probamos con el request.user estándar (admin/staff que también es profe)
+        if request.user.is_authenticated and getattr(request.user, 'es_profe', False):
+            request.user_obj = request.user
+            return view_func(request, *args, **kwargs)
+            
+        messages.error(request, "Acceso restringido solo para profesores.")
+        return redirect('inicio')
+    return _wrapped_view
+
 def alumno_requerido(view_func):
     """
     Decorador para asegurar que el alumno está identificado en la sesión.
@@ -148,8 +171,7 @@ def inicio(request):
 @alumno_requerido
 def registrar_asistencia(request):
     """
-    Registra la asistencia y redirige a gracias.
-    Espera 'actividad_id' en el POST.
+    Registra la asistencia y redirige a gracias. (Hecho por el alumno).
     """
     if request.method == 'POST':
         alumno = Usuario.objects.get(id=request.session['alumno_id'])
@@ -159,6 +181,42 @@ def registrar_asistencia(request):
         messages.success(request, f"¡Asistencia a {actividad.nombre} registrada!")
         return redirect('gracias')
     return redirect('inicio')
+
+
+@profe_requerido
+def escanear_qr_alumno(request, alumno_id):
+    """
+    Vista a la que llega el profesor al escanear el QR del alumno.
+    Muestra el estado de deuda ("Cartel Emergente") y permite registrar la asistencia.
+    """
+    alumno = get_object_or_404(Usuario, id=alumno_id)
+    
+    # Obtenemos el profesor actual (del decorador)
+    profesor = request.user_obj
+    
+    # Obtenemos las clases que este profesor dicta y donde el alumno podría asistir
+    # Para el MVP, mostramos todas las actividades que coinciden entre alumno y profesor
+    actividades_profesor = Actividad.objects.filter(clases_asignadas__profesor=profesor).distinct()
+    actividades_comunes = alumno.actividades.filter(id__in=actividades_profesor)
+
+    if request.method == 'POST':
+        # El profesor confirma la asistencia
+        actividad_id = request.POST.get('actividad_id')
+        actividad = get_object_or_404(Actividad, id=actividad_id)
+        
+        # NO registramos si está vencido y el sistema es estricto
+        if alumno.estado_morosidad == 'vencido':
+            messages.error(request, "Alumno VENCIDO. No puede registrar asistencia hasta regularizar el pago.")
+        else:
+            Asistencia.objects.create(alumno=alumno, actividad=actividad)
+            messages.success(request, f"Asistencia de {alumno.nombre_completo} registrada correctamente.")
+        
+        return redirect('escanear_qr_alumno', alumno_id=alumno.id)
+
+    return render(request, 'core/escanear_qr.html', {
+        'alumno_qr': alumno,
+        'actividades_comunes': actividades_comunes
+    })
 
 
 @alumno_requerido
