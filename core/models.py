@@ -347,3 +347,114 @@ class Pago(models.Model):
 
         if errores:
             raise ValidationError(errores)
+
+
+# =========================================================
+# FASE 3: Tienda "E-Commerce" LongHuHe (Equipamiento)
+# =========================================================
+
+class CategoriaProducto(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Categoría de Producto"
+        verbose_name_plural = "Categorías de Productos"
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class Producto(models.Model):
+    categoria = models.ForeignKey(CategoriaProducto, on_delete=models.CASCADE, related_name="productos")
+    nombre = models.CharField(max_length=150)
+    descripcion = models.TextField(blank=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.IntegerField(default=0)
+    activo = models.BooleanField(default=True, help_text="Si es Falso, se oculta de la tienda")
+    permite_backorder = models.BooleanField(default=False, help_text="Permitir comprar aunque el stock sea 0")
+    
+    # Múltiples fotos para la ficha del producto
+    foto1 = models.ImageField(upload_to="tienda/", blank=True, null=True)
+    foto2 = models.ImageField(upload_to="tienda/", blank=True, null=True)
+    foto3 = models.ImageField(upload_to="tienda/", blank=True, null=True)
+    foto4 = models.ImageField(upload_to="tienda/", blank=True, null=True)
+    foto5 = models.ImageField(upload_to="tienda/", blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Producto"
+        verbose_name_plural = "Productos"
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+    @property
+    def hay_stock(self):
+        return self.stock > 0
+
+    @property
+    def se_puede_comprar(self):
+        return self.activo and (self.hay_stock or self.permite_backorder)
+
+
+class Pedido(models.Model):
+    class Estado(models.TextChoices):
+        PENDIENTE = "pendiente", "Pendiente de Pago/Conf"
+        PAGADO = "pagado", "Pagado - A Preparar"
+        ENTREGADO = "entregado", "Entregado"
+        CANCELADO = "cancelado", "Cancelado"
+
+    alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="pedidos_tienda")
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PENDIENTE)
+    
+    # Montos y Pago
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    metodo_pago = models.CharField(max_length=20, choices=Pago.MetodoPago.choices)
+    cuotas = models.IntegerField(default=1)
+    comprobante = models.FileField(upload_to="comprobantes_pedidos/", blank=True, null=True)
+    
+    # Integración Mercado Pago Central
+    mercado_pago_id = models.CharField(max_length=255, null=True, blank=True)
+    mercado_pago_status = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Comisiones (Balance Vivo)
+    profesor_venta = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True, 
+        related_name="ventas_tienda_generadas",
+        limit_choices_to={'es_profe': True},
+        help_text="Profesor que recibirá comisión por esta venta."
+    )
+    porcentaje_comision = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0, help_text="% de ganancia para el profesor"
+    )
+    monto_comision = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, help_text="Calculado automáticamente"
+    )
+    backorder = models.BooleanField(
+        default=False, help_text="Algún producto se compró sin stock y requiere reposición rápida"
+    )
+
+    class Meta:
+        verbose_name = "Pedido de Tienda"
+        verbose_name_plural = "Pedidos de Tienda"
+        ordering = ["-fecha_registro"]
+
+    def __str__(self):
+        return f"Pedido #{self.id} - {self.alumno.nombre_completo} - {self.get_estado_display()}"
+
+
+class PedidoItem(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="items")
+    producto = models.ForeignKey(Producto, on_delete=models.RESTRICT)
+    cantidad = models.IntegerField(default=1)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = "Item de Pedido"
+        verbose_name_plural = "Items de Pedido"
+
+    def __str__(self):
+        return f"{self.cantidad}x {self.producto.nombre} (Pedido #{self.pedido.id})"

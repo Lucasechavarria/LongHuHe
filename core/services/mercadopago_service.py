@@ -75,3 +75,34 @@ class MercadoPagoService:
         """
         payment_info = self.sdk.payment().get(payment_id)
         return payment_info["response"]
+
+    def crear_preferencia_tienda(self, titulo, precio, url_retorno, externo_id):
+        """
+        Crea una preferencia directa para carrito de compras / tienda.
+        """
+        base_url = os.environ.get('WEBHOOK_URL_BASE', '')
+        # En la tienda, el dinero va a la central (por defecto SIN access_token sobreescrito)
+        webhook_url = f"{base_url}/mercadopago/webhook/?identificador_tienda={externo_id}"
+
+        preference_data = {
+            "items": [
+                {
+                    "title": titulo,
+                    "quantity": 1,
+                    "unit_price": precio,
+                    "currency_id": "ARS"
+                }
+            ],
+            "back_urls": {
+                "success": url_retorno,
+                "failure": url_retorno,
+                "pending": url_retorno
+            },
+            "auto_return": "approved",
+            "notification_url": webhook_url,
+            "external_reference": str(externo_id)
+        }
+
+        preference_response = self.sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+        return preference["init_point"]

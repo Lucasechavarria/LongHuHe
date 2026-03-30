@@ -16,4 +16,8 @@ urlpatterns = [
     path('pago/mercadopago/<int:pago_id>/', views.pago_mercadopago_checkout, name='pago_mercadopago_checkout'), # Checkout automático
     path('mercadopago/webhook/', views.mercadopago_webhook, name='mercadopago_webhook'), # Webhook
     path('gracias/', views.gracias, name='gracias'),
+    
+    # Tienda E-Commerce
+    path('tienda/', views.tienda_inicio, name='tienda_inicio'),
+    path('tienda/comprar/<int:producto_id>/', views.tienda_comprar, name='tienda_comprar'),
 ]

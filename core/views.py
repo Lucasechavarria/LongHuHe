@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuario, Asistencia, Pago, Locacion, Actividad, ClaseProgramada
+from .models import Usuario, Asistencia, Pago, Locacion, Actividad, ClaseProgramada, Producto, CategoriaProducto, Pedido, PedidoItem
 from .forms import AlumnoOnboardingForm, PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from .services.mercadopago_service import MercadoPagoService # Importar el servicio
 from functools import wraps
@@ -419,29 +419,47 @@ def mercadopago_webhook(request):
             resource_id = request.GET.get("id") or (data.get("data", {}).get("id"))
 
             if topic == "payment" and resource_id:
-                # Recibimos el parámetro para saber de qué profesor es el token
+                # Recibimos el parámetro para saber si es de clase o de tienda
                 identificador_pago = request.GET.get('identificador_pago')
+                identificador_tienda = request.GET.get('identificador_tienda')
+                
                 access_token = None
                 
+                # 1. Pago de Clase (Usa token del profesor si existe)
                 if identificador_pago:
                     pago_original = Pago.objects.filter(id=identificador_pago).first()
                     if pago_original and pago_original.clase_programada and getattr(pago_original.clase_programada.profesor, 'mp_access_token', None):
                         access_token = pago_original.clase_programada.profesor.mp_access_token
+                        
+                # 2. Pago de Tienda (Usa token central, no sobreescribimos access_token)
+                # (Si tuviéramos franquicias, aquí se buscaría el token de la franquicia)
                 
                 mp_service = MercadoPagoService(access_token)
                 payment_info = mp_service.obtener_pago(resource_id)
                 
                 # Buscamos el pago en la base de datos usando external_reference
-                pago_id = payment_info.get("external_reference")
+                external_ref = payment_info.get("external_reference")
                 status = payment_info.get("status")
                 
-                if pago_id:
-                    pago = Pago.objects.filter(id=pago_id).first()
-                    if pago:
-                        pago.mercado_pago_status = status
-                        if status == "accredited":
-                            pago.estado = Pago.EstadoPago.APROBADO
-                        pago.save()
+                if external_ref:
+                    # Discriminamos si es Tienda o Pago Normal
+                    if external_ref.startswith('TIENDA_'):
+                        pedido_id = external_ref.replace('TIENDA_', '')
+                        pedido = Pedido.objects.filter(id=pedido_id).first()
+                        if pedido:
+                            pedido.mercado_pago_status = status
+                            pedido.mercado_pago_id = resource_id
+                            if status == "accredited" or status == "approved":
+                                pedido.estado = Pedido.Estado.PAGADO
+                            pedido.save()
+                    else:
+                        pago = Pago.objects.filter(id=external_ref).first()
+                        if pago:
+                            pago.mercado_pago_status = status
+                            pago.mercado_pago_id = resource_id
+                            if status == "accredited" or status == "approved":
+                                pago.estado = Pago.EstadoPago.APROBADO
+                            pago.save()
             
             return render(request, 'core/webhook_success.html', status=200) # O HttpResponse(status=200)
         except Exception as e:
@@ -449,3 +467,104 @@ def mercadopago_webhook(request):
             return render(request, 'core/webhook_error.html', status=500)
 
     return render(request, 'core/webhook_error.html', status=400)
+
+
+# =========================================================
+# FASE 3: Vistas de Tienda E-Commerce
+# =========================================================
+
+@alumno_requerido
+def tienda_inicio(request):
+    """
+    Muestra los productos disponibles en la tienda.
+    Oculta los que tienen activo=False.
+    """
+    categorias = CategoriaProducto.objects.prefetch_related('productos').all()
+    # Filtramos productos activos para la vista
+    # Pasamos las categorías y los productos
+    return render(request, 'core/tienda.html', {
+        'categorias': categorias,
+        'productos': Producto.objects.filter(activo=True)
+    })
+
+@alumno_requerido
+def tienda_comprar(request, producto_id):
+    """
+    Flujo rápido de compra de 1 producto.
+    Si el método es Mercado Pago, delega al servicio central (sin token de profe).
+    """
+    from decimal import Decimal
+    producto = get_object_or_404(Producto, id=producto_id, activo=True)
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    
+    if request.method == 'POST':
+        metodo_pago = request.POST.get('metodo_pago')
+        cantidad = int(request.POST.get('cantidad', 1))
+        
+        # Validación de Backorder
+        es_backorder = False
+        if producto.stock < cantidad:
+            if not producto.permite_backorder:
+                messages.error(request, "Stock insuficiente y el artículo no permite reservas.")
+                return redirect('tienda_inicio')
+            es_backorder = True
+            
+        precio_total = producto.precio * cantidad
+        
+        # Calculamos la comisión para el profesor actual del alumno.
+        profesor_venta = None
+        primera_clase = Pago.objects.filter(
+            alumno=alumno, 
+            clase_programada__isnull=False
+        ).order_by('-fecha_registro').first()
+        
+        if primera_clase and primera_clase.clase_programada:
+            profesor_venta = primera_clase.clase_programada.profesor
+            
+        # Comision default 10% para el profesor
+        porcentaje_comision = Decimal('10.0') if profesor_venta else Decimal('0.0')
+        monto_comision = (precio_total * porcentaje_comision) / Decimal('100.0')
+
+        pedido = Pedido.objects.create(
+            alumno=alumno,
+            total=precio_total,
+            metodo_pago=metodo_pago,
+            estado=Pedido.Estado.PENDIENTE,
+            profesor_venta=profesor_venta,
+            porcentaje_comision=porcentaje_comision,
+            monto_comision=monto_comision,
+            backorder=es_backorder
+        )
+        
+        PedidoItem.objects.create(
+            pedido=pedido,
+            producto=producto,
+            cantidad=cantidad,
+            precio_unitario=producto.precio
+        )
+        
+        # Descontamos stock (puede quedar negativo si hay backorder)
+        producto.stock -= cantidad
+        producto.save()
+        
+        # Si es MP, redirigimos a gateway. Si no, a confirmación manual (gracias).
+        if metodo_pago == Pago.MetodoPago.MERCADOPAGO:
+            # MVP: Creamos una preferencia MP central
+            from .services.mercadopago_service import MercadoPagoService
+            # Para la tienda, la cuenta es la de la asociación (sin access_token sobreescrito)
+            mp_service = MercadoPagoService()
+            pref_url = mp_service.crear_preferencia_tienda(
+                titulo=f"Tienda LongHuHe: {producto.nombre} x{cantidad}",
+                precio=float(precio_total),
+                url_retorno=request.build_absolute_uri('/gracias/'),
+                externo_id=f"TIENDA_{pedido.id}"
+            )
+            return redirect(pref_url)
+            
+        else:
+            messages.success(request, f"Pedido generado con éxito. Entrégaselo a tu profesor o al encargado.")
+            return redirect('gracias')
+
+    return render(request, 'core/tienda_comprar.html', {
+        'producto': producto
+    })

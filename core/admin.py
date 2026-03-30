@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
 
-from .models import Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, Examen
+from .models import Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, Examen, CategoriaProducto, Producto, Pedido, PedidoItem
 
 
 # =========================================================
@@ -298,3 +298,49 @@ class PagoAdmin(admin.ModelAdmin):
     def marcar_como_pendiente(self, request, queryset):
         actualizados = queryset.update(estado=Pago.EstadoPago.PENDIENTE)
         self.message_user(request, f"{actualizados} pago(s) marcados como pendientes.")
+
+
+# =========================================================
+# Admin de Tienda E-Commerce
+# =========================================================
+
+@admin.register(CategoriaProducto)
+class CategoriaProductoAdmin(admin.ModelAdmin):
+    list_display = ("nombre",)
+    search_fields = ("nombre",)
+
+
+@admin.register(Producto)
+class ProductoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "categoria", "precio", "stock", "activo", "permite_backorder")
+    list_filter = ("categoria", "activo", "permite_backorder")
+    search_fields = ("nombre", "descripcion")
+    list_editable = ("precio", "stock", "activo", "permite_backorder")
+
+
+class PedidoItemInline(admin.TabularInline):
+    model = PedidoItem
+    extra = 1
+
+@admin.register(Pedido)
+class PedidoAdmin(admin.ModelAdmin):
+    """
+    Vista del administrador central para la Tienda.
+    Muestra rápidamente qué facturar y con qué profesor liquidar comisiones.
+    """
+    list_display = ("id", "alumno", "fecha_registro", "estado", "total", "metodo_pago", "backorder", "monto_comision")
+    list_filter = ("estado", "metodo_pago", "backorder", "fecha_registro", "profesor_venta")
+    search_fields = ("alumno__nombre", "alumno__apellido", "id")
+    list_editable = ("estado",)
+    inlines = [PedidoItemInline]
+    autocomplete_fields = ("alumno", "profesor_venta")
+    
+    actions = ("marcar_como_pagado", "marcar_como_entregado")
+
+    @admin.action(description="Marcar pedidos como PAGADOS")
+    def marcar_como_pagado(self, request, queryset):
+        queryset.update(estado=Pedido.Estado.PAGADO)
+        
+    @admin.action(description="Marcar pedidos como ENTREGADOS")
+    def marcar_como_entregado(self, request, queryset):
+        queryset.update(estado=Pedido.Estado.ENTREGADO)
