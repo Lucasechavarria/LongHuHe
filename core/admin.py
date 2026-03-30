@@ -4,7 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
 
-from .models import Asistencia, Locacion, Pago, Usuario, Actividad
+from .models import Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada
 
 
 # =========================================================
@@ -62,6 +62,26 @@ class LocacionAdmin(admin.ModelAdmin):
     @admin.display(description="Usuarios")
     def total_usuarios(self, obj):
         return obj.usuarios.count()
+
+
+# =========================================================
+# Admin de Marketplace (Horarios y Clases)
+# =========================================================
+
+@admin.register(Horario)
+class HorarioAdmin(admin.ModelAdmin):
+    list_display = ("dia", "hora_inicio", "hora_fin")
+    list_filter = ("dia",)
+    ordering = ("dia", "hora_inicio")
+
+
+@admin.register(ClaseProgramada)
+class ClaseProgramadaAdmin(admin.ModelAdmin):
+    list_display = ("actividad", "locacion", "profesor")
+    list_filter = ("actividad", "locacion", "profesor")
+    search_fields = ("profesor__nombre", "profesor__apellido", "actividad__nombre", "locacion__nombre")
+    filter_horizontal = ("horarios",)
+    autocomplete_fields = ("profesor",)
 
 
 # =========================================================
@@ -210,7 +230,7 @@ class PagoAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "alumno",
-        "actividad",
+        "clase_programada",
         "locacion_alumno",
         "tipo",
         "cantidad_clases",
@@ -221,10 +241,10 @@ class PagoAdmin(admin.ModelAdmin):
     )
     list_filter = (
         "estado",
-        "actividad",
         "tipo",
         "metodo",
         "fecha_registro",
+        "clase_programada",
         "alumno__locacion",
     )
     search_fields = (
