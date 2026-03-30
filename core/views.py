@@ -4,7 +4,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario, Asistencia, Pago, Locacion, Actividad
 from .forms import AlumnoOnboardingForm, PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
+from .services.mercadopago_service import MercadoPagoService # Importar el servicio
 from functools import wraps
+from django.views.decorators.csrf import csrf_exempt # Para el webhook
+import json
 
 def alumno_requerido(view_func):
     """
@@ -206,8 +209,8 @@ def pago_metodo(request):
             request.session['pago_data'] = pago_data
             request.session.modified = True
             
-            # Si es efectivo, terminamos aquí
-            if form.cleaned_data['metodo'] == Pago.MetodoPago.EFECTIVO:
+            # Si es efectivo o Mercado Pago, terminamos aquí o vamos a confirmación
+            if form.cleaned_data['metodo'] in [Pago.MetodoPago.EFECTIVO, Pago.MetodoPago.MERCADOPAGO]:
                 return redirect('pago_confirmacion')
             
             return redirect('pago_comprobante')
@@ -250,6 +253,11 @@ def pago_comprobante(request):
                 metodo=pago_data.get('metodo') or pago_data.get('método'),
                 comprobante=request.FILES.get('comprobante')
             )
+            
+            # Si el método es Mercado Pago, redirigimos al checkout automático
+            if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
+                return redirect('pago_mercadopago_checkout', pago_id=pago.id)
+
             del request.session['pago_data']
             return redirect('gracias')
     else:
@@ -275,13 +283,17 @@ def pago_confirmacion(request):
     else: actividad = get_object_or_404(Actividad, id=actividad_id)
 
     if request.method == 'POST':
-        Pago.objects.create(
+        pago = Pago.objects.create(
             alumno=alumno,
             actividad=actividad,
             tipo=pago_data['tipo'],
             cantidad_clases=pago_data.get('cantidad_clases'),
             metodo=pago_data.get('metodo') or pago_data.get('método')
         )
+        # Si el método es Mercado Pago, redirigimos al checkout automático
+        if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
+            return redirect('pago_mercadopago_checkout', pago_id=pago.id)
+
         del request.session['pago_data']
         return redirect('gracias')
     
@@ -293,3 +305,55 @@ def gracias(request):
     Pantalla de éxito.
     """
     return render(request, 'core/gracias.html')
+
+
+@alumno_requerido
+def pago_mercadopago_checkout(request, pago_id):
+    """
+    Genera la preferencia de pago en Mercado Pago y redirige al alumno.
+    """
+    pago = get_object_or_404(Pago, id=pago_id, alumno_id=request.session['alumno_id'])
+    mp_service = MercadoPagoService()
+    
+    try:
+        init_point = mp_service.crear_preferencia(pago)
+        return redirect(init_point)
+    except Exception as e:
+        messages.error(request, f"Error al conectar con Mercado Pago: {str(e)}")
+        return redirect('pago_metodo')
+
+
+@csrf_exempt
+def mercadopago_webhook(request):
+    """
+    Recibe notificaciones de pago desde la API de Mercado Pago.
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            # Mercado Pago envía notificaciones de tipo 'payment' e 'order'
+            topic = request.GET.get("topic") or data.get("type")
+            resource_id = request.GET.get("id") or (data.get("data", {}).get("id"))
+
+            if topic == "payment" and resource_id:
+                mp_service = MercadoPagoService()
+                payment_info = mp_service.obtener_pago(resource_id)
+                
+                # Buscamos el pago en la base de datos usando external_reference
+                pago_id = payment_info.get("external_reference")
+                status = payment_info.get("status")
+                
+                if pago_id:
+                    pago = Pago.objects.filter(id=pago_id).first()
+                    if pago:
+                        pago.mercado_pago_status = status
+                        if status == "accredited":
+                            pago.estado = Pago.EstadoPago.APROBADO
+                        pago.save()
+            
+            return render(request, 'core/webhook_success.html', status=200) # O HttpResponse(status=200)
+        except Exception as e:
+            # En producción, loguear este error
+            return render(request, 'core/webhook_error.html', status=500)
+
+    return render(request, 'core/webhook_error.html', status=400)

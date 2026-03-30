@@ -44,6 +44,7 @@ class UsuarioAdminChangeForm(UserChangeForm):
 @admin.register(Actividad)
 class ActividadAdmin(admin.ModelAdmin):
     list_display = ("nombre", "precio_mes", "precio_clase")
+    list_editable = ("precio_mes", "precio_clase")
     search_fields = ("nombre",)
 
 

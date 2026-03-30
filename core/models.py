@@ -173,6 +173,8 @@ class Pago(models.Model):
         choices=EstadoPago.choices,
         default=EstadoPago.PENDIENTE,
     )
+    mercado_pago_id = models.CharField(max_length=255, null=True, blank=True)
+    mercado_pago_status = models.CharField(max_length=50, null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:

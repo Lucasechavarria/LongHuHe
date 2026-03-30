@@ -12,5 +12,7 @@ urlpatterns = [
     path('pago/metodo/', views.pago_metodo, name='pago_metodo'),
     path('pago/comprobante/', views.pago_comprobante, name='pago_comprobante'),
     path('pago/confirmacion/', views.pago_confirmacion, name='pago_confirmacion'),
+    path('pago/mercadopago/<int:pago_id>/', views.pago_mercadopago_checkout, name='pago_mercadopago_checkout'), # Checkout automático
+    path('mercadopago/webhook/', views.mercadopago_webhook, name='mercadopago_webhook'), # Webhook
     path('gracias/', views.gracias, name='gracias'),
 ]
