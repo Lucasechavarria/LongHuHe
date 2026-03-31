@@ -7,7 +7,16 @@
     
     <!-- Hero Section -->
     <header class="text-center py-10">
+        {% if alumno.es_profe %}
+            <div class="mb-4">
+                <a href="{% url 'abrir_scanner' %}" class="inline-flex items-center gap-3 bg-white/5 border-2 border-orange-500/50 text-orange-400 px-8 py-3 rounded-full font-black uppercase tracking-widest text-sm hover:bg-orange-500 hover:text-white transition-all shadow-[0_0_20px_rgba(255,140,0,0.2)]">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm2 2v2h2V6zM4 14h6v6H4zm2 2v2h2v-2zM14 4h6v6h-6zm2 2v2h2V6zM14 15h2v-1h2v-2h-2v1h-2v2zm2 5h-2v-4h1v1h1v1h2v-1h1v3h-3v-1h-1v1H16z"/></svg>
+                    Modo Profesor (Escanear)
+                </a>
+            </div>
+        {% endif %}
         <p class="text-5xl font-black text-white leading-tight tracking-tight">
+
             ¡Bienvenido, <span class="relative inline-block">
                 {{ alumno.nombre }}
                 <span class="absolute bottom-0 left-0 w-full h-2 bg-orange-500/30 -rotate-1"></span>
@@ -202,7 +211,8 @@
             
             <!-- Contenedor QR Visual -->
             <div class="w-full aspect-square border-8 border-gray-100 rounded-3xl p-4 flex items-center justify-center relative bg-white">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ request.scheme }}://{{ request.get_host }}/asistencia/escanear/{{alumno.id}}/" alt="QR Code" class="w-full h-full object-contain">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ request.scheme }}://{{ request.get_host }}/asistencia/validar/{{alumno.uuid_carnet}}/" alt="QR Code" class="w-full h-full object-contain">
+
                 
                 {% if alumno.estado_morosidad == 'vencido' %}
                 <!-- Superposición de Bloqueo -->

@@ -10,6 +10,20 @@
         <h1 class="text-3xl font-black text-white uppercase tracking-tight">Registro de Asistencia</h1>
         <p class="text-white/60 font-bold mt-2">Visor del Profesor</p>
     </header>
+    
+    <!-- Alerta Médica Crítica (Punto 2 del ERP) -->
+    {% if alerta_medica %}
+        <div class="bg-red-600 p-6 rounded-[2rem] border-4 border-white shadow-[0_0_30px_rgba(220,38,38,0.5)] animate-pulse">
+            <div class="flex items-center gap-4">
+                <span class="text-4xl">⚠️</span>
+                <div>
+                    <h3 class="text-white font-black uppercase text-xl leading-tight">ALERTA DE SALUD</h3>
+                    <p class="text-white font-bold">{{ mensaje_alerta }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
 
     {% if messages %}
         <div class="space-y-4">

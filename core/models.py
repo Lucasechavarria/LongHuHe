@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -87,6 +88,11 @@ class Usuario(AbstractUser):
     apto_medico = models.FileField("Certificado Apto Médico", upload_to="aptos_medicos/", null=True, blank=True)
 
     actividades = models.ManyToManyField(Actividad, blank=True, related_name="alumnos")
+    
+    # --- ERP / Gestión de Asistencia y Pagos ---
+    uuid_carnet = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    fecha_vencimiento_cuota = models.DateField("Fecha de Vencimiento de Cuota", null=True, blank=True)
+
 
     class Meta:
         verbose_name = "Usuario"
@@ -121,26 +127,33 @@ class Usuario(AbstractUser):
     @property
     def estado_morosidad(self):
         """
-        Calcula el estado de morosidad:
-        'al_dia' -> Tiene pago de mes aprobado en el mes actual.
-        'atrasado' -> No tiene pago, pero estamos entre el día 1 y 15 del mes.
-        'vencido' -> No tiene pago, y pasamos el día 15.
+        Calcula el estado de morosidad basado en la fecha de vencimiento:
+        'al_dia' -> Hoy <= fecha_vencimiento_cuota.
+        'atrasado' -> Pasó el vencimiento, pero estamos dentro de los 5 días de gracia (opcional, por ahora 0).
+        'vencido' -> Pasó el vencimiento.
         """
         from datetime import date
         hoy = date.today()
-        # Buscamos si hay un pago de "mes" aprobado en este mes actual
-        pago_mes_actual = self.pagos.filter(
-            tipo=self.pagos.model.TipoPago.MES,
-            estado=self.pagos.model.EstadoPago.APROBADO,
-            fecha_registro__year=hoy.year,
-            fecha_registro__month=hoy.month
-        ).exists()
+        
+        if not self.fecha_vencimiento_cuota:
+            # Si no tiene fecha, usamos la lógica anterior por defecto (mes actual)
+            pago_mes_actual = self.pagos.filter(
+                tipo=self.pagos.model.TipoPago.MES,
+                estado=self.pagos.model.EstadoPago.APROBADO,
+                fecha_registro__year=hoy.year,
+                fecha_registro__month=hoy.month
+            ).exists()
+            if pago_mes_actual: return "al_dia"
+            return "vencido"
 
-        if pago_mes_actual:
+        if hoy <= self.fecha_vencimiento_cuota:
             return "al_dia"
         
-        if hoy.day <= 15:
+        # Margen de gracia de 5 días para 'atrasado'
+        from datetime import timedelta
+        if hoy <= (self.fecha_vencimiento_cuota + timedelta(days=5)):
             return "atrasado"
+            
         return "vencido"
 
     @property
@@ -149,6 +162,7 @@ class Usuario(AbstractUser):
         if estado == "al_dia": return "green"
         if estado == "atrasado": return "yellow"
         return "red"
+
 
 
 class Asistencia(models.Model):
@@ -375,7 +389,15 @@ class Producto(models.Model):
     activo = models.BooleanField(default=True, help_text="Si es Falso, se oculta de la tienda")
     permite_backorder = models.BooleanField(default=False, help_text="Permitir comprar aunque el stock sea 0")
     
+    # Comisiones y Financiación (Solicitado por el usuario)
+    cuotas_maximas = models.IntegerField("Cuotas Máximas", default=1)
+    porcentaje_comision = models.DecimalField(
+        "Porcentaje de Comisión Profe", max_digits=5, decimal_places=2, default=0,
+        help_text="Comisión que se lleva el profesor por vender este producto específico."
+    )
+    
     # Múltiples fotos para la ficha del producto
+
     foto1 = models.ImageField(upload_to="tienda/", blank=True, null=True)
     foto2 = models.ImageField(upload_to="tienda/", blank=True, null=True)
     foto3 = models.ImageField(upload_to="tienda/", blank=True, null=True)

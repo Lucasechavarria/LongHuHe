@@ -8,6 +8,8 @@ from .services.mercadopago_service import MercadoPagoService # Importar el servi
 from functools import wraps
 from django.views.decorators.csrf import csrf_exempt # Para el webhook
 import json
+import uuid
+
 
 def profe_requerido(view_func):
     """
@@ -184,20 +186,38 @@ def registrar_asistencia(request):
 
 
 @profe_requerido
-def escanear_qr_alumno(request, alumno_id):
+def abrir_scanner(request):
+    """
+    Vista que abre la cámara del profesor para escanear el QR del alumno.
+    """
+    return render(request, 'core/abrir_scanner.html')
+
+
+@profe_requerido
+def escanear_qr_alumno(request, uuid_carnet):
     """
     Vista a la que llega el profesor al escanear el QR del alumno.
-    Muestra el estado de deuda ("Cartel Emergente") y permite registrar la asistencia.
+    Identifica al alumno por su UUID único.
     """
-    alumno = get_object_or_404(Usuario, id=alumno_id)
+    alumno = get_object_or_404(Usuario, uuid_carnet=uuid_carnet)
     
     # Obtenemos el profesor actual (del decorador)
     profesor = request.user_obj
     
     # Obtenemos las clases que este profesor dicta y donde el alumno podría asistir
-    # Para el MVP, mostramos todas las actividades que coinciden entre alumno y profesor
     actividades_profesor = Actividad.objects.filter(clases_asignadas__profesor=profesor).distinct()
     actividades_comunes = alumno.actividades.filter(id__in=actividades_profesor)
+
+    # Lógica de Alertas Médicas Críticas
+    alerta_medica = False
+    mensaje_alerta = ""
+    
+    if not alumno.apto_medico:
+        alerta_medica = True
+        mensaje_alerta = "¡SIN APTO MÉDICO! No puede realizar actividad física."
+    elif alumno.condiciones_medicas:
+        alerta_medica = True
+        mensaje_alerta = f"ATENCIÓN MÉDICA: {alumno.condiciones_medicas}"
 
     if request.method == 'POST':
         # El profesor confirma la asistencia
@@ -211,12 +231,15 @@ def escanear_qr_alumno(request, alumno_id):
             Asistencia.objects.create(alumno=alumno, actividad=actividad)
             messages.success(request, f"Asistencia de {alumno.nombre_completo} registrada correctamente.")
         
-        return redirect('escanear_qr_alumno', alumno_id=alumno.id)
+        return redirect('escanear_qr_alumno', uuid_carnet=alumno.uuid_carnet)
 
     return render(request, 'core/escanear_qr.html', {
         'alumno_qr': alumno,
-        'actividades_comunes': actividades_comunes
+        'actividades_comunes': actividades_comunes,
+        'alerta_medica': alerta_medica,
+        'mensaje_alerta': mensaje_alerta
     })
+
 
 
 @alumno_requerido
@@ -521,8 +544,9 @@ def tienda_comprar(request, producto_id):
         if primera_clase and primera_clase.clase_programada:
             profesor_venta = primera_clase.clase_programada.profesor
             
-        # Comision default 10% para el profesor
-        porcentaje_comision = Decimal('10.0') if profesor_venta else Decimal('0.0')
+        # Comision dinámica basada en el producto
+        porcentaje_comision = producto.porcentaje_comision if profesor_venta else Decimal('0.0')
+
         monto_comision = (precio_total * porcentaje_comision) / Decimal('100.0')
 
         pedido = Pedido.objects.create(
