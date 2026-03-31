@@ -77,10 +77,11 @@
             {% if alumno_qr.estado_morosidad != 'al_dia' %}
                 <p class="text-white/60 text-sm mt-1 font-bold">
                     {% if alumno_qr.estado_morosidad == 'atrasado' %}
-                        El alumno está dentro de los 15 días de gracia. Recuerda pedirle que regularice su cuota mensual.
+                        El alumno está dentro de los 5 días de gracia. Recuerda pedirle que regularice su cuota mensual.
                     {% else %}
-                        El plazo de 15 días venció. El sistema bloquea el registro de asistencia hasta nuevo pago.
+                        El plazo de 5 días venció. El sistema bloquea el registro de asistencia hasta nuevo pago.
                     {% endif %}
+
                 </p>
             {% endif %}
         </div>
