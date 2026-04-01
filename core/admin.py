@@ -86,7 +86,9 @@ class UsuarioAdmin(UserAdmin):
         return format_html('<b style="color:{}; text-transform:uppercase;">{}</b>', color, obj.estado_morosidad)
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or request.user.rol_gestion_alumnos or request.user.rol_acceso_total
+        if not request.user.is_authenticated:
+            return False
+        return request.user.is_superuser or getattr(request.user, 'rol_gestion_alumnos', False) or getattr(request.user, 'rol_acceso_total', False)
 
 
 # =========================================================
@@ -136,10 +138,13 @@ class ClaseProgramadaAdmin(SedesAdminMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser or request.user.rol_acceso_total or request.user.rol_gestion_sedes:
+        user = request.user
+        if not user.is_authenticated:
+            return qs.none()
+        if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_sedes', False):
             return qs
         # Si es profesor titular de la sede, puede ver sus clases para asignar asistentes
-        return qs.filter(profesor=request.user)
+        return qs.filter(profesor=user)
 
 
 # =========================================================
@@ -178,14 +183,18 @@ class PagoAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         user = request.user
-        return user.is_superuser or user.rol_acceso_total or user.rol_gestion_tesoreria or user.es_profe
+        if not user.is_authenticated:
+            return False
+        return user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False) or getattr(user, 'es_profe', False)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         user = request.user
-        if user.is_superuser or user.rol_acceso_total or user.rol_gestion_tesoreria:
+        if not user.is_authenticated:
+            return qs.none()
+        if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False):
             return qs
-        if user.es_profe:
+        if getattr(user, 'es_profe', False):
             return qs.filter(alumno__locacion__usuarios=user).distinct()
         return qs.none()
 
@@ -220,19 +229,30 @@ class PedidoAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         user = request.user
+        if not user.is_authenticated:
+            return False
         es_delegado = Usuario.objects.filter(tesorero_autorizado=user, autorizacion_tesoreria_activa=True).exists()
-        return user.is_superuser or user.rol_acceso_total or user.rol_gestion_tienda or user.rol_gestion_tesoreria or user.es_profe or es_delegado
+        return (
+            user.is_superuser or 
+            getattr(user, 'rol_acceso_total', False) or 
+            getattr(user, 'rol_gestion_tienda', False) or 
+            getattr(user, 'rol_gestion_tesoreria', False) or 
+            getattr(user, 'es_profe', False) or 
+            es_delegado
+        )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         user = request.user
-        if user.is_superuser or user.rol_acceso_total or user.rol_gestion_tesoreria or user.rol_gestion_tienda:
+        if not user.is_authenticated:
+            return qs.none()
+        if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False) or getattr(user, 'rol_gestion_tienda', False):
             return qs
         query = Q(profesor_venta=user)
         profesores_que_delegaron = Usuario.objects.filter(tesorero_autorizado=user, autorizacion_tesoreria_activa=True)
         if profesores_que_delegaron.exists():
             query |= Q(profesor_venta__in=profesores_que_delegaron)
-        if user.es_profe or profesores_que_delegaron.exists():
+        if getattr(user, 'es_profe', False) or profesores_que_delegaron.exists():
             return qs.filter(query)
         return qs.none()
 
