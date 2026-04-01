@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from .models import (
     Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, 
-    Grado, Examen, CategoriaProducto, Producto, Pedido, PedidoItem,
+    Grado, Examen, CategoriaProducto, Producto, ProductoVariante, Pedido, PedidoItem,
     CategoriaContenido, Documento, VideoTutorial
 )
 
@@ -266,11 +266,20 @@ class PedidoAdmin(admin.ModelAdmin):
 class CategoriaProductoAdmin(ModularAdminMixin, admin.ModelAdmin):
     rol_requerido = "rol_gestion_tienda"
 
+class ProductoVarianteInline(admin.TabularInline):
+    model = ProductoVariante
+    extra = 1
+
 @admin.register(Producto)
 class ProductoAdmin(ModularAdminMixin, admin.ModelAdmin):
     rol_requerido = "rol_gestion_tienda"
-    list_display = ("nombre", "precio", "costo_reposicion", "stock", "porcentaje_comision")
-    list_editable = ("costo_reposicion", "stock", "porcentaje_comision")
+    list_display = ("nombre", "precio", "costo_reposicion", "porcentaje_comision", "hay_stock_visual")
+    list_editable = ("costo_reposicion", "porcentaje_comision")
+    inlines = [ProductoVarianteInline]
+
+    @admin.display(description="Stock?")
+    def hay_stock_visual(self, obj):
+        return "Disponibles" if obj.hay_stock else "Sin Stock"
 
 
 # =========================================================

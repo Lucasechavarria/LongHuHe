@@ -496,7 +496,6 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=150)
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.IntegerField(default=0)
     activo = models.BooleanField(default=True, help_text="Si es Falso, se oculta de la tienda")
     permite_backorder = models.BooleanField(default=False, help_text="Permitir comprar aunque el stock sea 0")
     
@@ -529,11 +528,27 @@ class Producto(models.Model):
 
     @property
     def hay_stock(self):
-        return self.stock > 0
+        return self.variantes.filter(stock__gt=0).exists()
 
     @property
     def se_puede_comprar(self):
         return self.activo and (self.hay_stock or self.permite_backorder)
+
+
+class ProductoVariante(models.Model):
+    """
+    Desglose por talle con stock independiente.
+    """
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="variantes")
+    talle = models.CharField(max_length=50)
+    stock = models.IntegerField("Cantidad en Stock", default=0)
+
+    class Meta:
+        verbose_name = "Variante de Producto (Talle)"
+        verbose_name_plural = "Variantes de Producto (Talles)"
+
+    def __str__(self):
+        return f"{self.producto.nombre} - Talle: {self.talle} (Stock: {self.stock})"
 
 
 class Pedido(models.Model):
@@ -635,6 +650,7 @@ class Pedido(models.Model):
 class PedidoItem(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="items")
     producto = models.ForeignKey(Producto, on_delete=models.RESTRICT)
+    variante = models.ForeignKey(ProductoVariante, on_delete=models.SET_NULL, null=True, blank=True)
     cantidad = models.IntegerField(default=1)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
 
