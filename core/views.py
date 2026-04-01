@@ -608,19 +608,34 @@ def biblioteca_inicio(request):
     
     alumno = Usuario.objects.get(id=request.session['alumno_id'])
     
-    # Lógica de Niveles (Nuevos niveles solicitados por el usuario)
-    # Todos acceden a TODOS y PRINCIPIANTE.
-    niveles_permitidos = [NivelAcceso.TODOS, NivelAcceso.PRINCIPIANTE]
-    cant_examenes = alumno.examenes.count()
+    # Lógica de Niveles Acumulativa (Jerarquía PRO)
+    # Definimos el orden de importancia de los niveles para que sea jerárquico
+    orden_niveles = [
+        NivelAcceso.TODOS, 
+        NivelAcceso.PRINCIPIANTE, 
+        NivelAcceso.INTERMEDIO, 
+        NivelAcceso.AVANZADO, 
+        NivelAcceso.SUPERIOR, 
+        NivelAcceso.MAESTRO
+    ]
     
-    if cant_examenes >= 1:
-        niveles_permitidos.append(NivelAcceso.INTERMEDIO)
-    if cant_examenes >= 2:
-        niveles_permitidos.append(NivelAcceso.AVANZADO)
-    if cant_examenes >= 3:
-        niveles_permitidos.append(NivelAcceso.SUPERIOR)
-    if cant_examenes >= 4:
-        niveles_permitidos.append(NivelAcceso.MAESTRO)
+    # Nivel base por defecto (acceso a lo público y principiante)
+    nivel_maximo_alcanzado = NivelAcceso.PRINCIPIANTE 
+    
+    # Obtenemos todos los exámenes aprobados por el alumno
+    examenes_alumno = alumno.examenes.select_related('grado').all()
+    
+    for ex in examenes_alumno:
+        if ex.grado.nivel_desbloqueado:
+            idx_actual = orden_niveles.index(nivel_maximo_alcanzado)
+            idx_nuevo = orden_niveles.index(ex.grado.nivel_desbloqueado)
+            # Si el nivel de este grado es superior al que ya tiene, lo actualizamos
+            if idx_nuevo > idx_actual:
+                nivel_maximo_alcanzado = ex.grado.nivel_desbloqueado
+                
+    # Otorgamos acceso a ese nivel y a TODOS los niveles que están por debajo en la jerarquía
+    idx_final = orden_niveles.index(nivel_maximo_alcanzado)
+    niveles_permitidos = orden_niveles[:idx_final + 1]
         
     categorias = CategoriaContenido.objects.all().prefetch_related('documentos', 'videos')
     

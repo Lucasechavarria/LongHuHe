@@ -4,6 +4,14 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 
+class NivelAcceso(models.TextChoices):
+    TODOS = "todos", "Público / Todos los Alumnos"
+    PRINCIPIANTE = "principiantes", "Principiantes y superior"
+    INTERMEDIO = "intermedios", "Intermedios y superior"
+    AVANZADO = "avanzados", "Avanzados y superior"
+    SUPERIOR = "superior", "Nivel Superior"
+    MAESTRO = "maestros", "Maestros"
+
 class Locacion(models.Model):
     """
     Lugar físico donde el maestro da clase.
@@ -268,6 +276,14 @@ class Grado(models.Model):
     """
     nombre = models.CharField(max_length=100)
     orden = models.PositiveIntegerField(default=0, help_text="Para ordenar la jerarquía (ej. 0=Blanco, 1=Final)")
+    
+    nivel_desbloqueado = models.CharField(
+        "Nivel de Acceso que Otorga", 
+        max_length=20, 
+        choices=NivelAcceso.choices, 
+        default=NivelAcceso.PRINCIPIANTE,
+        help_text="Al obtener este grado en un examen, el alumno desbloquea este nivel de contenido en la academia."
+    )
     
     class Meta:
         verbose_name = "Grado / Faja"
@@ -647,13 +663,6 @@ class CategoriaContenido(models.Model):
         return self.nombre
 
 
-class NivelAcceso(models.TextChoices):
-    TODOS = "todos", "Público / Todos los Alumnos"
-    PRINCIPIANTE = "principiantes", "Principiantes y superior"
-    INTERMEDIO = "intermedios", "Intermedios y superior"
-    AVANZADO = "avanzados", "Avanzados y superior"
-    SUPERIOR = "superior", "Nivel Superior"
-    MAESTRO = "maestros", "Maestros"
 
 
 class Documento(models.Model):

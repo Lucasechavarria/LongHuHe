@@ -164,8 +164,8 @@ class AsistenciaAdmin(AlumnosAdminMixin, admin.ModelAdmin):
 
 @admin.register(Grado)
 class GradoAdmin(AlumnosAdminMixin, admin.ModelAdmin):
-    list_display = ("id", "orden", "nombre")
-    list_editable = ("orden", "nombre")
+    list_display = ("id", "orden", "nombre", "nivel_desbloqueado")
+    list_editable = ("orden", "nombre", "nivel_desbloqueado")
     search_fields = ("nombre",)
 
 @admin.register(Examen)
