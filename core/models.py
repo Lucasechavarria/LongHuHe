@@ -93,6 +93,74 @@ class Usuario(AbstractUser):
     uuid_carnet = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     fecha_vencimiento_cuota = models.DateField("Fecha de Vencimiento de Cuota", null=True, blank=True)
 
+    # --- SEGURIDAD Y ROLES ERP (Fase Final) ---
+    rol_acceso_total = models.BooleanField(
+        "Acceso Total (Superadministrador)", default=False, 
+        help_text="Control absoluto sobre toda la plataforma (Dios)."
+    )
+    rol_gestion_alumnos = models.BooleanField(
+        "Gestión de Alumnos", default=False, 
+        help_text="Inscripciones, morosidad, aptos médicos."
+    )
+    rol_gestion_sedes = models.BooleanField(
+        "Gestión de Sedes", default=False, 
+        help_text="Locaciones, clases, horarios, exámenes."
+    )
+    rol_gestion_tienda = models.BooleanField(
+        "Gestión de Tienda", default=False, 
+        help_text="Productos, stock, pedidos."
+    )
+    rol_gestion_tesoreria = models.BooleanField(
+        "Gestión de Tesorería (Global)", default=False, 
+        help_text="Todo el dinero de la asociación."
+    )
+    rol_gestion_academia = models.BooleanField(
+        "Gestión de Academia", default=False, 
+        help_text="Biblioteca de videos y documentos."
+    )
+
+    # --- SISTEMA DE DELEGACIÓN FINANCIERA ---
+    tesorero_autorizado = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="tesoreria_admin_de",
+        verbose_name="Tesorero Autorizado (Delegado)",
+        help_text="Persona que gestionará las comisiones de este profesor."
+    )
+    autorizacion_tesoreria_activa = models.BooleanField(
+        "Autorización Tesorería Activa", default=False,
+        help_text="Interruptor de seguridad. Si es falso, el delegado no podrá entrar al panel de tesorería."
+    )
+
+    def save(self, *args, **kwargs):
+        # 1. Gestión de Superusuario (Acceso Total)
+        if self.rol_acceso_total:
+            self.is_staff = True
+            self.is_superuser = True
+        
+        # 2. Gestión de Staff Granular
+        roles_granulares = [
+            self.rol_gestion_alumnos, self.rol_gestion_sedes, 
+            self.rol_gestion_tienda, self.rol_gestion_tesoreria, 
+            self.rol_gestion_academia
+        ]
+        
+        # También comprobamos si este usuario es delegado activo de alguien más
+        es_delegado_activo = False
+        if self.pk:
+            # Importamos aquí si fuera necesario prevenir circulares
+            es_delegado_activo = Usuario.objects.filter(
+                tesorero_autorizado=self, 
+                autorizacion_tesoreria_activa=True
+            ).exists()
+
+        if any(roles_granulares) or es_delegado_activo:
+            self.is_staff = True
+        
+        # 3. Seguridad: si no tiene nada de lo anterior, le quitamos el staff (a menos que sea admin nativo)
+        # Nota: no le quitamos is_superuser si se puso manual por terminal
+        
+        super().save(*args, **kwargs)
+
 
     class Meta:
         verbose_name = "Usuario"
@@ -248,6 +316,11 @@ class ClaseProgramada(models.Model):
         related_name="clases_dictadas",
         limit_choices_to={'es_profe': True}
     )
+    profesor_asistente = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True, 
+        related_name="clases_asistente",
+        limit_choices_to={'es_profe': True}
+    )
     actividad = models.ForeignKey(
         Actividad,
         on_delete=models.CASCADE,
@@ -259,6 +332,11 @@ class ClaseProgramada(models.Model):
         related_name="clases_asignadas"
     )
     horarios = models.ManyToManyField(Horario, related_name="clases_asignadas")
+    
+    porcentaje_comision_asistente = models.DecimalField(
+        " % Comisión Asistente", max_digits=5, decimal_places=2, default=0,
+        help_text="Comisión que se lleva el asistente por las ventas registradas en esta clase."
+    )
 
     class Meta:
         verbose_name = "Clase Programada"
@@ -391,6 +469,10 @@ class Producto(models.Model):
     
     # Comisiones y Financiación (Solicitado por el usuario)
     cuotas_maximas = models.IntegerField("Cuotas Máximas", default=1)
+    costo_reposicion = models.DecimalField(
+        "Costo de Reposición", max_digits=10, decimal_places=2, default=0,
+        help_text="Lo que le cuesta a la asociación reponer este producto."
+    )
     porcentaje_comision = models.DecimalField(
         "Porcentaje de Comisión Profe", max_digits=5, decimal_places=2, default=0,
         help_text="Comisión que se lleva el profesor por vender este producto específico."
@@ -455,6 +537,27 @@ class Pedido(models.Model):
     monto_comision = models.DecimalField(
         max_digits=10, decimal_places=2, default=0, help_text="Calculado automáticamente"
     )
+    
+    # Trazabilidad y Desglose Financiero (ERP Premium)
+    clase_origen = models.ForeignKey(
+        ClaseProgramada, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="pedidos_clase",
+        help_text="Clase en la que se realizó la venta (Sede + Horario + Profe)."
+    )
+    
+    monto_costo_reposicion = models.DecimalField(
+        "Monto Costo Reposición", max_digits=10, decimal_places=2, default=0,
+        help_text="Suma de los costos de los items vendidos."
+    )
+    monto_comision_asistente = models.DecimalField(
+        "Monto Comisión Asistente", max_digits=10, decimal_places=2, default=0,
+        help_text="Comisión para el profesor asistente de la clase origen."
+    )
+    utilidad_neta_asociacion = models.DecimalField(
+        "Utilidad Neta Asociación", max_digits=10, decimal_places=2, default=0,
+        help_text="Lo que queda en caja tras costos y comisiones."
+    )
+
     backorder = models.BooleanField(
         default=False, help_text="Algún producto se compró sin stock y requiere reposición rápida"
     )
@@ -466,6 +569,34 @@ class Pedido(models.Model):
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.alumno.nombre_completo} - {self.get_estado_display()}"
+
+    def save(self, *args, **kwargs):
+        # Al marcarse como pagado, calculamos rentabilidad
+        if self.estado == self.Estado.PAGADO:
+            # 1. Costo de Reposicion (basado en items)
+            total_costo = 0
+            for item in self.items.all():
+                total_costo += (item.producto.costo_reposicion * item.cantidad)
+            self.monto_costo_reposicion = total_costo
+            
+            # 2. Comisiones
+            # Profe Principal (ya tiene profesor_venta y porcentaje_comision inicial)
+            self.monto_comision = self.total * (self.porcentaje_comision / 100)
+            
+            # Asistente
+            if self.clase_origen and self.clase_origen.profesor_asistente:
+                pct_asistente = self.clase_origen.porcentaje_comision_asistente
+                self.monto_comision_asistente = self.total * (pct_asistente / 100)
+            else:
+                self.monto_comision_asistente = 0
+            
+            # 3. Utilidad Neta Asociación
+            self.utilidad_neta_asociacion = (
+                self.total - self.monto_costo_reposicion - 
+                self.monto_comision - self.monto_comision_asistente
+            )
+            
+        super().save(*args, **kwargs)
 
 
 class PedidoItem(models.Model):

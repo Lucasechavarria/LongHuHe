@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.html import format_html
+from django.db.models import Q
 
 from .models import (
     Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, 
@@ -10,7 +11,35 @@ from .models import (
 )
 
 # =========================================================
-# 1. GESTIÓN DE USUARIOS (LOGÍSTICA Y CARNETS)
+# MIXINS DE SEGURIDAD MODULAR (Punto 5 del ERP)
+# =========================================================
+
+class ModularAdminMixin:
+    """Mixin para restringir acceso segun los roles bolleanos del Usuario."""
+    rol_requerido = None
+
+    def has_module_permission(self, request):
+        if not request.user.is_authenticated: return False
+        if request.user.rol_acceso_total or request.user.is_superuser: return True
+        if self.rol_requerido and getattr(request.user, self.rol_requerido, False):
+            return True
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+
+# =========================================================
+# 1. GESTIÓN DE USUARIOS (SEGURIDAD Y ROLES)
 # =========================================================
 
 class UsuarioAdminCreationForm(UserCreationForm):
@@ -18,28 +47,36 @@ class UsuarioAdminCreationForm(UserCreationForm):
         model = Usuario
         fields = ("username", "nombre", "apellido", "celular", "dni", "locacion", "es_profe")
 
-class UsuarioAdminChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):
-        model = Usuario
-        fields = "__all__"
-
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
-    form = UsuarioAdminChangeForm
-    add_form = UsuarioAdminCreationForm
-
     list_display = ("id", "nombre", "apellido", "celular", "locacion", "es_profe", "estado_pago_visual", "is_active")
-    list_filter = ("es_profe", "locacion", "actividades", "is_active")
+    list_filter = ("es_profe", "rol_acceso_total", "locacion", "is_active")
     search_fields = ("nombre", "apellido", "celular", "dni", "username")
     ordering = ("apellido", "nombre")
 
     fieldsets = (
         ("Acceso", {"fields": ("username", "password")}),
+        ("SEGURIDAD Y ROLES ERP", {
+            "fields": (
+                "rol_acceso_total",
+                "rol_gestion_alumnos", 
+                "rol_gestion_sedes", 
+                "rol_gestion_tienda", 
+                "rol_gestion_tesoreria", 
+                "rol_gestion_academia",
+                "es_profe"
+            ),
+            "description": "El Acceso Total otorga permisos de Superusuario. Los demás roles son granulares."
+        }),
+        ("DELEGACIÓN FINANCIERA", {
+            "fields": ("tesorero_autorizado", "autorizacion_tesoreria_activa"),
+            "description": "Permite que otro usuario gestione la tesorería de un profesor."
+        }),
         ("Carnet y ERP", {"fields": ("uuid_carnet", "fecha_vencimiento_cuota")}),
-        ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "locacion", "actividades", "es_profe", "fecha_ingreso_real")}),
+        ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "locacion", "actividades", "fecha_ingreso_real")}),
         ("Salud y Seguridad (Alertas Críticas)", {"fields": ("alergias", "condiciones_medicas", "contacto_emergencia_nombre", "contacto_emergencia_telefono", "apto_medico")}),
         ("Datos Personales", {"fields": ("dni", "fecha_nacimiento", "domicilio", "localidad")}),
-        ("Permisos", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("Permisos Django (Avanzado)", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions"), "classes": ("collapse",)}),
     )
     readonly_fields = ("uuid_carnet",)
 
@@ -48,142 +85,182 @@ class UsuarioAdmin(UserAdmin):
         color = obj.color_estado
         return format_html('<b style="color:{}; text-transform:uppercase;">{}</b>', color, obj.estado_morosidad)
 
+    def has_module_permission(self, request):
+        return request.user.is_superuser or request.user.rol_gestion_alumnos or request.user.rol_acceso_total
+
+
 # =========================================================
-# 2. GESTIÓN ACADÉMICA Y SEDES (EL NÚCLEO)
+# 2. GESTIÓN DE SEDES Y CLASES (Con Asistentes)
 # =========================================================
 
+class SedesAdminMixin(ModularAdminMixin):
+    rol_requerido = "rol_gestion_sedes"
+
 @admin.register(Actividad)
-class ActividadAdmin(admin.ModelAdmin):
+class ActividadAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_display = ("nombre", "precio_mes", "precio_clase")
     list_editable = ("precio_mes", "precio_clase")
     search_fields = ("nombre",)
 
 @admin.register(Horario)
-class HorarioAdmin(admin.ModelAdmin):
+class HorarioAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_display = ("dia", "hora_inicio", "hora_fin")
     list_filter = ("dia",)
     ordering = ("dia", "hora_inicio")
 
 class ClaseProgramadaInline(admin.StackedInline):
-    """La Magia de Sedes: Configura todo lo que pasa en la sede desde aquí."""
     model = ClaseProgramada
     extra = 1
-    autocomplete_fields = ("profesor",)
+    autocomplete_fields = ("profesor", "profesor_asistente")
     filter_horizontal = ("horarios",)
-    classes = ('collapse',) # Opcional: para que no ocupe tanto espacio si hay muchas
+    classes = ('collapse',)
 
 @admin.register(Locacion)
-class LocacionAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "mapa_url", "total_usuarios")
+class LocacionAdmin(SedesAdminMixin, admin.ModelAdmin):
+    list_display = ("nombre", "total_usuarios")
     search_fields = ("nombre",)
     filter_horizontal = ("actividades",)
     inlines = [ClaseProgramadaInline]
-    ordering = ("nombre",)
 
     @admin.display(description="Usuarios")
-    def total_usuarios(self, obj):
-        return obj.usuarios.count()
+    def total_usuarios(self, obj): return obj.usuarios.count()
 
 @admin.register(ClaseProgramada)
-class ClaseProgramadaAdmin(admin.ModelAdmin):
-    list_display = ("actividad", "locacion", "profesor")
+class ClaseProgramadaAdmin(SedesAdminMixin, admin.ModelAdmin):
+    list_display = ("actividad", "locacion", "profesor", "profesor_asistente", "porcentaje_comision_asistente")
     list_filter = ("actividad", "locacion", "profesor")
-    autocomplete_fields = ("profesor",)
+    autocomplete_fields = ("profesor", "profesor_asistente")
     filter_horizontal = ("horarios",)
+    list_editable = ("profesor_asistente", "porcentaje_comision_asistente")
+    search_fields = ("actividad__nombre", "locacion__nombre", "profesor__nombre", "profesor__apellido")
 
-@admin.register(Examen)
-class ExamenAdmin(admin.ModelAdmin):
-    list_display = ("alumno", "grado", "fecha", "examinador")
-    list_filter = ("grado", "fecha")
-    search_fields = ("alumno__nombre", "alumno__apellido", "grado")
-    autocomplete_fields = ("alumno", "examinador")
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser or request.user.rol_acceso_total or request.user.rol_gestion_sedes:
+            return qs
+        # Si es profesor titular de la sede, puede ver sus clases para asignar asistentes
+        return qs.filter(profesor=request.user)
+
 
 # =========================================================
-# 3. CONTROL DE ASISTENCIA Y FINANZAS
+# 3. ALUMNOS, ASISTENCIA Y EXÁMENES
 # =========================================================
+
+class AlumnosAdminMixin(ModularAdminMixin):
+    rol_requerido = "rol_gestion_alumnos"
 
 @admin.register(Asistencia)
-class AsistenciaAdmin(admin.ModelAdmin):
-    list_display = ("alumno", "actividad", "celular_alumno", "locacion_alumno", "fecha_hora")
+class AsistenciaAdmin(AlumnosAdminMixin, admin.ModelAdmin):
+    list_display = ("alumno", "actividad", "fecha_hora")
     list_filter = ("fecha_hora", "actividad", "alumno__locacion")
-    search_fields = ("alumno__nombre", "alumno__apellido", "alumno__celular")
+    search_fields = ("alumno__nombre", "alumno__apellido")
     autocomplete_fields = ("alumno",)
     date_hierarchy = "fecha_hora"
 
-    @admin.display(description="Celular")
-    def celular_alumno(self, obj): return obj.alumno.celular
+@admin.register(Examen)
+class ExamenAdmin(AlumnosAdminMixin, admin.ModelAdmin):
+    list_display = ("alumno", "grado", "fecha", "examinador")
+    list_filter = ("grado", "fecha")
+    autocomplete_fields = ("alumno", "examinador")
 
-    @admin.display(description="Locación")
-    def locacion_alumno(self, obj): return obj.alumno.locacion
+
+# =========================================================
+# 4. TESORERÍA Y FINANZAS (Capa de Privacidad)
+# =========================================================
 
 @admin.register(Pago)
 class PagoAdmin(admin.ModelAdmin):
-    list_display = ("id", "alumno", "tipo", "metodo", "estado", "ver_comprobante", "fecha_registro")
-    list_filter = ("estado", "tipo", "metodo", "fecha_registro")
+    list_display = ("id", "alumno", "tipo", "metodo", "estado", "fecha_registro")
+    list_filter = ("estado", "tipo", "fecha_registro")
     search_fields = ("alumno__nombre", "alumno__apellido")
     autocomplete_fields = ("alumno",)
     list_editable = ("estado",)
-    date_hierarchy = "fecha_registro"
-    actions = ("marcar_como_aprobado", "marcar_como_pendiente")
 
-    @admin.display(description="Comprobante")
-    def ver_comprobante(self, obj):
-        if obj.comprobante:
-            return format_html('<a href="{}" target="_blank" style="font-weight:bold; color:#f97316;">Ver Archivo</a>', obj.comprobante.url)
-        return "-"
+    def has_module_permission(self, request):
+        user = request.user
+        return user.is_superuser or user.rol_acceso_total or user.rol_gestion_tesoreria or user.es_profe
 
-    @admin.action(description="Aprobar pagos seleccionados")
-    def marcar_como_aprobado(self, request, queryset):
-        queryset.update(estado=Pago.EstadoPago.APROBADO)
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        user = request.user
+        if user.is_superuser or user.rol_acceso_total or user.rol_gestion_tesoreria:
+            return qs
+        if user.es_profe:
+            return qs.filter(alumno__locacion__usuarios=user).distinct()
+        return qs.none()
 
-    @admin.action(description="Pasar a pendiente")
-    def marcar_como_pendiente(self, request, queryset):
-        queryset.update(estado=Pago.EstadoPago.PENDIENTE)
 
 # =========================================================
-# 4. TIENDA INTERNA (E-COMMERCE)
+# 5. TIENDA Y AUDITORÍA DE UTILIDAD NETA (ERP Premium)
 # =========================================================
-
-@admin.register(CategoriaProducto)
-class CategoriaProductoAdmin(admin.ModelAdmin):
-    list_display = ("nombre",)
-
-@admin.register(Producto)
-class ProductoAdmin(admin.ModelAdmin):
-    list_display = ("nombre", "categoria", "precio", "stock", "cuotas_maximas", "porcentaje_comision", "activo")
-    list_filter = ("categoria", "activo")
-    search_fields = ("nombre",)
-    list_editable = ("precio", "stock", "cuotas_maximas", "porcentaje_comision", "activo")
-
-class PedidoItemInline(admin.TabularInline):
-    model = PedidoItem
-    extra = 1
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
-    list_display = ("id", "alumno", "fecha_registro", "estado", "total", "metodo_pago", "profesor_venta", "monto_comision")
-    list_filter = ("estado", "metodo_pago", "profesor_venta")
-    search_fields = ("alumno__nombre", "alumno__apellido")
-    list_editable = ("estado",)
-    inlines = [PedidoItemInline]
-    autocomplete_fields = ("alumno", "profesor_venta")
+    list_display = (
+        "id", "alumno", "clase_origen", "estado", "total", 
+        "monto_costo_reposicion", "monto_comision", "monto_comision_asistente", "utilidad_neta_asociacion"
+    )
+    list_filter = ("estado", "profesor_venta", "clase_origen__locacion")
+    autocomplete_fields = ("alumno", "profesor_venta", "clase_origen")
+    readonly_fields = ("monto_costo_reposicion", "monto_comision", "monto_comision_asistente", "utilidad_neta_asociacion")
+
+    fieldsets = (
+        ("Información General", {"fields": ("alumno", "clase_origen", "estado", "fecha_registro")}),
+        ("Pagos y Comprobante", {"fields": ("metodo_pago", "total", "cuotas", "comprobante", "mercado_pago_id")}),
+        ("AUDITORÍA DE UTILIDAD NETA", {
+            "fields": (
+                "monto_costo_reposicion",
+                "profesor_venta", "porcentaje_comision", "monto_comision",
+                "monto_comision_asistente",
+                "utilidad_neta_asociacion"
+            ),
+            "description": "Desglose automático de costos de stock y comisiones de profesores/asistentes."
+        }),
+    )
+
+    def has_module_permission(self, request):
+        user = request.user
+        es_delegado = Usuario.objects.filter(tesorero_autorizado=user, autorizacion_tesoreria_activa=True).exists()
+        return user.is_superuser or user.rol_acceso_total or user.rol_gestion_tienda or user.rol_gestion_tesoreria or user.es_profe or es_delegado
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        user = request.user
+        if user.is_superuser or user.rol_acceso_total or user.rol_gestion_tesoreria or user.rol_gestion_tienda:
+            return qs
+        query = Q(profesor_venta=user)
+        profesores_que_delegaron = Usuario.objects.filter(tesorero_autorizado=user, autorizacion_tesoreria_activa=True)
+        if profesores_que_delegaron.exists():
+            query |= Q(profesor_venta__in=profesores_que_delegaron)
+        if user.es_profe or profesores_que_delegaron.exists():
+            return qs.filter(query)
+        return qs.none()
+
+@admin.register(CategoriaProducto)
+class CategoriaProductoAdmin(ModularAdminMixin, admin.ModelAdmin):
+    rol_requerido = "rol_gestion_tienda"
+
+@admin.register(Producto)
+class ProductoAdmin(ModularAdminMixin, admin.ModelAdmin):
+    rol_requerido = "rol_gestion_tienda"
+    list_display = ("nombre", "precio", "costo_reposicion", "stock", "porcentaje_comision")
+    list_editable = ("costo_reposicion", "stock", "porcentaje_comision")
+
 
 # =========================================================
-# 5. BIBLIOTECA DIGITAL
+# 6. ACADEMIA DIGITAL
 # =========================================================
+
+class AcademiaAdminMixin(ModularAdminMixin):
+    rol_requerido = "rol_gestion_academia"
 
 @admin.register(CategoriaContenido)
-class CategoriaContenidoAdmin(admin.ModelAdmin):
-    list_display = ("nombre",)
+class CategoriaContenidoAdmin(AcademiaAdminMixin, admin.ModelAdmin): pass
 
 @admin.register(Documento)
-class DocumentoAdmin(admin.ModelAdmin):
-    list_display = ("titulo", "categoria", "nivel_acceso", "descargable")
-    list_filter = ("categoria", "nivel_acceso")
-    search_fields = ("titulo",)
+class DocumentoAdmin(AcademiaAdminMixin, admin.ModelAdmin):
+    list_display = ("titulo", "categoria", "nivel_acceso")
 
 @admin.register(VideoTutorial)
-class VideoTutorialAdmin(admin.ModelAdmin):
+class VideoTutorialAdmin(AcademiaAdminMixin, admin.ModelAdmin):
     list_display = ("titulo", "categoria", "nivel_acceso")
-    list_filter = ("categoria", "nivel_acceso")
-    search_fields = ("titulo",)
