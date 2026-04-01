@@ -608,16 +608,19 @@ def biblioteca_inicio(request):
     
     alumno = Usuario.objects.get(id=request.session['alumno_id'])
     
-    # Lógica de Niveles (MVP simplificado)
+    # Lógica de Niveles (Nuevos niveles solicitados por el usuario)
     # Todos acceden a TODOS y PRINCIPIANTE.
-    # 1+ exámenes = INTERMEDIO
-    # 3+ exámenes = AVANZADO
     niveles_permitidos = [NivelAcceso.TODOS, NivelAcceso.PRINCIPIANTE]
     cant_examenes = alumno.examenes.count()
+    
     if cant_examenes >= 1:
         niveles_permitidos.append(NivelAcceso.INTERMEDIO)
-    if cant_examenes >= 3:
+    if cant_examenes >= 2:
         niveles_permitidos.append(NivelAcceso.AVANZADO)
+    if cant_examenes >= 3:
+        niveles_permitidos.append(NivelAcceso.SUPERIOR)
+    if cant_examenes >= 4:
+        niveles_permitidos.append(NivelAcceso.MAESTRO)
         
     categorias = CategoriaContenido.objects.all().prefetch_related('documentos', 'videos')
     

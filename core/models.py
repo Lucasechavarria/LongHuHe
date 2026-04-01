@@ -261,12 +261,29 @@ class Asistencia(models.Model):
         return f"Asistencia de {self.alumno.nombre_completo} - {fecha}"
 
 
+class Grado(models.Model):
+    """
+    Jerarquía de cintos / fajas (Blanco, Amarillo, Negro, etc.)
+    Convertido a CRUD para que el usuario defina su propia escala.
+    """
+    nombre = models.CharField(max_length=100)
+    orden = models.PositiveIntegerField(default=0, help_text="Para ordenar la jerarquía (ej. 0=Blanco, 1=Final)")
+    
+    class Meta:
+        verbose_name = "Grado / Faja"
+        verbose_name_plural = "Grados / Fajas"
+        ordering = ["orden"]
+        
+    def __str__(self):
+        return self.nombre
+
+
 class Examen(models.Model):
     """
     Registro de la línea de tiempo de graduaciones del alumno.
     """
     alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="examenes")
-    grado = models.CharField("Grado Alcanzado", max_length=100)
+    grado = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="examenes_obtenidos")
     fecha = models.DateField("Fecha del Examen")
     examinador = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="examenes_tomados")
     observaciones = models.TextField("Observaciones / Detalles", blank=True)
@@ -277,7 +294,7 @@ class Examen(models.Model):
         ordering = ["-fecha"]
 
     def __str__(self):
-        return f"{self.alumno.nombre_completo} - {self.grado} ({self.fecha})"
+        return f"{self.alumno.nombre_completo} - {self.grado.nombre} ({self.fecha})"
 
 
 class Horario(models.Model):
@@ -632,9 +649,11 @@ class CategoriaContenido(models.Model):
 
 class NivelAcceso(models.TextChoices):
     TODOS = "todos", "Público / Todos los Alumnos"
-    PRINCIPIANTE = "principiante", "Solo Principiantes y superior"
-    INTERMEDIO = "intermedio", "Solo Intermedios y superior"
-    AVANZADO = "avanzado", "Solo Avanzados / Maestros"
+    PRINCIPIANTE = "principiantes", "Principiantes y superior"
+    INTERMEDIO = "intermedios", "Intermedios y superior"
+    AVANZADO = "avanzados", "Avanzados y superior"
+    SUPERIOR = "superior", "Nivel Superior"
+    MAESTRO = "maestros", "Maestros"
 
 
 class Documento(models.Model):

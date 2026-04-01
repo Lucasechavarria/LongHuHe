@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from .models import (
     Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, 
-    Examen, CategoriaProducto, Producto, Pedido, PedidoItem,
+    Grado, Examen, CategoriaProducto, Producto, Pedido, PedidoItem,
     CategoriaContenido, Documento, VideoTutorial
 )
 
@@ -162,11 +162,17 @@ class AsistenciaAdmin(AlumnosAdminMixin, admin.ModelAdmin):
     autocomplete_fields = ("alumno",)
     date_hierarchy = "fecha_hora"
 
+@admin.register(Grado)
+class GradoAdmin(AlumnosAdminMixin, admin.ModelAdmin):
+    list_display = ("id", "orden", "nombre")
+    list_editable = ("orden", "nombre")
+    search_fields = ("nombre",)
+
 @admin.register(Examen)
 class ExamenAdmin(AlumnosAdminMixin, admin.ModelAdmin):
     list_display = ("alumno", "grado", "fecha", "examinador")
     list_filter = ("grado", "fecha")
-    autocomplete_fields = ("alumno", "examinador")
+    autocomplete_fields = ("alumno", "examinador", "grado")
 
 
 # =========================================================
