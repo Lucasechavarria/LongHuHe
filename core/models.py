@@ -23,7 +23,7 @@ class Sede(models.Model):
 
     class Meta:
         verbose_name = "Sede"
-        verbose_name_plural = "01 - Sedes"
+        verbose_name_plural = "01.1 - Sedes"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -41,7 +41,7 @@ class Actividad(models.Model):
 
     class Meta:
         verbose_name = "Actividad"
-        verbose_name_plural = "02 - Actividades"
+        verbose_name_plural = "01.2 - Actividades"
 
     def __str__(self):
         return self.nombre
@@ -172,7 +172,7 @@ class Usuario(AbstractUser):
 
     class Meta:
         verbose_name = "Usuario / Alumno / Profe"
-        verbose_name_plural = "03 - Usuarios (Panel Maestro)"
+        verbose_name_plural = "02.1 - Panel Maestro de Usuarios"
         ordering = ["apellido", "nombre"]
 
     def save(self, *args, **kwargs):
@@ -261,7 +261,7 @@ class Asistencia(models.Model):
 
     class Meta:
         verbose_name = "Asistencia"
-        verbose_name_plural = "04 - Registro de Asistencias"
+        verbose_name_plural = "02.2 - Registro de Asistencias"
         ordering = ["-fecha_hora"]
 
     def __str__(self):
@@ -287,7 +287,7 @@ class Grado(models.Model):
     
     class Meta:
         verbose_name = "Escala de Grados"
-        verbose_name_plural = "05 - Escala de Grados / Fajas"
+        verbose_name_plural = "03.1 - Escala de Grados / Fajas"
         ordering = ["orden"]
         
     def __str__(self):
@@ -306,7 +306,7 @@ class Examen(models.Model):
 
     class Meta:
         verbose_name = "Examen / Graduación"
-        verbose_name_plural = "06 - Exámenes y Graduaciones"
+        verbose_name_plural = "03.2 - Exámenes y Graduaciones"
         ordering = ["-fecha"]
 
     def __str__(self):
@@ -363,7 +363,7 @@ class Cronograma(models.Model):
 
     class Meta:
         verbose_name = "Horario / Clase"
-        verbose_name_plural = "07 - Cronograma de Clases"
+        verbose_name_plural = "01.3 - Cronograma de Clases"
         ordering = ["sede", "dia", "hora_inicio"]
 
     def __str__(self):
@@ -433,7 +433,7 @@ class Pago(models.Model):
 
     class Meta:
         verbose_name = "Pago / Finanzas"
-        verbose_name_plural = "08 - Pagos y Tesorería"
+        verbose_name_plural = "02.3 - Pagos y Tesorería"
         ordering = ["-fecha_registro"]
 
     def __str__(self):
@@ -476,7 +476,7 @@ class CategoriaProducto(models.Model):
 
     class Meta:
         verbose_name = "Producto: Categoría"
-        verbose_name_plural = "09 - Tienda: Categorías"
+        verbose_name_plural = "04.2 - Tienda: Categorías (Configuración)"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -512,7 +512,7 @@ class Producto(models.Model):
 
     class Meta:
         verbose_name = "Producto: Ficha Central"
-        verbose_name_plural = "10 - Tienda: Productos"
+        verbose_name_plural = "04.1 - Tienda: Productos"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -604,7 +604,7 @@ class Pedido(models.Model):
 
     class Meta:
         verbose_name = "Tienda: Pedido"
-        verbose_name_plural = "11 - Tienda: Gestión de Pedidos"
+        verbose_name_plural = "04.3 - Tienda: Gestión de Pedidos"
         ordering = ["-fecha_registro"]
 
     def __str__(self):
@@ -664,7 +664,7 @@ class CategoriaContenido(models.Model):
 
     class Meta:
         verbose_name = "Academia: Categoría"
-        verbose_name_plural = "12 - Academia: Categorías"
+        verbose_name_plural = "05.1 - Academia: Materias Digitales"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -684,7 +684,7 @@ class Documento(models.Model):
 
     class Meta:
         verbose_name = "Academia: Documento"
-        verbose_name_plural = "13 - Academia: Documentos"
+        verbose_name_plural = "05.2 - Academia: Documentos (Oculto)"
         ordering = ["-fecha_subida"]
 
     def __str__(self):
@@ -701,7 +701,7 @@ class VideoTutorial(models.Model):
 
     class Meta:
         verbose_name = "Academia: Video"
-        verbose_name_plural = "14 - Academia: Videos Tutoriales"
+        verbose_name_plural = "05.3 - Academia: Videos (Oculto)"
         ordering = ["-fecha_subida"]
 
     def __str__(self):

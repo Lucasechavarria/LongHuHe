@@ -38,6 +38,11 @@ class ModularAdminMixin:
         return self.has_module_permission(request)
 
 
+class ExamenInline(admin.TabularInline):
+    model = Examen
+    extra = 1
+    autocomplete_fields = ("examinador", "grado")
+
 # =========================================================
 # 1. GESTIÓN DE USUARIOS (SEGURIDAD Y ROLES)
 # =========================================================
@@ -79,6 +84,7 @@ class UsuarioAdmin(UserAdmin):
         ("Permisos Django (Avanzado)", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions"), "classes": ("collapse",)}),
     )
     readonly_fields = ("uuid_carnet",)
+    inlines = [ExamenInline]
 
     @admin.display(description="Estado Pago")
     def estado_pago_visual(self, obj):
@@ -160,11 +166,13 @@ class GradoAdmin(AlumnosAdminMixin, admin.ModelAdmin):
     list_editable = ("orden", "nombre", "nivel_desbloqueado")
     search_fields = ("nombre",)
 
-@admin.register(Examen)
-class ExamenAdmin(AlumnosAdminMixin, admin.ModelAdmin):
-    list_display = ("alumno", "grado", "fecha", "examinador")
-    list_filter = ("grado", "fecha")
-    autocomplete_fields = ("alumno", "examinador", "grado")
+# (ExamenInline was moved to the top of the file)
+
+# @admin.register(Examen)
+# class ExamenAdmin(AlumnosAdminMixin, admin.ModelAdmin):
+#     list_display = ("alumno", "grado", "fecha", "examinador")
+#     list_filter = ("grado", "fecha")
+#     autocomplete_fields = ("alumno", "examinador", "grado")
 
 
 # =========================================================
@@ -281,13 +289,21 @@ class ProductoAdmin(ModularAdminMixin, admin.ModelAdmin):
 class AcademiaAdminMixin(ModularAdminMixin):
     rol_requerido = "rol_gestion_academia"
 
+class DocumentoInline(admin.TabularInline):
+    model = Documento
+    extra = 1
+
+class VideoTutorialInline(admin.TabularInline):
+    model = VideoTutorial
+    extra = 1
+
 @admin.register(CategoriaContenido)
-class CategoriaContenidoAdmin(AcademiaAdminMixin, admin.ModelAdmin): pass
+class CategoriaContenidoAdmin(AcademiaAdminMixin, admin.ModelAdmin):
+    list_display = ("nombre", "descripcion")
+    inlines = [DocumentoInline, VideoTutorialInline]
 
-@admin.register(Documento)
-class DocumentoAdmin(AcademiaAdminMixin, admin.ModelAdmin):
-    list_display = ("titulo", "categoria", "nivel_acceso")
-
-@admin.register(VideoTutorial)
-class VideoTutorialAdmin(AcademiaAdminMixin, admin.ModelAdmin):
-    list_display = ("titulo", "categoria", "nivel_acceso")
+# Remove or comment out direct registration to hide from main menu
+# @admin.register(Documento)
+# class DocumentoAdmin(AcademiaAdminMixin, admin.ModelAdmin): ...
+# @admin.register(VideoTutorial)
+# class VideoTutorialAdmin(AcademiaAdminMixin, admin.ModelAdmin): ...
