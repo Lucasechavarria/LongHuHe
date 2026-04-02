@@ -24,11 +24,10 @@ class MercadoPagoService:
 
         # Generación del título descriptivo del ticket ("Triangulación Perfecta")
         if pago.clase_programada:
-            dias_abrev = "-".join([h.get_dia_display()[:3].upper() for h in pago.clase_programada.horarios.all()])
-            hs_inicio = pago.clase_programada.horarios.first()
-            hora_str = hs_inicio.hora_inicio.strftime('%Hhs') if hs_inicio else ""
+            dia_abrev = pago.clase_programada.get_dia_display()[:3].upper()
+            hora_str = pago.clase_programada.hora_inicio.strftime('%Hhs') if pago.clase_programada.hora_inicio else ""
             
-            titulo_ticket = f"Cuota {dias_abrev} {hora_str} - {pago.clase_programada.actividad.nombre} - Prof. {pago.clase_programada.profesor.nombre_completo}"
+            titulo_ticket = f"Cuota {dia_abrev} {hora_str} - {pago.clase_programada.actividad.nombre} - Prof. {pago.clase_programada.profesor.nombre_completo}"
         else:
             titulo_ticket = f"Clase de {pago.actividad.nombre} - {pago.get_tipo_display()}"
 

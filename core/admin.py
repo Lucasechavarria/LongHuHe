@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from django.db.models import Q
 
 from .models import (
-    Asistencia, Locacion, Pago, Usuario, Actividad, Horario, ClaseProgramada, 
+    Asistencia, Sede, Pago, Usuario, Actividad, Cronograma, 
     Grado, Examen, CategoriaProducto, Producto, ProductoVariante, Pedido, PedidoItem,
     CategoriaContenido, Documento, VideoTutorial
 )
@@ -45,12 +45,12 @@ class ModularAdminMixin:
 class UsuarioAdminCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = Usuario
-        fields = ("username", "nombre", "apellido", "celular", "dni", "locacion", "es_profe")
+        fields = ("username", "nombre", "apellido", "celular", "dni", "sede", "es_profe")
 
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
-    list_display = ("id", "nombre", "apellido", "celular", "locacion", "es_profe", "estado_pago_visual", "is_active")
-    list_filter = ("es_profe", "rol_acceso_total", "locacion", "is_active")
+    list_display = ("id", "nombre", "apellido", "celular", "sede", "es_profe", "estado_pago_visual", "is_active")
+    list_filter = ("es_profe", "rol_acceso_total", "sede", "is_active")
     search_fields = ("nombre", "apellido", "celular", "dni", "username")
     ordering = ("apellido", "nombre")
 
@@ -73,7 +73,7 @@ class UsuarioAdmin(UserAdmin):
             "description": "Permite que otro usuario gestione la tesorería de un profesor."
         }),
         ("Carnet y ERP", {"fields": ("uuid_carnet", "fecha_vencimiento_cuota")}),
-        ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "locacion", "actividades", "fecha_ingreso_real")}),
+        ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "sede", "actividades", "fecha_ingreso_real")}),
         ("Salud y Seguridad (Alertas Críticas)", {"fields": ("alergias", "condiciones_medicas", "contacto_emergencia_nombre", "contacto_emergencia_telefono", "apto_medico")}),
         ("Datos Personales", {"fields": ("dni", "fecha_nacimiento", "domicilio", "localidad")}),
         ("Permisos Django (Avanzado)", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions"), "classes": ("collapse",)}),
@@ -104,37 +104,29 @@ class ActividadAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_editable = ("precio_mes", "precio_clase")
     search_fields = ("nombre",)
 
-@admin.register(Horario)
-class HorarioAdmin(SedesAdminMixin, admin.ModelAdmin):
-    list_display = ("dia", "hora_inicio", "hora_fin")
-    list_filter = ("dia",)
-    ordering = ("dia", "hora_inicio")
-
-class ClaseProgramadaInline(admin.StackedInline):
-    model = ClaseProgramada
+class CronogramaInline(admin.TabularInline):
+    model = Cronograma
     extra = 1
     autocomplete_fields = ("profesor", "profesor_asistente")
-    filter_horizontal = ("horarios",)
-    classes = ('collapse',)
+    fields = ("actividad", "dia", "hora_inicio", "hora_fin", "profesor", "profesor_asistente")
 
-@admin.register(Locacion)
-class LocacionAdmin(SedesAdminMixin, admin.ModelAdmin):
+@admin.register(Sede)
+class SedeAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_display = ("nombre", "total_usuarios")
     search_fields = ("nombre",)
-    filter_horizontal = ("actividades",)
-    inlines = [ClaseProgramadaInline]
+    # filter_horizontal = ("actividades",) # REMOVED for simplicity
+    inlines = [CronogramaInline]
 
-    @admin.display(description="Usuarios")
+    @admin.display(description="Usuarios Registrados")
     def total_usuarios(self, obj): return obj.usuarios.count()
 
-@admin.register(ClaseProgramada)
-class ClaseProgramadaAdmin(SedesAdminMixin, admin.ModelAdmin):
-    list_display = ("actividad", "locacion", "profesor", "profesor_asistente", "porcentaje_comision_asistente")
-    list_filter = ("actividad", "locacion", "profesor")
+@admin.register(Cronograma)
+class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
+    list_display = ("actividad", "sede", "dia", "hora_inicio", "profesor", "profesor_asistente")
+    list_filter = ("actividad", "sede", "profesor", "dia")
     autocomplete_fields = ("profesor", "profesor_asistente")
-    filter_horizontal = ("horarios",)
-    list_editable = ("profesor_asistente", "porcentaje_comision_asistente")
-    search_fields = ("actividad__nombre", "locacion__nombre", "profesor__nombre", "profesor__apellido")
+    list_editable = ("profesor_asistente",)
+    search_fields = ("actividad__nombre", "sede__nombre", "profesor__nombre", "profesor__apellido")
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -157,7 +149,7 @@ class AlumnosAdminMixin(ModularAdminMixin):
 @admin.register(Asistencia)
 class AsistenciaAdmin(AlumnosAdminMixin, admin.ModelAdmin):
     list_display = ("alumno", "actividad", "fecha_hora")
-    list_filter = ("fecha_hora", "actividad", "alumno__locacion")
+    list_filter = ("fecha_hora", "actividad", "alumno__sede")
     search_fields = ("alumno__nombre", "alumno__apellido")
     autocomplete_fields = ("alumno",)
     date_hierarchy = "fecha_hora"
@@ -201,7 +193,7 @@ class PagoAdmin(admin.ModelAdmin):
         if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False):
             return qs
         if getattr(user, 'es_profe', False):
-            return qs.filter(alumno__locacion__usuarios=user).distinct()
+            return qs.filter(alumno__sede__usuarios=user).distinct()
         return qs.none()
 
 
@@ -215,7 +207,7 @@ class PedidoAdmin(admin.ModelAdmin):
         "id", "alumno", "clase_origen", "estado", "total", 
         "monto_costo_reposicion", "monto_comision", "monto_comision_asistente", "utilidad_neta_asociacion"
     )
-    list_filter = ("estado", "profesor_venta", "clase_origen__locacion")
+    list_filter = ("estado", "profesor_venta", "clase_origen__sede")
     autocomplete_fields = ("alumno", "profesor_venta", "clase_origen")
     readonly_fields = ("monto_costo_reposicion", "monto_comision", "monto_comision_asistente", "utilidad_neta_asociacion")
 

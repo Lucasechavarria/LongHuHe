@@ -1,5 +1,5 @@
 from django import forms
-from .models import Usuario, Locacion, Pago
+from .models import Usuario, Sede, Pago
 
 class AlumnoOnboardingForm(forms.ModelForm):
     """
@@ -19,7 +19,7 @@ class AlumnoOnboardingForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ['nombre', 'apellido', 'celular', 'dni', 'fecha_nacimiento', 'domicilio', 'localidad', 'locacion']
+        fields = ['nombre', 'apellido', 'celular', 'dni', 'fecha_nacimiento', 'domicilio', 'localidad', 'sede']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
@@ -55,7 +55,7 @@ class AlumnoOnboardingForm(forms.ModelForm):
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold',
                 'placeholder': 'Ej: CABA'
             }),
-            'locacion': forms.Select(attrs={
+            'sede': forms.Select(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold'
             }),
         }
@@ -70,7 +70,7 @@ class AlumnoOnboardingForm(forms.ModelForm):
             'fecha_nacimiento': {'required': 'Ingresa tu fecha de nacimiento.'},
             'domicilio': {'required': 'Falta tu dirección.'},
             'localidad': {'required': 'Dinos en qué localidad vives.'},
-            'locacion': {'required': 'Selecciona dónde vas a tomar las clases.'},
+            'sede': {'required': 'Selecciona dónde vas a tomar las clases.'},
         }
 
     def clean_nombre(self):

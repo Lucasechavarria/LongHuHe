@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuario, Asistencia, Pago, Locacion, Actividad, ClaseProgramada, Producto, CategoriaProducto, Pedido, PedidoItem
+from .models import Usuario, Asistencia, Pago, Sede, Actividad, Cronograma, Producto, CategoriaProducto, Pedido, PedidoItem
 from .forms import AlumnoOnboardingForm, PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from .services.mercadopago_service import MercadoPagoService # Importar el servicio
 from functools import wraps
@@ -121,7 +121,7 @@ def onboarding(request):
                     'fecha_nacimiento': form.cleaned_data['fecha_nacimiento'],
                     'domicilio': form.cleaned_data['domicilio'],
                     'localidad': form.cleaned_data['localidad'],
-                    'locacion': form.cleaned_data['locacion'],
+                    'sede': form.cleaned_data['locacion'],
                     'username': f"user_{celular}", # Username técnico
                 }
             )
@@ -134,7 +134,7 @@ def onboarding(request):
                 usuario.fecha_nacimiento = form.cleaned_data['fecha_nacimiento']
                 usuario.domicilio = form.cleaned_data['domicilio']
                 usuario.localidad = form.cleaned_data['localidad']
-                usuario.locacion = form.cleaned_data['locacion']
+                usuario.sede = form.cleaned_data['locacion']
                 usuario.save()
 
             # Agregamos la actividad seleccionada (MTOM)
@@ -156,16 +156,16 @@ def inicio(request):
     Pantalla principal con los CTAs gigantes.
     """
     alumno = Usuario.objects.get(id=request.session['alumno_id'])
-    locaciones = Locacion.objects.prefetch_related('actividades').all()
+    sedes = Sede.objects.prefetch_related('actividades').all()
     
-    clases_programadas = ClaseProgramada.objects.filter(
-        locacion=alumno.locacion,
+    clases_programadas = Cronograma.objects.filter(
+        sede=alumno.sede,
         actividad__in=alumno.actividades.all()
-    ).select_related('profesor', 'actividad').prefetch_related('horarios').order_by('actividad__nombre', 'profesor__nombre')
+    ).select_related('profesor', 'actividad').order_by('actividad__nombre', 'profesor__nombre')
 
     return render(request, 'core/inicio.html', {
         'alumno': alumno,
-        'locaciones': locaciones,
+        'sedes': sedes,
         'clases_programadas': clases_programadas
     })
 
@@ -257,7 +257,7 @@ def pago_tipo(request):
                 
                 # Triangulación Perfecta: Ligar con la clase específica
                 clase_prog_id = request.POST.get('clase_programada')
-                clase_prog = ClaseProgramada.objects.filter(id=clase_prog_id).first() if clase_prog_id else None
+                clase_prog = Cronograma.objects.filter(id=clase_prog_id).first() if clase_prog_id else None
                 
                 pago = Pago.objects.create(
                     alumno=alumno,
@@ -575,6 +575,7 @@ def tienda_comprar(request, producto_id):
         if metodo_pago == Pago.MetodoPago.MERCADOPAGO:
             # MVP: Creamos una preferencia MP central
             from .services.mercadopago_service import MercadoPagoService
+            # Para la tienda, la cuenta es la de la asociación (sin access_token sobreescrito)
             # Para la tienda, la cuenta es la de la asociación (sin access_token sobreescrito)
             mp_service = MercadoPagoService()
             pref_url = mp_service.crear_preferencia_tienda(

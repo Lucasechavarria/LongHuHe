@@ -12,18 +12,18 @@ class NivelAcceso(models.TextChoices):
     SUPERIOR = "superior", "Nivel Superior"
     MAESTRO = "maestros", "Maestros"
 
-class Locacion(models.Model):
+class Sede(models.Model):
     """
-    Lugar físico donde el maestro da clase.
+    Lugar físico donde el maestro da clase (antes 'Locación').
     Ejemplos: 'Centro de Jubilados San Martín', 'Plaza Norte', etc.
     """
     nombre = models.CharField(max_length=120)
-    actividades = models.ManyToManyField("Actividad", related_name="locaciones", blank=True)
+    # actividades = models.ManyToManyField("Actividad", related_name="sedes", blank=True) # REMOVED for simplicity
     mapa_url = models.URLField("Enlace Google Maps", max_length=500, blank=True, null=True)
 
     class Meta:
-        verbose_name = "Locación"
-        verbose_name_plural = "Locaciones"
+        verbose_name = "Sede"
+        verbose_name_plural = "01 - Sedes"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -41,7 +41,7 @@ class Actividad(models.Model):
 
     class Meta:
         verbose_name = "Actividad"
-        verbose_name_plural = "Actividades"
+        verbose_name_plural = "02 - Actividades"
 
     def __str__(self):
         return self.nombre
@@ -69,8 +69,8 @@ class Usuario(AbstractUser):
     nombre = models.CharField(max_length=120)
     apellido = models.CharField(max_length=120)
     celular = models.CharField(max_length=30, unique=True)
-    locacion = models.ForeignKey(
-        Locacion,
+    sede = models.ForeignKey(
+        Sede,
         on_delete=models.PROTECT,
         related_name="usuarios",
         null=True,
@@ -171,8 +171,8 @@ class Usuario(AbstractUser):
 
 
     class Meta:
-        verbose_name = "Usuario"
-        verbose_name_plural = "Usuarios"
+        verbose_name = "Usuario / Alumno / Profe"
+        verbose_name_plural = "03 - Usuarios (Panel Maestro)"
         ordering = ["apellido", "nombre"]
 
     def save(self, *args, **kwargs):
@@ -261,7 +261,7 @@ class Asistencia(models.Model):
 
     class Meta:
         verbose_name = "Asistencia"
-        verbose_name_plural = "Asistencias"
+        verbose_name_plural = "04 - Registro de Asistencias"
         ordering = ["-fecha_hora"]
 
     def __str__(self):
@@ -286,8 +286,8 @@ class Grado(models.Model):
     )
     
     class Meta:
-        verbose_name = "Grado / Faja"
-        verbose_name_plural = "Grados / Fajas"
+        verbose_name = "Escala de Grados"
+        verbose_name_plural = "05 - Escala de Grados / Fajas"
         ordering = ["orden"]
         
     def __str__(self):
@@ -306,16 +306,19 @@ class Examen(models.Model):
 
     class Meta:
         verbose_name = "Examen / Graduación"
-        verbose_name_plural = "Exámenes y Graduaciones"
+        verbose_name_plural = "06 - Exámenes y Graduaciones"
         ordering = ["-fecha"]
 
     def __str__(self):
         return f"{self.alumno.nombre_completo} - {self.grado.nombre} ({self.fecha})"
 
 
-class Horario(models.Model):
+# El modelo Horario ha sido integrado directamente dentro de ClaseProgramada para simplificar la gestión.
+
+
+class Cronograma(models.Model):
     """
-    Día y hora de una clase.
+    El 'corazón' de la agenda: Vincula Profe + Actividad + Sede + Horario.
     """
     class DiasSemana(models.TextChoices):
         LUNES = "LU", "Lunes"
@@ -326,23 +329,6 @@ class Horario(models.Model):
         SABADO = "SA", "Sábado"
         DOMINGO = "DO", "Domingo"
 
-    dia = models.CharField(max_length=2, choices=DiasSemana.choices)
-    hora_inicio = models.TimeField()
-    hora_fin = models.TimeField()
-
-    class Meta:
-        verbose_name = "Horario"
-        verbose_name_plural = "Horarios"
-        ordering = ["dia", "hora_inicio"]
-
-    def __str__(self):
-        return f"{self.get_dia_display()} - {self.hora_inicio.strftime('%H:%M')} a {self.hora_fin.strftime('%H:%M')}"
-
-
-class ClaseProgramada(models.Model):
-    """
-    El 'corazón' del sistema Marketplace: Vincula Profe + Actividad + Sede + Horario.
-    """
     profesor = models.ForeignKey(
         Usuario,
         on_delete=models.CASCADE,
@@ -359,24 +345,30 @@ class ClaseProgramada(models.Model):
         on_delete=models.CASCADE,
         related_name="clases_asignadas"
     )
-    locacion = models.ForeignKey(
-        Locacion,
+    sede = models.ForeignKey(
+        Sede,
         on_delete=models.CASCADE,
         related_name="clases_asignadas"
     )
-    horarios = models.ManyToManyField(Horario, related_name="clases_asignadas")
     
+    # Horario integrado
+    dia = models.CharField("Día de la semana", max_length=2, choices=DiasSemana.choices, default="LU")
+    hora_inicio = models.TimeField("Hora de Inicio", null=True, blank=True)
+    hora_fin = models.TimeField("Hora de Fin", null=True, blank=True)
+
     porcentaje_comision_asistente = models.DecimalField(
         " % Comisión Asistente", max_digits=5, decimal_places=2, default=0,
         help_text="Comisión que se lleva el asistente por las ventas registradas en esta clase."
     )
 
     class Meta:
-        verbose_name = "Clase Programada"
-        verbose_name_plural = "Clases Programadas"
+        verbose_name = "Horario / Clase"
+        verbose_name_plural = "07 - Cronograma de Clases"
+        ordering = ["sede", "dia", "hora_inicio"]
 
     def __str__(self):
-        return f"{self.actividad.nombre} en {self.locacion.nombre} - Prof. {self.profesor.nombre_completo}"
+        horario_str = f"{self.get_dia_display()} {self.hora_inicio.strftime('%H:%M') if self.hora_inicio else '--:--'}"
+        return f"{self.actividad.nombre} ({horario_str}) - {self.sede.nombre} - Prof. {self.profesor.nombre}"
 
 
 class Pago(models.Model):
@@ -415,7 +407,7 @@ class Pago(models.Model):
         null=True
     )
     clase_programada = models.ForeignKey(
-        ClaseProgramada,
+        Cronograma,
         on_delete=models.SET_NULL,
         related_name="pagos",
         null=True,
@@ -440,8 +432,8 @@ class Pago(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Pago"
-        verbose_name_plural = "Pagos"
+        verbose_name = "Pago / Finanzas"
+        verbose_name_plural = "08 - Pagos y Tesorería"
         ordering = ["-fecha_registro"]
 
     def __str__(self):
@@ -483,8 +475,8 @@ class CategoriaProducto(models.Model):
     descripcion = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Categoría de Producto"
-        verbose_name_plural = "Categorías de Productos"
+        verbose_name = "Producto: Categoría"
+        verbose_name_plural = "09 - Tienda: Categorías"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -519,8 +511,8 @@ class Producto(models.Model):
     foto5 = models.ImageField(upload_to="tienda/", blank=True, null=True)
 
     class Meta:
-        verbose_name = "Producto"
-        verbose_name_plural = "Productos"
+        verbose_name = "Producto: Ficha Central"
+        verbose_name_plural = "10 - Tienda: Productos"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -588,7 +580,7 @@ class Pedido(models.Model):
     
     # Trazabilidad y Desglose Financiero (ERP Premium)
     clase_origen = models.ForeignKey(
-        ClaseProgramada, on_delete=models.SET_NULL, null=True, blank=True,
+        Cronograma, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="pedidos_clase",
         help_text="Clase en la que se realizó la venta (Sede + Horario + Profe)."
     )
@@ -611,8 +603,8 @@ class Pedido(models.Model):
     )
 
     class Meta:
-        verbose_name = "Pedido de Tienda"
-        verbose_name_plural = "Pedidos de Tienda"
+        verbose_name = "Tienda: Pedido"
+        verbose_name_plural = "11 - Tienda: Gestión de Pedidos"
         ordering = ["-fecha_registro"]
 
     def __str__(self):
@@ -671,8 +663,8 @@ class CategoriaContenido(models.Model):
     descripcion = models.TextField(blank=True)
 
     class Meta:
-        verbose_name = "Categoría de Contenido"
-        verbose_name_plural = "Categorías de Contenido"
+        verbose_name = "Academia: Categoría"
+        verbose_name_plural = "12 - Academia: Categorías"
         ordering = ["nombre"]
 
     def __str__(self):
@@ -691,8 +683,8 @@ class Documento(models.Model):
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Documento"
-        verbose_name_plural = "Documentos"
+        verbose_name = "Academia: Documento"
+        verbose_name_plural = "13 - Academia: Documentos"
         ordering = ["-fecha_subida"]
 
     def __str__(self):
@@ -708,8 +700,8 @@ class VideoTutorial(models.Model):
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Video Tutorial"
-        verbose_name_plural = "Videos Tutoriales"
+        verbose_name = "Academia: Video"
+        verbose_name_plural = "14 - Academia: Videos Tutoriales"
         ordering = ["-fecha_subida"]
 
     def __str__(self):
