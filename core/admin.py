@@ -40,6 +40,7 @@ class ModularAdminMixin:
 
 class ExamenInline(admin.TabularInline):
     model = Examen
+    fk_name = "alumno"
     extra = 1
     autocomplete_fields = ("examinador", "grado")
 
