@@ -5,12 +5,12 @@ from django.db import models
 
 
 class NivelAcceso(models.TextChoices):
-    TODOS = "todos", "Público / Todos los Alumnos"
-    PRINCIPIANTE = "principiantes", "Principiantes y superior"
-    INTERMEDIO = "intermedios", "Intermedios y superior"
-    AVANZADO = "avanzados", "Avanzados y superior"
-    SUPERIOR = "superior", "Nivel Superior"
-    MAESTRO = "maestros", "Maestros"
+    ALUMNO = "alumno", "Alumnos (Todos)"
+    PRINCIPIANTE = "principiante", "Principiantes"
+    AVANZADO = "avanzado", "Avanzados"
+    INSTRUCTOR = "instructor", "Instructores"
+    PROFESOR = "profesor", "Profesores"
+    MAESTRO = "maestro", "Maestros"
 
 class Sede(models.Model):
     """
@@ -687,7 +687,7 @@ class Documento(models.Model):
     categoria = models.ForeignKey(CategoriaContenido, on_delete=models.SET_NULL, null=True, blank=True, related_name="documentos")
     archivo = models.FileField(upload_to="biblioteca/documentos/")
     descargable = models.BooleanField(default=False, help_text="Si es Falso, el alumno solo podrá verlo en la app sin un botón de descarga expuesto.")
-    nivel_acceso = models.CharField(max_length=20, choices=NivelAcceso.choices, default=NivelAcceso.TODOS)
+    nivel_acceso = models.CharField(max_length=20, choices=NivelAcceso.choices, default=NivelAcceso.ALUMNO)
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -704,7 +704,7 @@ class VideoTutorial(models.Model):
     descripcion = models.TextField(blank=True)
     categoria = models.ForeignKey(CategoriaContenido, on_delete=models.SET_NULL, null=True, blank=True, related_name="videos")
     youtube_id = models.CharField(max_length=50, help_text="ID del video de YouTube (ej. dQw4w9WgXcQ de https://www.youtube.com/watch?v=dQw4w9WgXcQ)")
-    nivel_acceso = models.CharField(max_length=20, choices=NivelAcceso.choices, default=NivelAcceso.TODOS)
+    nivel_acceso = models.CharField(max_length=20, choices=NivelAcceso.choices, default=NivelAcceso.ALUMNO)
     fecha_subida = models.DateTimeField(auto_now_add=True)
 
     class Meta:

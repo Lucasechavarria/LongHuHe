@@ -612,16 +612,16 @@ def biblioteca_inicio(request):
     # Lógica de Niveles Acumulativa (Jerarquía PRO)
     # Definimos el orden de importancia de los niveles para que sea jerárquico
     orden_niveles = [
-        NivelAcceso.TODOS, 
+        NivelAcceso.ALUMNO, 
         NivelAcceso.PRINCIPIANTE, 
-        NivelAcceso.INTERMEDIO, 
         NivelAcceso.AVANZADO, 
-        NivelAcceso.SUPERIOR, 
+        NivelAcceso.INSTRUCTOR, 
+        NivelAcceso.PROFESOR, 
         NivelAcceso.MAESTRO
     ]
     
-    # Nivel base por defecto (acceso a lo público y principiante)
-    nivel_maximo_alcanzado = NivelAcceso.PRINCIPIANTE 
+    # Nivel base por defecto (acceso a lo público y alumnos)
+    nivel_maximo_alcanzado = NivelAcceso.ALUMNO 
     
     # Obtenemos todos los exámenes aprobados por el alumno
     examenes_alumno = alumno.examenes.select_related('grado').all()
