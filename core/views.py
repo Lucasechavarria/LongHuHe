@@ -121,7 +121,7 @@ def onboarding(request):
                     'fecha_nacimiento': form.cleaned_data['fecha_nacimiento'],
                     'domicilio': form.cleaned_data['domicilio'],
                     'localidad': form.cleaned_data['localidad'],
-                    'sede': form.cleaned_data['locacion'],
+                    'sede': form.cleaned_data['sede'],
                     'username': f"user_{celular}", # Username técnico
                 }
             )
@@ -134,7 +134,7 @@ def onboarding(request):
                 usuario.fecha_nacimiento = form.cleaned_data['fecha_nacimiento']
                 usuario.domicilio = form.cleaned_data['domicilio']
                 usuario.localidad = form.cleaned_data['localidad']
-                usuario.sede = form.cleaned_data['locacion']
+                usuario.sede = form.cleaned_data['sede']
                 usuario.save()
 
             # Agregamos la actividad seleccionada (MTOM)
@@ -156,7 +156,7 @@ def inicio(request):
     Pantalla principal con los CTAs gigantes.
     """
     alumno = Usuario.objects.get(id=request.session['alumno_id'])
-    sedes = Sede.objects.prefetch_related('actividades').all()
+    sedes = Sede.objects.all()
     
     clases_programadas = Cronograma.objects.filter(
         sede=alumno.sede,

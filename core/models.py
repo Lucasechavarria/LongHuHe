@@ -26,6 +26,14 @@ class Sede(models.Model):
         verbose_name_plural = "01.1 - Sedes"
         ordering = ["nombre"]
 
+    @property
+    def actividades(self):
+        """
+        Deduce las actividades que se dictan en esta sede a través del cronograma.
+        Mantiene la compatibilidad con los templates que esperan 'sede.actividades.all'.
+        """
+        return Actividad.objects.filter(clases_asignadas__sede=self).distinct()
+
     def __str__(self):
         return self.nombre
 
