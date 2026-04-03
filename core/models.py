@@ -310,6 +310,7 @@ class Examen(models.Model):
     grado = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="examenes_obtenidos")
     fecha = models.DateField("Fecha del Examen")
     examinador = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="examenes_tomados")
+    examinador_externo = models.CharField("Maestro Invitado (si no está en la app)", max_length=150, blank=True)
     observaciones = models.TextField("Observaciones / Detalles", blank=True)
 
     class Meta:

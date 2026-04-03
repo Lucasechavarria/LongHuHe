@@ -43,6 +43,7 @@ class ExamenInline(admin.TabularInline):
     fk_name = "alumno"
     extra = 1
     autocomplete_fields = ("examinador", "grado")
+    fields = ("grado", "fecha", "examinador", "examinador_externo", "observaciones")
 
 # =========================================================
 # 1. GESTIÓN DE USUARIOS (SEGURIDAD Y ROLES)
