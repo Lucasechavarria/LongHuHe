@@ -80,7 +80,7 @@ class UsuarioAdmin(UserAdmin):
             "description": "Permite que otro usuario gestione la tesorería de un profesor."
         }),
         ("Carnet y ERP", {"fields": ("uuid_carnet", "fecha_vencimiento_cuota")}),
-        ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "sede", "actividades", "fecha_ingreso_real")}),
+        ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "sede", "grado", "actividades", "fecha_ingreso_real")}),
         ("Salud y Seguridad (Alertas Críticas)", {"fields": ("alergias", "condiciones_medicas", "contacto_emergencia_nombre", "contacto_emergencia_telefono", "apto_medico")}),
         ("Datos Personales", {"fields": ("dni", "fecha_nacimiento", "domicilio", "localidad")}),
         ("Permisos Django (Avanzado)", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions"), "classes": ("collapse",)}),
@@ -122,8 +122,7 @@ class CronogramaInline(admin.TabularInline):
 class SedeAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_display = ("nombre", "total_usuarios")
     search_fields = ("nombre",)
-    # filter_horizontal = ("actividades",) # REMOVED for simplicity
-    inlines = [CronogramaInline]
+    # CronogramaInline removed for easier initialization without professors/activities
 
     @admin.display(description="Usuarios Registrados")
     def total_usuarios(self, obj): return obj.usuarios.count()

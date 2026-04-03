@@ -83,6 +83,14 @@ class Usuario(AbstractUser):
         related_name="usuarios",
         null=True,
     )
+    grado = models.ForeignKey(
+        "Grado",
+        on_delete=models.SET_NULL,
+        related_name="alumnos",
+        null=True,
+        blank=True,
+        verbose_name="Grado / Faja Actual"
+    )
     es_profe = models.BooleanField(default=False)
 
     # Campos de Mercado Pago para Profesores (Marketplace)
