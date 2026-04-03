@@ -168,10 +168,9 @@ class Usuario(AbstractUser):
             self.rol_gestion_academia
         ]
         
-        # También comprobamos si este usuario es delegado activo de alguien más
+        # Comprobamos si este usuario es delegado activo de alguien más
         es_delegado_activo = False
         if self.pk:
-            # Importamos aquí si fuera necesario prevenir circulares
             es_delegado_activo = Usuario.objects.filter(
                 tesorero_autorizado=self, 
                 autorizacion_tesoreria_activa=True
@@ -180,22 +179,15 @@ class Usuario(AbstractUser):
         if any(roles_granulares) or es_delegado_activo:
             self.is_staff = True
         
-        # 3. Seguridad: si no tiene nada de lo anterior, le quitamos el staff (a menos que sea admin nativo)
-        # Nota: no le quitamos is_superuser si se puso manual por terminal
-        
-        super().save(*args, **kwargs)
-
-
-    class Meta:
-        verbose_name = "Usuario / Alumno / Profe"
-        verbose_name_plural = "02.1 - Panel Maestro de Usuarios"
-        ordering = ["apellido", "nombre"]
-
-    def save(self, *args, **kwargs):
+        # 3. Auto-generación de Username válido (sin espacios ni caracteres raros)
         if not self.username and self.celular:
-            # Limpiamos el celular de espacios, guiones y puntos para un username válido
-            clean_username = self.celular.replace(" ", "").replace("-", "").replace(".", "")
+            # Reemplazamos cualquier cosa que no sea letra, número o los permitidos @ . + - _
+            import re
+            clean_username = re.sub(r'[^a-zA-Z0-9@\.\+\-_]', '', self.celular)
+            if not clean_username: # Si el celular no tiene nada válido, usamos un UUID corto
+                clean_username = f"u_{uuid.uuid4().hex[:8]}"
             self.username = clean_username[:150]
+        
         super().save(*args, **kwargs)
 
     def __str__(self):

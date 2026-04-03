@@ -19,7 +19,7 @@
             {% elif form.fecha_nacimiento.errors or form.errors.fecha_nacimiento %} this.step = 5;
             {% elif form.domicilio.errors or form.errors.domicilio %} this.step = 6;
             {% elif form.localidad.errors or form.errors.localidad %} this.step = 7;
-            {% elif form.locacion.errors or form.errors.locacion %} this.step = 8;
+            {% elif form.sede.errors or form.errors.sede %} this.step = 8;
             {% elif form.actividad_inicial.errors or form.errors.actividad_inicial %} this.step = 9;
             {% elif form.errors %} this.step = 1;
             {% endif %}
@@ -147,13 +147,13 @@
             {% if form.localidad.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.localidad.errors.0 }}</p>{% endif %}
         </div>
 
-        <!-- Field 8: Locacion -->
+        <!-- Field 8: Sede -->
         <div x-show="step === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué sede te inscribes?</label>
             <div class="relative">
-                {{ form.locacion }}
+                {{ form.sede }}
             </div>
-            {% if form.locacion.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.locacion.errors.0 }}</p>{% endif %}
+            {% if form.sede.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.sede.errors.0 }}</p>{% endif %}
         </div>
 
         <!-- Field 9: Actividad Inicial -->

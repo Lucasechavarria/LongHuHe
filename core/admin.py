@@ -52,10 +52,13 @@ class ExamenInline(admin.TabularInline):
 class UsuarioAdminCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = Usuario
-        fields = ("username", "nombre", "apellido", "celular", "dni", "sede", "es_profe")
+        fields = ("nombre", "apellido", "celular", "dni", "sede", "es_profe")
+        # Quitamos username de aquí para que no de error por espacios.
+        # El modelo lo genera automáticamente del celular en el save().
 
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
+    add_form = UsuarioAdminCreationForm # Usamos el formulario sin username manual
     list_display = ("id", "nombre", "apellido", "celular", "sede", "es_profe", "estado_pago_visual", "is_active")
     list_filter = ("es_profe", "rol_acceso_total", "sede", "is_active")
     search_fields = ("nombre", "apellido", "celular", "dni", "username")
@@ -129,10 +132,10 @@ class SedeAdmin(SedesAdminMixin, admin.ModelAdmin):
 
 @admin.register(Cronograma)
 class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
-    list_display = ("actividad", "sede", "dia", "hora_inicio", "profesor", "profesor_asistente")
+    list_display = ("actividad", "sede", "dia", "hora_inicio", "hora_fin", "profesor", "profesor_asistente")
     list_filter = ("actividad", "sede", "profesor", "dia")
     autocomplete_fields = ("profesor", "profesor_asistente")
-    list_editable = ("profesor_asistente",)
+    list_editable = ("dia", "hora_inicio", "hora_fin", "profesor", "profesor_asistente")
     search_fields = ("actividad__nombre", "sede__nombre", "profesor__nombre", "profesor__apellido")
 
     def get_queryset(self, request):
