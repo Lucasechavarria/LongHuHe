@@ -1,9 +1,13 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
+from django.db.models import Q
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
-from apps.academia.models import Cronograma
+from apps.academia.models import Actividad, Cronograma
+from django.http import JsonResponse
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
@@ -195,7 +199,8 @@ def pago_tipo(request):
 
 @alumno_requerido
 def pago_metodo(request):
-    if 'pago_data' not in request.session: return redirect('pago_tipo')
+    if 'pago_data' not in request.session:
+        return redirect('pago_tipo')
     if request.method == 'POST':
         form = PagoMetodoForm(request.POST)
         if form.is_valid():
@@ -212,7 +217,8 @@ def pago_metodo(request):
 
 @alumno_requerido
 def pago_comprobante(request):
-    if 'pago_data' not in request.session: return redirect('pago_tipo')
+    if 'pago_data' not in request.session:
+        return redirect('pago_tipo')
     if request.method == 'POST':
         form = PagoComprobanteForm(request.POST, request.FILES)
         if form.is_valid():
@@ -238,7 +244,8 @@ def pago_comprobante(request):
 
 @alumno_requerido
 def pago_confirmacion(request):
-    if 'pago_data' not in request.session: return redirect('pago_tipo')
+    if 'pago_data' not in request.session:
+        return redirect('pago_tipo')
     alumno = Usuario.objects.get(id=request.session['alumno_id'])
     pago_data = request.session['pago_data']
     actividad = get_object_or_404(Actividad, id=pago_data['actividad'])
@@ -266,8 +273,8 @@ def pago_mercadopago_checkout(request, pago_id):
     try:
         init_point = mp_service.crear_preferencia(pago)
         return redirect(init_point)
-    except Exception as e:
-        messages.error(request, f"Error al conectar con Mercado Pago: {str(e)}")
+    except Exception:
+        messages.error(request, "Error al conectar con Mercado Pago.")
         return redirect('pago_metodo')
 
 @csrf_exempt
@@ -307,7 +314,7 @@ def mercadopago_webhook(request):
                                 pago.estado = Pago.EstadoPago.APROBADO
                             pago.save()
             return render(request, 'ventas/webhook_success.html', status=200)
-        except Exception as e:
+        except Exception:
             return render(request, 'ventas/webhook_error.html', status=500)
     return render(request, 'ventas/webhook_error.html', status=400)
 
