@@ -1,6 +1,6 @@
 import pytest
-from apps.usuarios.models import Usuario, Sede
-from apps.academia.models import Actividad
+from apps.usuarios.models import Usuario
+from apps.academia.models import Actividad, Sede
 from apps.ventas.models import Pago
 
 @pytest.mark.django_db
