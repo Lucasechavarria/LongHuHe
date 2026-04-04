@@ -5,4 +5,4 @@ class VentasConfig(AppConfig):
     name = 'apps.ventas'
 
     def ready(self):
-        import apps.ventas.signals
+        import apps.ventas.signals  # noqa: F401

@@ -1,7 +1,6 @@
 import pytest
 from mixer.backend.django import mixer
 from apps.academia.models import Sede, Actividad, Cronograma, InscripcionClase
-from apps.usuarios.models import Usuario
 
 @pytest.mark.django_db
 class TestAcademiaModel:

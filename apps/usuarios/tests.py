@@ -1,7 +1,6 @@
 import pytest
 from mixer.backend.django import mixer
-from apps.usuarios.models import Usuario, Grado, NivelAcceso
-from apps.academia.models import Sede
+from apps.usuarios.models import Usuario, Grado
 from django.utils import timezone
 from datetime import timedelta
 

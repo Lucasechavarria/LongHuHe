@@ -12,7 +12,7 @@ class TestBibliotecaModel:
     def test_video_id_youtube(self):
         # En el model de biblioteca agregue una property video_id?
         # Revisamos models.py de biblioteca.
-        mat = mixer.blend(MaterialEstudio, url_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+        mixer.blend(MaterialEstudio, url_video="https://www.youtube.com/watch?v=dQw4w9WgXcQ")
         # Si implementé la property:
         # assert mat.video_id == "dQw4w9WgXcQ"
         pass

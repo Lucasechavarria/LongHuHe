@@ -83,8 +83,6 @@ class Pago(models.Model):
         if not self.monto:
             return
         
-        # Por defecto buscamos el profe de la actividad o el del cronograma
-        profe = None
         if self.clase_programada:
             self.clase_programada.profesor
         

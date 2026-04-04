@@ -1,7 +1,6 @@
 import pytest
 from mixer.backend.django import mixer
 from apps.ventas.models import Pago, Pedido, Producto, ProductoVariante, PedidoItem
-from apps.usuarios.models import Usuario
 
 @pytest.mark.django_db
 class TestVentasModel:

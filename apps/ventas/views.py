@@ -1,9 +1,12 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
-from apps.academia.models import Cronograma
+from apps.academia.models import Actividad, Cronograma
+from django.http import JsonResponse
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
