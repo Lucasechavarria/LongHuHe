@@ -84,6 +84,7 @@
         {% block navbar %}
         <nav class="fixed bottom-8 left-4 right-4 z-40 max-w-lg mx-auto">
             <div class="bg-black/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3 flex justify-around items-center shadow-2xl">
+                {% if alumno_actual.grado or request.session.es_profe or user.is_staff %}
                 <a href="/" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
@@ -99,12 +100,22 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </a>
+                {% endif %}
                 
                 {% if request.session.es_profe %}
                 <a href="{% url 'escaner' %}" class="p-4 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all transform hover:scale-110">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1l-3 3h2v5H7l3 3-3 3h2v5h2v-5h2l-3-3 3-3h-2V8h2l-3-3zM4 4h3v3H4zM17 4h3v3h-3zM4 17h3v3H4z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v4m0 8v4M4 12h4m8 0h4"></path>
+                    </svg>
+                </a>
+                {% endif %}
+                
+                {% if alumno_actual and not alumno_actual.grado and not request.session.es_profe %}
+                <!-- Botón de Logout para pre-inscriptos si necesitan salir -->
+                <a href="{% url 'logout' %}" class="p-4 rounded-2xl text-white/20 hover:text-red-500 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                     </svg>
                 </a>
                 {% endif %}

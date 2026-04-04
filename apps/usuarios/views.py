@@ -67,6 +67,10 @@ def onboarding(request):
         if form.is_valid():
             celular = form.cleaned_data['celular']
             dni = form.cleaned_data['dni']
+            # Asignar Grado "Blanco" por defecto (Orden 0)
+            from .models import Grado
+            default_grado = Grado.objects.filter(Q(nombre__iexact="Blanco") | Q(orden=0)).first()
+
             usuario, created = Usuario.objects.get_or_create(
                 celular=celular,
                 defaults={
@@ -78,6 +82,7 @@ def onboarding(request):
                     'localidad': form.cleaned_data['localidad'],
                     'sede': form.cleaned_data['sede'],
                     'foto_perfil': form.cleaned_data.get('foto_perfil'),
+                    'grado': default_grado,
                 }
             )
             if not created:
@@ -88,6 +93,8 @@ def onboarding(request):
                 usuario.domicilio = form.cleaned_data['domicilio']
                 usuario.localidad = form.cleaned_data['localidad']
                 usuario.sede = form.cleaned_data['sede']
+                if not usuario.grado:
+                    usuario.grado = default_grado
                 if form.cleaned_data.get('foto_perfil'):
                     usuario.foto_perfil = form.cleaned_data.get('foto_perfil')
                 usuario.save()
