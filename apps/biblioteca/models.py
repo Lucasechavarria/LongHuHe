@@ -57,6 +57,17 @@ class MaterialEstudio(models.Model):
         match = re.search(regex, self.video_url)
         return match.group(1) if match else None
 
+    def registrar_vista(self, alumno):
+        """ Task 6.3: Registra o incrementa contador de vistas del material por un alumno """
+        vista, created = VisualizacionMaterial.objects.get_or_create(
+            alumno=alumno,
+            material=self
+        )
+        if not created:
+            vista.veces += 1
+            vista.save()
+        return vista
+
 class VisualizacionMaterial(models.Model):
     """ Registro de tracking (Task 6.4) """
     alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="vistas_biblioteca")

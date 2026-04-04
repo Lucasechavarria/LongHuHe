@@ -8,8 +8,8 @@ def test_calculo_comisiones_profesor():
     """ Task 4.6: Verificar que las comisiones se calculen correctamente al aprobar un pago """
     # 1. Setup
     Sede.objects.create(nombre="Sede Sur")
-    Usuario.objects.create(username="profe_v8", es_profe=True)
-    alumno = Usuario.objects.create(username="alumno_v8")
+    Usuario.objects.create(username="profe_v8", es_profe=True, celular="11111111")
+    alumno = Usuario.objects.create(username="alumno_v8", celular="22222222")
     
     actividad = Actividad.objects.create(
         nombre="Tai Chi Principiantes",

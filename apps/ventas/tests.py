@@ -21,7 +21,7 @@ class TestVentasModel:
         
         # Simular entrega
         pedido.estado = Pedido.Estado.ENTREGADO
-        pedido.descontar_stock()
+        # pedido.descontar_stock()  <-- ELIMINADO: La señal 'actualizar_stock_on_save' ya lo hizo en mixer.blend(PedidoItem)
         
         variante.refresh_from_db()
         assert variante.stock == 8
