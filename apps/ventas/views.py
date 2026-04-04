@@ -338,7 +338,8 @@ def tienda_comprar(request, producto_id):
         precio_total = producto.precio * cantidad
         profesor_venta = None
         primera_clase = Pago.objects.filter(alumno=alumno, clase_programada__isnull=False).order_by('-fecha_registro').first()
-        if primera_clase and primera_clase.clase_programada: profesor_venta = primera_clase.clase_programada.profesor
+        if primera_clase and primera_clase.clase_programada:
+            profesor_venta = primera_clase.clase_programada.profesor
         porcentaje_comision = producto.porcentaje_comision if profesor_venta else Decimal('0.0')
         monto_comision = (precio_total * porcentaje_comision) / Decimal('100.0')
         pedido = Pedido.objects.create(
@@ -358,6 +359,6 @@ def tienda_comprar(request, producto_id):
             )
             return redirect(pref_url)
         else:
-            messages.success(request, f"Pedido generado con éxito.")
+            messages.success(request, "Pedido generado con éxito.")
             return redirect('gracias')
     return render(request, 'ventas/tienda_comprar.html', {'producto': producto})

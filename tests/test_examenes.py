@@ -40,7 +40,7 @@ def test_ascenso_automatico_al_aprobar():
     # 5. Assert: El grado del alumno debe haber cambiado
     alumno.refresh_from_db()
     assert alumno.grado == amarillo
-    assert insc.procesado == True
+    assert insc.procesado
     
     # 6. Assert: El historial de examen debe haberse creado
     assert alumno.examenes.count() == 1
@@ -63,4 +63,4 @@ def test_no_hay_ascenso_si_desaprueba():
     
     alumno.refresh_from_db()
     assert alumno.grado == blanco  # Sigue en blanco
-    assert insc.procesado == False
+    assert not insc.procesado

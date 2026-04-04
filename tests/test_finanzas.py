@@ -8,13 +8,12 @@ def test_calculo_comisiones_profesor():
     """ Task 4.6: Verificar que las comisiones se calculen correctamente al aprobar un pago """
     # 1. Setup
     sede = Sede.objects.create(nombre="Sede Sur")
-    profe = Usuario.objects.create(username="profe_v8", es_profe=True)
+    Usuario.objects.create(username="profe_v8", es_profe=True)
     alumno = Usuario.objects.create(username="alumno_v8")
     
     actividad = Actividad.objects.create(
         nombre="Tai Chi Principiantes",
-        precio_mes=10000,
-        sede=sede
+        precio_mes=10000
     )
     
     # 2. Pago pendiente por mes completo (10000)
