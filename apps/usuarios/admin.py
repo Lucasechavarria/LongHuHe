@@ -9,8 +9,10 @@ class ModularAdminMixin:
     rol_requerido = None
 
     def has_module_permission(self, request):
-        if not request.user.is_authenticated: return False
-        if request.user.rol_acceso_total or request.user.is_superuser: return True
+        if not request.user.is_authenticated:
+            return False
+        if request.user.rol_acceso_total or request.user.is_superuser:
+            return True
         if self.rol_requerido and getattr(request.user, self.rol_requerido, False):
             return True
         return False

@@ -22,7 +22,8 @@ class SedeAdmin(SedesAdminMixin, admin.ModelAdmin):
     search_fields = ("nombre",)
 
     @admin.display(description="Usuarios Registrados")
-    def total_usuarios(self, obj): return obj.usuarios.count()
+    def total_usuarios(self, obj):
+        return obj.usuarios.count()
 
 @admin.register(Cronograma)
 class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
@@ -40,7 +41,8 @@ class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         user = request.user
-        if not user.is_authenticated: return qs.none()
+        if not user.is_authenticated:
+            return qs.none()
         if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_sedes', False):
             return qs
         return qs.filter(profesor=user)

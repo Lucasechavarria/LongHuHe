@@ -115,16 +115,15 @@ def checkout(request):
 def validar_signature_mp(request):
     """ Valida que la notificacion venga de Mercado Pago (Task 4.5). """
     header = request.headers.get("X-Signature")
-    if not header: return False
+    if not header:
+        return False
     
     parts = {x.split("=")[0]: x.split("=")[1] for x in header.split(",")}
-    ts = parts.get("ts")
-    v1 = parts.get("v1")
-    
     # El cuerpo del webhook segun la documentacion oficial
     # Depende de como se construye. Por simplicidad comparamos con el secreto si existe.
     secret = settings.MP_WEBHOOK_SECRET
-    if not secret: return True # Si no hay secreto configurado, asumimos que estamos en dev/test
+    if not secret:
+        return True # Si no hay secreto configurado, asumimos que estamos en dev/test
     
     # Construcción de la firma esperada
     # (Esto es una simplificación, la doc oficial pide reconstruir el string exacto)
@@ -181,7 +180,8 @@ def pago_tipo(request):
                     metodo=form_metodo.cleaned_data['metodo'],
                     comprobante=request.FILES.get('comprobante')
                 )
-                if 'pago_data' in request.session: del request.session['pago_data']
+                if 'pago_data' in request.session:
+                    del request.session['pago_data']
                 if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
                     return redirect('pago_mercadopago_checkout', pago_id=pago.id)
                 return redirect('gracias')

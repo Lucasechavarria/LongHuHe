@@ -184,7 +184,8 @@ class Usuario(AbstractUser):
     def alerta_inasistencia(self):
         """ Retorna True si el alumno no registra asistencias hace mas de 15 dias. """
         ultima = self.asistencias.order_by('-fecha_hora').first()
-        if not ultima: return True
+        if not ultima:
+            return True
         return (timezone.now() - ultima.fecha_hora).days > 15
 
     @property
@@ -214,7 +215,8 @@ class Usuario(AbstractUser):
                 fecha_registro__year=hoy.year,
                 fecha_registro__month=hoy.month
             ).exists()
-            if pago_mes_actual: return "al_dia"
+            if pago_mes_actual:
+                return "al_dia"
             return "vencido"
 
         if hoy <= self.fecha_vencimiento_cuota:
@@ -229,8 +231,10 @@ class Usuario(AbstractUser):
     @property
     def color_estado(self):
         estado = self.estado_morosidad
-        if estado == "al_dia": return "green"
-        if estado == "atrasado": return "yellow"
+        if estado == "al_dia":
+            return "green"
+        if estado == "atrasado":
+            return "yellow"
         return "red"
 
 class Examen(models.Model):

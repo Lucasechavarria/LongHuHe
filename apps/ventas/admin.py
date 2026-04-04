@@ -14,13 +14,15 @@ class PagoAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         user = request.user
-        if not user.is_authenticated: return False
+        if not user.is_authenticated:
+            return False
         return user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False) or getattr(user, 'es_profe', False)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         user = request.user
-        if not user.is_authenticated: return qs.none()
+        if not user.is_authenticated:
+            return qs.none()
         if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False):
             return qs
         if getattr(user, 'es_profe', False):
@@ -52,7 +54,8 @@ class PedidoAdmin(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         user = request.user
-        if not user.is_authenticated: return False
+        if not user.is_authenticated:
+            return False
         es_delegado = Usuario.objects.filter(tesorero_autorizado=user, autorizacion_tesoreria_activa=True).exists()
         return (
             user.is_superuser or 
@@ -66,7 +69,8 @@ class PedidoAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         user = request.user
-        if not user.is_authenticated: return qs.none()
+        if not user.is_authenticated:
+            return qs.none()
         if user.is_superuser or getattr(user, 'rol_acceso_total', False) or getattr(user, 'rol_gestion_tesoreria', False) or getattr(user, 'rol_gestion_tienda', False):
             return qs
         query = Q(profesor_venta=user)
