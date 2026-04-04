@@ -1,15 +1,45 @@
+# Caches
 *.py[cod]
 __pycache__/
 *.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Databases
 db.sqlite3
 db.sqlite3-journal
+
+# Environment & Virtual Environments
 .venv/
 venv/
 ENV/
 env/
 .env
+.env.*
+secrets.json
+
+# Logs
+*.log
+logs/
+
+# Django specific
+staticfiles/
+media/
+local_settings.py
+
+# IDEs
 .vscode/
 .idea/
+.project
+.pydevproject
+.settings/
+
+# OS specific
 .DS_Store
-static/
-media/
+Thumbs.db
+
+# Temp / Helper scripts
+reset_db.py
+tmp/
+temp/

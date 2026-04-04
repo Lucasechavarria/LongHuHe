@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Biblioteca - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto pt-10 space-y-12">
+
+    <!-- Hero Stats Header -->
+    <header class="flex items-end justify-between px-6">
+        <div>
+            <div class="inline-block px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-[0.3em] mb-4">
+                Administración <span class="mx-2">🛠️</span> Syllabus
+            </div>
+            <h1 class="text-6xl font-black text-white italic tracking-tighter uppercase leading-none">
+                Control de <span class="text-orange-500 font-black tracking-normal">Biblioteca</span>
+            </h1>
+        </div>
+        <div class="hidden sm:flex gap-4">
+             <div class="p-6 rounded-[2rem] bg-white/5 border border-white/5 text-center min-w-[140px]">
+                <p class="text-[9px] font-black text-white/30 uppercase tracking-widest mb-1">MATERIAL TOTAL</p>
+                <p class="text-3xl font-black text-white">{{ materiales.count }}</p>
+             </div>
+        </div>
+    </header>
+
+    <!-- Analytics Section (Tracking Data Task 6.4) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Mas Vistos Card -->
+        <div class="premium-card rounded-[3rem] p-10 border border-white/5 bg-black/40">
+            <h3 class="text-xl font-black text-white uppercase tracking-tighter mb-8 flex items-center gap-4">
+                <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                Materiales Más Consumidos
+            </h3>
+            <div class="space-y-6">
+                {% for mat in materiales|slice:":5" %}
+                <div class="flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-2 h-2 rounded-full bg-orange-500 group-hover:scale-150 transition-all"></div>
+                        <p class="font-black text-white/60 uppercase text-[11px] group-hover:text-white transition-all">{{ mat.titulo }}</p>
+                    </div>
+                    <p class="font-black text-orange-500 text-xs">{{ mat.visualizaciones.count }} VISTAS</p>
+                </div>
+                {% empty %}
+                <p class="text-white/20 font-black uppercase text-[10px] tracking-widest">Sin datos de engagement aún</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Acceso Directo a Carga -->
+        <div class="premium-card rounded-[3rem] p-12 border border-dashed border-orange-500/20 bg-orange-500/5 flex flex-col items-center justify-center text-center space-y-6">
+            <div class="w-24 h-24 bg-orange-500 rounded-[2.5rem] flex items-center justify-center shadow-2xl">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-3xl font-black text-white uppercase tracking-tighter italic">Cargar Contenido</h3>
+                <p class="text-white/30 font-bold uppercase tracking-widest text-[10px]">Manuales · PDFs · Tutoriales</p>
+            </div>
+            <a href="/admin/biblioteca/materialestudio/add/" class="bg-white text-black px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-orange-500 hover:text-white transition-all shadow-2xl">
+                ABRIR PANEL DE CARGA
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="premium-card rounded-[3.5rem] overflow-hidden border border-white/5 bg-black/20 pb-10">
+        <div class="p-10 border-b border-white/5 flex items-center justify-between">
+            <h2 class="text-3xl font-black text-white uppercase tracking-tighter italic">Inventario de Material</h2>
+            <div class="flex gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] border-b border-white/5">
+                    <tr>
+                        <th class="px-10 py-6">TITULO DEL MATERIAL</th>
+                        <th class="px-8 py-6">TIPO</th>
+                        <th class="px-8 py-6">COMPLEJIDAD / GRADO</th>
+                        <th class="px-8 py-6">PUBLICADO</th>
+                        <th class="px-10 py-6 text-right">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for mat in materiales %}
+                    <tr class="group hover:bg-white/5 transition-all">
+                        <td class="px-10 py-8">
+                             <div class="flex flex-col">
+                                <span class="text-lg font-black text-white uppercase tracking-tight group-hover:text-orange-500 transition-all">{{ mat.titulo }}</span>
+                                <span class="text-[9px] font-bold text-white/30 uppercase tracking-widest uppercase">{{ mat.categoria.nombre }}</span>
+                             </div>
+                        </td>
+                        <td class="px-8 py-8">
+                            <span class="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-white/50 text-[9px] font-black tracking-widest uppercase">
+                                {{ mat.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-8">
+                            <div class="flex items-center gap-2">
+                                <template x-if="true">
+                                    <div class="w-4 h-4 rounded-full border border-white/10 bg-white/5"></div>
+                                </template>
+                                <span class="text-xs font-black text-white/80 uppercase tracking-tight">{{ mat.grado_minimo.nombre }}</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-8 text-xs font-bold text-white/20 uppercase">{{ mat.fecha_publicacion|date:"d-m-Y" }}</td>
+                        <td class="px-10 py-8 text-right">
+                            <div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                                <a href="/admin/biblioteca/materialestudio/{{ mat.id }}/change/" class="p-3 bg-white/5 rounded-xl hover:bg-orange-500 hover:text-white text-white/30 transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </a>
+                                <a href="{% url 'material_detalle' mat.id %}" class="p-3 bg-white/5 rounded-xl hover:bg-white hover:text-black text-white/30 transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

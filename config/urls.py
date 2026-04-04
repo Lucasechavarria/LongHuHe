@@ -18,10 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),
+    path('admin/', admin.site.admin_site.urls if hasattr(admin.site, 'admin_site') else admin.site.urls),
+    path('', include('apps.usuarios.urls')),
+    path('clases/', include('apps.academia.urls')),
+    path('usuarios/', include('apps.usuarios.urls')),
+    path('asistencia/', include('apps.asistencia.urls')),
+    path('pagos/', include('apps.ventas.urls')),
+    path('biblioteca/', include('apps.biblioteca.urls')),
+    path('examenes/', include('apps.examenes.urls')),
 ]
 
 if settings.DEBUG:

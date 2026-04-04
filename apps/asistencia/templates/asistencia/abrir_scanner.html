@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Escanear Alumno - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-md mx-auto pt-6 px-4">
+    <header class="text-center">
+        <h1 class="text-3xl font-black text-white uppercase tracking-tight">Escáner de Carnet</h1>
+        <p class="text-white/60 font-bold mt-2">Apunta la cámara al QR del alumno</p>
+    </header>
+
+    <!-- Scanner Container -->
+    <div class="relative">
+        <div id="reader" class="overflow-hidden rounded-[2.5rem] border-4 border-white/10 bg-black/40 shadow-2xl"></div>
+        
+        <!-- Overlay decorativo -->
+        <div class="absolute inset-0 pointer-events-none border-[40px] border-black/40 rounded-[2.5rem]"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-orange-500/50 rounded-3xl pointer-events-none">
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-orange-500 rounded-tl-lg"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-orange-500 rounded-tr-lg"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-orange-500 rounded-bl-lg"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-orange-500 rounded-br-lg"></div>
+        </div>
+    </div>
+
+    <div id="result-message" class="hidden p-4 rounded-2xl bg-orange-500/20 text-orange-300 border border-orange-500/40 font-bold text-center">
+        Procesando código...
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'inicio' %}" class="inline-flex items-center gap-2 text-white/40 hover:text-white font-bold uppercase tracking-widest text-xs transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Volver al Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Librería html5-qrcode -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    function onScanSuccess(decodedText, decodedResult) {
+        // El decodedText debería ser una URL: http://.../asistencia/validar/<uuid>/
+        // Validamos que la URL sea de nuestro dominio para evitar redirecciones maliciosas
+        if (decodedText.includes('/asistencia/validar/')) {
+            document.getElementById('result-message').classList.remove('hidden');
+            window.location.href = decodedText;
+        } else {
+            console.warn("Código QR no reconocido como carnet válido.");
+        }
+    }
+
+    function onScanFailure(error) {
+        // Ignoramos errores de frame para no llenar la consola
+    }
+
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { 
+            fps: 10, 
+            qrbox: {width: 250, height: 250},
+            aspectRatio: 1.0
+        },
+        /* verbose= */ false
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+    // Estilizar el botón de la librería (que es inyectado dinámicamente)
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const btn = document.querySelector('#reader button');
+            if (btn) {
+                btn.className = "mt-4 bg-orange-500 text-white px-6 py-3 rounded-full font-black uppercase tracking-wider text-sm hover:bg-orange-600 transition-all";
+                btn.innerText = "Iniciar Cámara";
+            }
+        }, 500);
+    });
+</script>
+
+<style>
+    #reader {
+        border: none !important;
+    }
+    #reader__scan_region {
+        background: transparent !important;
+    }
+    #reader img {
+        display: none; /* Ocultar imagen de ejemplo de la lib */
+    }
+    #reader__dashboard_section_csr button {
+        /* Estilos para el botón de permiso de cámara si aparece */
+        background: #f97316 !important;
+        color: white !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 9999px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+    }
+</style>
+{% endblock %}

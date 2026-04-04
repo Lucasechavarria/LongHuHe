@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Carrito - Long Hu He{% endblock %}
+
+{% block content %}
+<div x-data="cartManager()" class="max-w-xl mx-auto pt-8">
+
+    <div class="mb-14 text-center">
+        <h2 class="text-6xl font-black italic tracking-tighter uppercase text-white leading-tight">
+            Tu <span class="bg-gradient-to-r from-orange-500 to-amber-300 bg-clip-text text-transparent italic tracking-normal px-2">Carrito</span>
+        </h2>
+        <p class="text-[10px] font-black uppercase text-white/30 tracking-[0.4em] mt-4">Confirmación de Pedido Interno</p>
+    </div>
+
+    <!-- Lista de Items -->
+    <div class="space-y-6">
+        <template x-for="(item, index) in localCart" :key="index">
+            <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 flex items-center gap-6 relative group overflow-hidden">
+                <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                
+                <div class="w-20 h-20 bg-black/40 rounded-[1.5rem] flex items-center justify-center border border-white/10 p-2 shadow-2xl">
+                     <svg class="w-10 h-10 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                </div>
+                
+                <div class="flex-grow">
+                    <h4 x-text="item.name" class="text-xl font-black text-white uppercase leading-tight tracking-tight"></h4>
+                    <p class="text-[10px] font-black text-orange-500 uppercase mt-1 tracking-widest italic" x-text="'$' + item.price"></p>
+                    
+                    <div class="mt-4 flex items-center gap-6">
+                        <div class="flex items-center bg-black/60 rounded-full border border-white/10 p-1">
+                            <button @click="changeQty(index, -1)" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">-</button>
+                            <span x-text="item.qty" class="w-10 text-center font-black text-white text-sm"></span>
+                            <button @click="changeQty(index, 1)" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">+</button>
+                        </div>
+                        <button @click="removeItem(index)" class="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-400 transition-colors">Eliminar</button>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <p class="text-lg font-black text-white" x-text="'$' + (item.price * item.qty)"></p>
+                </div>
+            </div>
+        </template>
+        
+        <!-- Carrito Vacío -->
+        <template x-if="localCart.length === 0">
+            <div class="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                <p class="font-black uppercase tracking-widest text-white/20">Tu carrito está vacío</p>
+                <a href="{% url 'tienda_inicio' %}" class="inline-block mt-8 bg-orange-500 text-white px-10 py-5 rounded-3xl font-black uppercase tracking-widest text-[11px] shadow-2xl">Ir a la tienda</a>
+            </div>
+        </template>
+    </div>
+
+    <!-- Total -->
+    <div x-show="localCart.length > 0" x-cloak class="mt-14 pt-10 border-t-4 border-white/5">
+        <div class="flex justify-between items-center mb-10 px-4">
+            <h3 class="text-2xl font-black text-white uppercase tracking-tighter italic">Total <span class="text-white/20 font-bold tracking-normal italic text-sm">(Final)</span></h3>
+            <p class="text-5xl font-black text-orange-500 tracking-tighter" x-text="'$' + total"></p>
+        </div>
+
+        <form action="{% url 'checkout' %}" method="POST" class="space-y-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-orange-500 transition-all group">
+                    <input type="radio" name="metodo" value="transferencia" checked class="hidden peer">
+                    <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-orange-500 transition-colors mb-4 flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-orange-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                    </div>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest">Transferencia</span>
+                </label>
+                
+                <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-blue-500 transition-all">
+                    <input type="radio" name="metodo" value="mercadopago" class="hidden peer">
+                    <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-blue-500 transition-colors mb-4 flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-blue-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                    </div>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest">Mercado Pago</span>
+                </label>
+            </div>
+
+            <button type="submit" class="w-full h-24 bg-white text-black rounded-[2rem] text-xl font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-orange-500 hover:text-white hover:-translate-y-2 transition-all active:translate-y-1">
+                Generar Pedido
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function cartManager() {
+        return {
+            localCart: [],
+            total: 0,
+            init() {
+                this.localCart = JSON.parse(localStorage.getItem('longhuhe_cart') || '[]');
+                this.calculateTotal();
+            },
+            changeQty(index, delta) {
+                this.localCart[index].qty += delta;
+                if (this.localCart[index].qty < 1) this.localCart[index].qty = 1;
+                this.saveAndSync();
+            },
+            removeItem(index) {
+                this.localCart.splice(index, 1);
+                this.saveAndSync();
+            },
+            calculateTotal() {
+                this.total = this.localCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            },
+            async saveAndSync() {
+                localStorage.setItem('longhuhe_cart', JSON.stringify(this.localCart));
+                this.calculateTotal();
+                
+                // Actualizar contador global
+                let count = this.localCart.reduce((sum, i) => sum + i.qty, 0);
+                window.dispatchEvent(new CustomEvent('cart-update', { detail: { count } }));
+
+                // Sincronizar con backend
+                await fetch('{% url "carrito_sync" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ cart: this.localCart })
+                });
+            }
+        }
+    }
+</script>
+{% endblock %}

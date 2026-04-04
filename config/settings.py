@@ -43,7 +43,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',
+    'apps.usuarios',
+    'apps.academia',
+    'apps.asistencia',
+    'apps.ventas',
+    'apps.biblioteca',
+    'apps.examenes',
 ]
 
 MIDDLEWARE = [
@@ -62,7 +67,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,11 +85,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuración de Base de Datos para Producción (Supabase) y Local (SQLite)
-# Importante: Ensure DATABASE_URL is set in Render's Environment Variables dashboard.
+# Configuración de Base de Datos: PRIORIDAD LOCAL en DEBUG, REMOTE en PROD
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DATABASE_URL:
+if os.getenv("FORCE_REMOTE_DB") == "True" or (not DEBUG and DATABASE_URL):
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -93,7 +97,7 @@ if DATABASE_URL:
         )
     }
 else:
-    # Fallback local para desarrollo si no hay una DB externa configurada
+    # Fallback local para desarrollo (SQLite)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -134,13 +138,18 @@ USE_TZ = True
 
 
 # Custom user model
-AUTH_USER_MODEL = "core.Usuario"
+AUTH_USER_MODEL = "usuarios.Usuario"
 
+
+# Configuración Mercado Pago
+MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN", "")
+MP_WEBHOOK_SECRET = os.getenv("MP_WEBHOOK_SECRET", "") # Para validación X-Signature
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

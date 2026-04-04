@@ -1,0 +1,79 @@
+from django.db import models
+from apps.usuarios.models import Usuario, Grado
+
+class CategoriaContenido(models.Model):
+    nombre = models.CharField(max_length=100)
+    icono = models.CharField(max_length=50, default="book", help_text="Slug de icono Lucide/Heroicon")
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Biblioteca: Categoría"
+        verbose_name_plural = "05.1 - Biblioteca: Categorías"
+        ordering = ['orden']
+
+    def __str__(self):
+        return self.nombre
+
+class MaterialEstudio(models.Model):
+    class TipoMaterial(models.TextChoices):
+        PDF = "pdf", "Documento PDF"
+        VIDEO = "video", "URL de Video (YouTube/Vimeo)"
+        TEORIA = "teoria", "Texto / Teoría"
+
+    categoria = models.ForeignKey(CategoriaContenido, on_delete=models.CASCADE, related_name="materiales")
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    tipo = models.CharField(max_length=20, choices=TipoMaterial.choices, default=TipoMaterial.PDF)
+    
+    # El archivo fisico (opcional si es video)
+    archivo = models.FileField(upload_to="biblioteca/", blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True, help_text="Pega el link de YouTube")
+    contenido_teorico = models.TextField(blank=True, help_text="Para material de teoría directa (Texto/HTML)")
+
+    # Acceso restringido (Task 6.1)
+    grado_minimo = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="materiales_habilitados")
+    
+    fecha_publicacion = models.DateTimeField(auto_now_add=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Biblioteca: Material"
+        verbose_name_plural = "05.2 - Biblioteca: Materiales"
+        ordering = ['grado_minimo__orden', 'titulo']
+
+    def __str__(self):
+        return f"[{self.grado_minimo.nombre}] {self.titulo}"
+
+    @property
+    def video_id(self):
+        """ Extrae el ID de YouTube de un link de tipo: https://www.youtube.com/watch?v=dQw4w9WgXcQ """
+        if not self.video_url:
+            return None
+        import re
+        # Regex para extraer ID de youtube
+        regex = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
+        match = re.search(regex, self.video_url)
+        return match.group(1) if match else None
+
+class VisualizacionMaterial(models.Model):
+    """ Registro de tracking (Task 6.4) """
+    alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="vistas_biblioteca")
+    material = models.ForeignKey(MaterialEstudio, on_delete=models.CASCADE, related_name="visualizaciones")
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+    veces = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        verbose_name = "Biblioteca: Registro de Vista"
+        verbose_name_plural = "05.3 - Biblioteca: Tracking de Vistas"
+        unique_together = ['alumno', 'material']
+
+    def __str__(self):
+        return f"{self.alumno.nombre_completo} vio {self.material.titulo} ({self.veces} veces)"
+
+    @classmethod
+    def registrar_vista(cls, alumno, material):
+        vista, created = cls.objects.get_or_create(alumno=alumno, material=material)
+        if not created:
+            vista.veces += 1
+            vista.save()
+        return vista

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+<div class="fixed inset-0 bg-[#080808] flex items-center justify-center overflow-hidden">
+    <!-- Luces de Ambiente (Gradients) -->
+    <div class="absolute top-0 -left-1/4 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[150px] animate-pulse"></div>
+    <div class="absolute bottom-0 -right-1/4 w-[500px] h-[500px] bg-orange-600/10 rounded-full blur-[150px] delay-1000 animate-pulse"></div>
+    
+    <!-- Contenedor Principal (Glassmorphism) -->
+    <div class="relative z-10 w-full max-w-lg px-6 text-center">
+        <!-- Logo Interactivo como Portal de Entrada -->
+        <a href="{% url 'acceso_opciones' %}" 
+           class="group relative inline-block transform hover:scale-110 active:scale-95 transition-all duration-700 cursor-pointer">
+            
+            <!-- Aura Dinámica -->
+            <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 bg-white/20 blur-[100px] w-full h-full rounded-full animate-pulse group-hover:bg-red-600/30 transition-colors"></div>
+            
+            <img src="{% static 'img/Logo Long Hu He Transparent.png' %}" alt="Long Hu He" 
+                 class="relative w-[400px] mx-auto drop-shadow-[0_40px_80px_rgba(255,255,255,0.4)] group-hover:drop-shadow-[0_40px_80px_rgba(220,38,38,0.5)] transition-all"
+                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/3233/3233483.png'">
+            
+            <!-- Micro-interacción: Prompt de entrada sutil -->
+            <div class="mt-8 opacity-20 group-hover:opacity-100 transition-opacity">
+                <p class="text-white font-black uppercase tracking-[0.6em] text-[10px] animate-bounce">
+                    CLICK PARA ENTRAR
+                </p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.1; }
+        50% { transform: scale(1.2); opacity: 0.15; }
+    }
+    body { background: #080808 !important; overflow: hidden; }
+</style>
+{% endblock %}

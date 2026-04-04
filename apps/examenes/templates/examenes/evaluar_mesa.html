@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Evaluar Mesa: {{ mesa.lugar }} - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto pt-10 pb-20 space-y-12">
+
+    <!-- Header Mesa Info -->
+    <header class="flex items-center justify-between px-6">
+        <div>
+            <a href="{% url 'dashboard_institucional' %}" class="flex items-center gap-2 text-white/20 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest mb-4">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                VOLVER AL DASHBOARD
+            </a>
+            <p class="text-orange-500 font-bold uppercase tracking-[0.3em] text-[10px] mb-2 italic">Examen Institucional</p>
+            <h1 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
+                {{ mesa.lugar }} <span class="text-white/20">|</span> <span class="text-orange-500 font-black tracking-normal">{{ mesa.fecha|date:"d-m-Y" }}</span>
+            </h1>
+        </div>
+        <div class="hidden sm:block">
+            <div class="p-6 rounded-[2rem] bg-orange-500 text-white min-w-[150px] shadow-2xl text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest mb-1 opacity-70">CANDIDATOS</p>
+                <p class="text-4xl font-black">{{ candidatos.count }}</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- FORM EVALUADOR -->
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="space-y-4">
+            {% for cand in candidatos %}
+            <div class="premium-card rounded-[2.5rem] p-10 border border-white/5 bg-black/40 backdrop-blur-2xl transition-all hover:bg-white/[0.03] group relative overflow-hidden" x-data="{ resultado: '{{ cand.resultado }}' }">
+                
+                <!-- Ribbon Status Indicator -->
+                <div class="absolute top-0 right-0 h-full w-2 transition-all opacity-0 group-hover:opacity-100" 
+                     :class="resultado === 'aprobado' ? 'bg-green-500' : (resultado === 'desaprobado' ? 'bg-red-500' : 'bg-orange-500')"></div>
+
+                <div class="flex flex-col md:flex-row gap-10">
+                    
+                    <!-- Candidato Info -->
+                    <div class="md:w-1/3 flex items-center gap-6">
+                         <div class="w-20 h-20 bg-blue-500/10 rounded-[2rem] flex items-center justify-center border border-white/5 overflow-hidden">
+                            {% if cand.alumno.foto_perfil %}
+                                <img src="{{ cand.alumno.foto_perfil.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <svg class="w-10 h-10 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            {% endif %}
+                         </div>
+                         <div>
+                            <h3 class="text-xl font-black text-white uppercase tracking-tight">{{ cand.alumno.nombre_completo }}</h3>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-[9px] font-black px-3 py-1 rounded-full bg-white/5 text-white/40 uppercase tracking-widest">{{ cand.grado_actual.nombre }}</span>
+                                <svg class="w-3 h-3 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                <span class="text-[9px] font-black px-3 py-1 rounded-full bg-orange-500/10 text-orange-500 uppercase tracking-widest border border-orange-500/20 italic">{{ cand.grado_a_aspirar.nombre }}</span>
+                            </div>
+                         </div>
+                    </div>
+
+                    <!-- Grading Controls (Task 7.2) -->
+                    <div class="md:w-2/3 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        
+                        <!-- Resultado -->
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] px-2 italic">VERDICTO FINAL</label>
+                            <select name="resultado_{{ cand.id }}" x-model="resultado" 
+                                    class="w-full bg-black border-2 border-white/10 rounded-2xl p-4 font-black uppercase text-xs tracking-widest focus:border-orange-500 transition-all text-white outline-none">
+                                {% for val, label in resultados_opciones %}
+                                <option value="{{ val }}" {% if cand.resultado == val %}selected{% endif %}>{{ label|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Nota Técnica -->
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] px-2 italic">NOTA FINAL (/100)</label>
+                            <input type="number" name="nota_{{ cand.id }}" value="{{ cand.nota_tecnica|default:'' }}" placeholder="PUNTUACIÓN"
+                                   class="w-full bg-black border-2 border-white/10 rounded-2xl p-4 font-black uppercase text-xs tracking-tighter transition-all focus:border-orange-500 text-white text-center">
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="space-y-2">
+                             <label class="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] px-2 italic">FEEDBACK PERSONAL</label>
+                             <textarea name="obs_{{ cand.id }}" placeholder="DETALLES TÉCNICOS..."
+                                       class="w-full bg-black border-2 border-white/10 rounded-2xl p-4 text-[10px] font-bold text-white/50 focus:text-white transition-all focus:border-white h-[58px] resize-none"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Submission Section -->
+        <div class="sticky bottom-10 z-50 flex items-center justify-center pt-10">
+            <button type="submit" class="bg-white text-black px-16 py-6 rounded-[2.5rem] font-black uppercase tracking-widest shadow-[0_30px_60px_rgba(255,255,255,0.2)] hover:bg-orange-500 hover:text-white transition-all transform hover:scale-105 active:scale-95 group">
+                FINALIZAR Y <span class="text-orange-500 group-hover:text-white transition-all italic">PROCESAR ASCENSOS</span>
+            </button>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

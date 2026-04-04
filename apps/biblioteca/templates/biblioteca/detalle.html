@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ material.titulo }} - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto pt-10 pb-20 space-y-12">
+
+    <!-- Navigation Header -->
+    <div class="flex items-center justify-between">
+        <a href="{% url 'biblioteca_inicio' %}" class="flex items-center gap-4 text-white/50 hover:text-white transition-all group px-6 py-3 rounded-2xl bg-white/5 border border-white/5">
+            <svg class="w-6 h-6 transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <span class="text-[10px] font-black uppercase tracking-[0.2em]">VOLVER A EXPLORAR</span>
+        </a>
+        <div class="px-6 py-3 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black tracking-widest uppercase">
+            {{ material.grado_minimo.nombre }} <span class="mx-2 text-white/10">|</span> {{ material.get_tipo_display }}
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="premium-card rounded-[3rem] overflow-hidden border border-white/5 shadow-2xl bg-black">
+        
+        <!-- Video Player (Task 6.1) -->
+        {% if material.tipo == 'video' %}
+        <div class="aspect-video relative group">
+            <iframe id="vid-player" class="w-full h-full" 
+                    src="https://www.youtube.com/embed/{{ material.video_id }}?rel=0&modestbranding=1&autoplay=1" 
+                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        {% endif %}
+
+        <!-- PDF / File Viewer -->
+        {% if material.tipo == 'pdf' %}
+        <div class="p-10 text-center space-y-10 min-h-[400px] flex flex-col items-center justify-center">
+            <div class="w-32 h-32 bg-orange-500/10 rounded-[2.5rem] flex items-center justify-center border border-orange-500/20 shadow-inner">
+                <svg class="w-16 h-16 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </div>
+            <div class="space-y-4">
+                <h2 class="text-4xl font-black text-white uppercase tracking-tighter italic">Documento Académico</h2>
+                <p class="text-white/30 font-bold uppercase tracking-widest text-[10px]">Manuales · Teoría · Exámenes · Katas</p>
+            </div>
+            <div class="flex gap-4">
+                {% if material.archivo %}
+                <a href="{{ material.archivo.url }}" target="_blank" class="bg-white text-black px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-orange-500 hover:text-white transition-all shadow-2xl">
+                    ABRIR DOCUMENTO
+                </a>
+                <a href="{{ material.archivo.url }}" download class="bg-white/5 text-white/50 px-8 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all border border-white/5">
+                    DESCARGAR PDF
+                </a>
+                {% else %}
+                <p class="text-white/20 font-black uppercase text-[10px] tracking-widest">Este material no contiene un archivo descargable.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Content Info Section -->
+        <div class="p-12 space-y-10">
+            <div class="space-y-4">
+                 <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] italic">Descripción Detallada</p>
+                 <h1 class="text-5xl font-black text-white uppercase tracking-tighter leading-none">{{ material.titulo }}</h1>
+                 <div class="pt-6 text-xl text-white/60 font-bold leading-relaxed max-w-2xl border-t border-white/5">
+                    {{ material.descripcion|linebreaks }}
+                 </div>
+            </div>
+
+            <!-- Theory Content -->
+            {% if material.tipo == 'teoria' %}
+            <div class="p-10 bg-white/5 rounded-[2rem] border border-white/5 prose-invert prose-orange max-w-none shadow-inner italic font-bold text-white/80 leading-loose">
+                {{ material.contenido_teorico|safe }}
+            </div>
+            {% endif %}
+
+            <!-- Footer Meta -->
+            <div class="flex items-center gap-4 text-[9px] font-black text-white/20 uppercase tracking-widest pt-10 border-t border-white/5">
+                <span class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    PUBLICADO EL {{ material.fecha_publicacion|date:"d M Y" }}
+                </span>
+                <span class="mx-4">⚡</span>
+                <span class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                    {{ material.visualizaciones.count }} VISUALIZACIONES
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* Styling for theoretical content rendered from RTF/Safe */
+    .prose-orange p { margin-bottom: 2rem; }
+</style>
+
+<script>
+    // Task 6.4 Tracking: We could add duration tracking here with JS if needed,
+    // but the backend view already logs the basic arrival.
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Tienda Oficial - Long Hu He{% endblock %}
+
+{% block content %}
+<div x-data="shopController()" class="space-y-8 max-w-2xl mx-auto pt-6">
+
+    <!-- Header -->
+    <header class="text-center relative">
+        <h1 class="text-5xl font-black text-white uppercase tracking-tighter relative inline-block z-10 leading-tight">
+            Tienda <span class="text-orange-500">Oficial</span>
+        </h1>
+        <p class="text-white/40 font-bold mt-2 text-[10px] uppercase tracking-[0.2em] max-w-md mx-auto">Equipamiento y vestimenta oficial de la escuela.</p>
+    </header>
+
+    <!-- Categorías y Productos -->
+    {% for categoria in categorias %}
+        {% if categoria.productos.count > 0 %}
+        <section class="space-y-6">
+            <h2 class="text-xs font-black text-white/30 uppercase tracking-[0.4em] border-l-4 border-orange-500 pl-4 py-1">
+                {{ categoria.nombre }}
+            </h2>
+
+            <!-- Grid de Productos -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {% for producto in categoria.productos.all %}
+                    {% if producto.activo %}
+                        <div class="premium-card rounded-[2.5rem] overflow-hidden flex flex-col transition-all hover:scale-[1.02] border border-white/5 hover:border-orange-500/20 group">
+                            <!-- Imagen -->
+                            <div class="w-full aspect-square bg-white/5 relative flex items-center justify-center overflow-hidden">
+                                {% if producto.foto1 %}
+                                    <img src="{{ producto.foto1.url }}" alt="{{ producto.nombre }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                {% else %}
+                                    <svg class="w-16 h-16 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                {% endif %}
+                                
+                                <!-- Stock Indicator -->
+                                <div class="absolute top-6 right-6">
+                                    {% if not producto.hay_stock %}
+                                        <span class="bg-rose-500 text-white text-[9px] font-black uppercase px-4 py-2 rounded-full shadow-2xl">Agotado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div x-data="{ selectedVariant: null }" class="p-8 flex flex-col flex-1">
+                                <h3 class="font-black text-2xl text-white uppercase tracking-tight leading-tight">{{ producto.nombre }}</h3>
+                                <p class="text-xs text-white/40 mt-2 font-bold leading-relaxed">{{ producto.descripcion|truncatewords:15 }}</p>
+                                
+                                <!-- Variantes (Talles) -->
+                                {% if producto.variantes.exists %}
+                                <div class="mt-6">
+                                    <p class="text-[9px] font-black text-white/20 uppercase tracking-widest mb-3 text-center">Seleccionar Talle</p>
+                                    <div class="flex flex-wrap gap-2 justify-center">
+                                        {% for var in producto.variantes.all %}
+                                        <button 
+                                            @click="selectedVariant = {id: {{ var.id }}, talle: '{{ var.talle }}'}"
+                                            :class="selectedVariant && selectedVariant.id == {{ var.id }} ? 'bg-orange-500 border-orange-500' : 'bg-white/5 border-white/10 text-white/40'"
+                                            class="px-4 py-2 rounded-xl text-[10px] font-black border transition-all hover:border-orange-500/50"
+                                            {% if var.stock <= 0 %}disabled style="opacity: 0.3; cursor: not-allowed;"{% endif %}>
+                                            {{ var.talle }}
+                                        </button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
+                                    <p class="text-3xl font-black text-white italic">${{ producto.precio|floatformat:0 }}</p>
+                                    
+                                    {% if producto.hay_stock %}
+                                        <button 
+                                            @click="addToCart({{ producto.id }}, '{{ producto.nombre }}', {{ producto.precio }}, selectedVariant, {{ producto.variantes.exists|yesno:'true,false' }})" 
+                                            class="bg-white text-black px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-orange-500 hover:text-white transition-all transform active:scale-95 shadow-xl">
+                                            Agregar
+                                        </button>
+                                    {% else %}
+                                        <button disabled class="bg-white/5 text-white/20 border border-white/5 px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-not-allowed">
+                                            Sin Stock
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    {% empty %}
+        <div class="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+            <p class="font-black uppercase tracking-widest text-white/20">La vidriera está vacía temporalmente</p>
+        </div>
+    {% endfor %}
+
+    <!-- Link a Pedidos -->
+    <div class="pt-10 text-center">
+        <a href="{% url 'perfil' %}" class="text-[10px] font-black uppercase text-white/40 tracking-[0.3em] hover:text-orange-500 transition-colors">Ver mis pedidos anteriores →</a>
+    </div>
+
+</div>
+
+<script>
+    function shopController() {
+        return {
+            cart: [],
+            init() {
+                this.cart = JSON.parse(localStorage.getItem('longhuhe_cart') || '[]');
+            },
+            async addToCart(id, name, price, variant, hasVariants) {
+                if (hasVariants && !variant) {
+                    alert("Por favor elige un talle.");
+                    return;
+                }
+
+                let v_id = variant ? variant.id : null;
+                let v_name = variant ? `${name} (Talle: ${variant.talle})` : name;
+                
+                let item = this.cart.find(i => i.id === id && i.variant_id === v_id);
+                if (item) {
+                    item.qty++;
+                } else {
+                    this.cart.push({ id, name: v_name, price, qty: 1, variant_id: v_id });
+                }
+                
+                localStorage.setItem('longhuhe_cart', JSON.stringify(this.cart));
+                await this.syncWithBackend();
+                let count = this.cart.reduce((sum, i) => sum + i.qty, 0);
+                window.dispatchEvent(new CustomEvent('cart-update', { detail: { count } }));
+            },
+            async syncWithBackend() {
+                try {
+                    await fetch('{% url "carrito_sync" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ cart: this.cart })
+                    });
+                } catch (e) { console.error("Error syncing cart", e); }
+            }
+        }
+    }
+</script>
+{% endblock %}

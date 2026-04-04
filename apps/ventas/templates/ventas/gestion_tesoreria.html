@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Tesorería - Cola de Pagos{% endblock %}
+
+{% block content %}
+<div class="mb-10 pt-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+            <h2 class="text-5xl font-black tracking-tight uppercase text-white">Tesorería</h2>
+            <p class="text-orange-500 font-bold uppercase tracking-widest mt-2">Gestión de Cobros y Comisiones</p>
+        </div>
+        
+        <div class="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5">
+            <div class="text-right">
+                <p class="text-[10px] font-black uppercase text-white/40 tracking-widest">Pendientes hoy</p>
+                <p class="text-2xl font-black text-white">{{ pagos_pendientes.count }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-orange-500 flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0114 0z"></path></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="space-y-6">
+    {% for pago in pagos_pendientes %}
+    <div x-data="{ open: false, reject: false }" class="premium-card rounded-[2.5rem] p-8 border border-white/5 overflow-hidden transition-all hover:border-orange-500/20">
+        <div class="flex flex-col lg:flex-row justify-between gap-8">
+            <!-- Info Alumno -->
+            <div class="flex items-center gap-6">
+                <div class="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white/10 bg-black/40">
+                    {% if pago.alumno.foto_perfil %}
+                        <img src="{{ pago.alumno.foto_perfil.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-white/10">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 class="text-xl font-black text-white uppercase">{{ pago.alumno.nombre_completo }}</h4>
+                    <p class="text-xs font-bold text-orange-500 uppercase tracking-widest">{{ pago.get_tipo_display }} - ${{ pago.monto }}</p>
+                </div>
+            </div>
+
+            <!-- Detalles Pago -->
+            <div class="flex flex-wrap items-center gap-8">
+                <div class="text-center md:text-left">
+                    <p class="text-[9px] font-black uppercase text-white/30 tracking-widest mb-1">Método</p>
+                    <span class="px-4 py-2 bg-white/5 rounded-xl text-xs font-black text-white uppercase">{{ pago.get_metodo_display }}</span>
+                </div>
+                <div class="text-center md:text-left">
+                    <p class="text-[9px] font-black uppercase text-white/30 tracking-widest mb-1">Fecha Aviso</p>
+                    <span class="text-sm font-bold text-white/60">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</span>
+                </div>
+                
+                {% if pago.comprobante %}
+                <a href="{{ pago.comprobante.url }}" target="_blank" class="bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/5 transition-all group">
+                    <svg class="w-6 h-6 text-white/40 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                </a>
+                {% endif %}
+                
+                <!-- Acciones -->
+                <div class="flex items-center gap-2">
+                    <form action="{% url 'gestionar_pago_accion' pago.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="aprobar">
+                        <button type="submit" class="bg-emerald-500 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-emerald-600 transition-all transform hover:scale-105 active:scale-95">
+                            Aprobar
+                        </button>
+                    </form>
+                    <button @click="reject = !reject" class="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-500 hover:text-white transition-all transform active:scale-95">
+                        Rechazar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form de Rechazo -->
+        <div x-show="reject" x-transition class="mt-8 pt-8 border-t border-white/5">
+            <form action="{% url 'gestionar_pago_accion' pago.id %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="rechazar">
+                <label class="text-[10px] font-black uppercase text-white/40 mb-2 block tracking-widest">Motivo del rechazo</p>
+                <div class="flex gap-4">
+                    <input type="text" name="motivo" placeholder="Ej: Comprobante ilegible..." class="flex-grow bg-black/40 border-2 border-white/5 rounded-2xl p-4 text-white placeholder-white/20 focus:border-orange-500 outline-none transition-all">
+                    <button type="submit" class="bg-rose-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px]">Confirmar Rechazo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="premium-card rounded-[3rem] p-24 text-center">
+        <svg class="w-20 h-20 text-white/5 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0114 0z"></path></svg>
+        <p class="text-white/20 text-2xl font-black uppercase tracking-widest italic">Nada pendiente en tesorería</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
