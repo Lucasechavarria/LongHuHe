@@ -7,7 +7,7 @@ from apps.ventas.models import Pago
 def test_calculo_comisiones_profesor():
     """ Task 4.6: Verificar que las comisiones se calculen correctamente al aprobar un pago """
     # 1. Setup
-    sede = Sede.objects.create(nombre="Sede Sur")
+    Sede.objects.create(nombre="Sede Sur")
     Usuario.objects.create(username="profe_v8", es_profe=True)
     alumno = Usuario.objects.create(username="alumno_v8")
     

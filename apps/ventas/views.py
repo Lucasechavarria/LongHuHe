@@ -1,17 +1,11 @@
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
-from django.db.models import Q
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
-from apps.academia.models import Actividad, Cronograma
-from django.http import JsonResponse
+from apps.academia.models import Cronograma
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
-import hmac
-import hashlib
 from django.conf import settings
 from .services.mercadopago_service import MercadoPagoService
 
@@ -313,7 +307,8 @@ def mercadopago_webhook(request):
                                 pago.estado = Pago.EstadoPago.APROBADO
                             pago.save()
             return render(request, 'ventas/webhook_success.html', status=200)
-        except Exception as e: return render(request, 'ventas/webhook_error.html', status=500)
+        except Exception as e:
+            return render(request, 'ventas/webhook_error.html', status=500)
     return render(request, 'ventas/webhook_error.html', status=400)
 
 @alumno_requerido
