@@ -160,7 +160,7 @@ def gestionar_pago_accion(request, pago_id):
             pago.estado = Pago.EstadoPago.RECHAZADO
             pago.motivo_rechazo = motivo
             pago.save()
-            messages.warning(request, f"Pago rechazado.")
+            messages.warning(request, "Pago rechazado.")
             
     return redirect('gestion_tesoreria')
 

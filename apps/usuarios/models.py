@@ -1,8 +1,6 @@
 import uuid
 from django.utils import timezone
-from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 from django.db import models
 
 class NivelAcceso(models.TextChoices):
