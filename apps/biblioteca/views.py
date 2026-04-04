@@ -3,6 +3,7 @@ from django.contrib import messages
 from apps.usuarios.views import alumno_requerido, profe_requerido
 from apps.usuarios.models import Usuario
 from apps.biblioteca.models import CategoriaContenido, MaterialEstudio, VisualizacionMaterial
+from django.db.models import Count
 
 @alumno_requerido
 def biblioteca_inicio(request):

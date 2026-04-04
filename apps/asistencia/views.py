@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from apps.usuarios.models import Usuario
@@ -6,6 +6,7 @@ from apps.usuarios.views import profe_requerido
 from apps.academia.models import Cronograma
 from .models import RegistroAsistencia
 from django.utils import timezone
+import json
 
 @profe_requerido
 def escaner(request):

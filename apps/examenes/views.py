@@ -1,11 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Count, Sum, Avg, F
+from django.db.models import Count, Sum
 from django.utils import timezone
 from datetime import timedelta
 from apps.usuarios.views import profe_requerido
-from apps.usuarios.models import Usuario, Grado, Examen
+from apps.usuarios.models import Usuario, Grado
 from apps.asistencia.models import RegistroAsistencia
-from apps.ventas.models import Pago, Producto
+from apps.ventas.models import Pago
 from .models import MesaExamen, InscripcionExamen
 from django.contrib import messages
 
@@ -65,8 +65,10 @@ def evaluar_mesa(request, mesa_id):
             
             if resultado:
                 cand.resultado = resultado
-                if nota: cand.nota_tecnica = int(nota)
-                if obs: cand.observaciones = obs
+                if nota:
+                    cand.nota_tecnica = int(nota)
+                if obs:
+                    cand.observaciones = obs
                 cand.save()
                 
                 # Ejecutar ascenso si aprobó (Task 7.3)

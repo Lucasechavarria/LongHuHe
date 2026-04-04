@@ -1,6 +1,6 @@
 from django import forms
-from .models import Usuario, Grado
-from apps.academia.models import Actividad, Sede
+from .models import Usuario
+from apps.academia.models import Actividad
 
 class AlumnoOnboardingForm(forms.ModelForm):
     actividad_inicial = forms.ModelChoiceField(

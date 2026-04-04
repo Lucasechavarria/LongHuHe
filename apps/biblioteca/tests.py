@@ -1,7 +1,7 @@
 import pytest
 from mixer.backend.django import mixer
-from apps.biblioteca.models import MaterialEstudio, CategoriaMaterial, VisualizacionMaterial
-from apps.usuarios.models import Usuario, Grado, NivelAcceso
+from apps.biblioteca.models import MaterialEstudio, VisualizacionMaterial
+from apps.usuarios.models import Usuario, NivelAcceso
 
 @pytest.mark.django_db
 class TestBibliotecaModel:

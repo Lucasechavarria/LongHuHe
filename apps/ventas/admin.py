@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db.models import Q
 from apps.usuarios.models import Usuario
 from apps.usuarios.admin import ModularAdminMixin
-from .models import Pago, Pedido, CategoriaProducto, Producto, ProductoVariante, PedidoItem
+from .models import Pago, Pedido, CategoriaProducto, Producto, ProductoVariante
 
 @admin.register(Pago)
 class PagoAdmin(admin.ModelAdmin):

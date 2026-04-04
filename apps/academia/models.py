@@ -1,5 +1,4 @@
 from django.db import models
-from apps.usuarios.models import NivelAcceso
 
 class Sede(models.Model):
     """
@@ -113,9 +112,6 @@ class InscripcionClase(models.Model):
         verbose_name_plural = "01.4 - Inscripciones (Control de Cupo)"
         unique_together = ['alumno', 'clase'] # Un alumno no puede inscribirse 2 veces al mismo horario
         db_table = 'core_inscripcionclase'
-
-    def __str__(self):
-        return f"{self.alumno.nombre_completo} -> {self.clase} ({self.get_estado_display()})"
 
     def __str__(self):
         return f"{self.alumno.nombre_completo} -> {self.clase} ({self.get_estado_display()})"

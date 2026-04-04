@@ -1,13 +1,9 @@
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
-from django.db.models import Q
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
-from apps.academia.models import Actividad, Cronograma
-from django.http import JsonResponse
+from apps.academia.models import Cronograma
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
@@ -118,7 +114,6 @@ def validar_signature_mp(request):
     if not header:
         return False
     
-    parts = {x.split("=")[0]: x.split("=")[1] for x in header.split(",")}
     # El cuerpo del webhook segun la documentacion oficial
     # Depende de como se construye. Por simplicidad comparamos con el secreto si existe.
     secret = settings.MP_WEBHOOK_SECRET

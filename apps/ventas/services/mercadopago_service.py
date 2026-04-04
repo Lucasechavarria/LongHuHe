@@ -1,6 +1,5 @@
 import mercadopago
 import os
-from django.conf import settings
 class MercadoPagoService:
     def __init__(self, custom_access_token=None):
         self.access_token = custom_access_token or os.environ.get("MP_ACCESS_TOKEN")

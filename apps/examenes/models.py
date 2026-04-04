@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 from apps.usuarios.models import Usuario, Grado, Examen
 
 class MesaExamen(models.Model):

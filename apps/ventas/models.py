@@ -80,12 +80,13 @@ class Pago(models.Model):
 
     def recalcular_comisiones(self):
         """ Calcula cuanto va para el profe y cuanto para la asociacion. """
-        if not self.monto: return
+        if not self.monto:
+            return
         
         # Por defecto buscamos el profe de la actividad o el del cronograma
         profe = None
         if self.clase_programada:
-            profe = self.clase_programada.profesor
+            self.clase_programada.profesor
         
         pct = 0
         if self.actividad and hasattr(self.actividad, 'precio_mes'):
@@ -176,7 +177,8 @@ class Producto(models.Model):
                         img.save(thumb_io, 'WEBP', quality=85)
                         new_name = img_file.name.split('.')[0] + '.webp'
                         getattr(self, attr).save(new_name, ContentFile(thumb_io.getvalue()), save=False)
-                    except: pass
+                    except Exception:
+                        pass
             self._img_optimized = True
             
         super().save(*args, **kwargs)
@@ -258,7 +260,8 @@ class Pedido(models.Model):
 
     def descontar_stock(self):
         """ Reduce el inventario al entregar el producto """
-        if self.stock_descontado: return
+        if self.stock_descontado:
+            return
         for item in self.items.all():
             if item.variante:
                 item.variante.stock -= item.cantidad
@@ -271,7 +274,8 @@ class Pedido(models.Model):
 
     def restaurar_stock(self):
         """ Devuelve el inventario si se cancela un pedido entregado """
-        if not self.stock_descontado: return
+        if not self.stock_descontado:
+            return
         for item in self.items.all():
             if item.variante:
                 item.variante.stock += item.cantidad
