@@ -64,8 +64,8 @@ class Usuario(AbstractUser):
     foto_perfil = models.ImageField("Foto de Perfil", upload_to="perfiles/", null=True, blank=True)
 
     # Campos de Mercado Pago para Profesores (Marketplace)
-    mp_access_token = models.CharField("MP Access Token", max_length=255, blank=True, null=True)
-    mp_public_key = models.CharField("MP Public Key", max_length=255, blank=True, null=True)
+    mp_access_token = models.CharField("MP Access Token", max_length=500, blank=True, null=True)
+    mp_public_key = models.CharField("MP Public Key", max_length=500, blank=True, null=True)
 
     # Nuevos campos para adultos mayores
     dni = models.CharField("DNI", max_length=15, blank=True)
@@ -75,10 +75,10 @@ class Usuario(AbstractUser):
 
     # Campos de Vida Marcial y Salud (Fase 2)
     fecha_ingreso_real = models.DateField("Fecha de Ingreso a la Asociación", null=True, blank=True)
-    alergias = models.TextField("Alergias Conocidas", blank=True)
-    condiciones_medicas = models.TextField("Condiciones Médicas", blank=True)
-    contacto_emergencia_nombre = models.CharField("Nombre Contacto Emergencia", max_length=120, blank=True)
-    contacto_emergencia_telefono = models.CharField("Teléfono Contacto Emergencia", max_length=50, blank=True)
+    alergias = models.TextField("Alergias Conocidas", blank=True, default="")
+    condiciones_medicas = models.TextField("Condiciones Médicas", blank=True, default="")
+    contacto_emergencia_nombre = models.CharField("Nombre Contacto Emergencia", max_length=120, blank=True, default="")
+    contacto_emergencia_telefono = models.CharField("Teléfono Contacto Emergencia", max_length=50, blank=True, default="")
     apto_medico = models.FileField("Certificado Apto Médico", upload_to="aptos_medicos/", null=True, blank=True)
 
     actividades = models.ManyToManyField('academia.Actividad', blank=True, related_name="alumnos")
@@ -243,7 +243,7 @@ class Examen(models.Model):
     grado = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="examenes_obtenidos")
     fecha = models.DateField("Fecha del Examen")
     examinador = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="examenes_tomados")
-    examinador_externo = models.CharField("Maestro Invitado (si no está en la app)", max_length=150, blank=True)
+    examinador_externo = models.CharField("Maestro Invitado (si no está en la app)", max_length=150, blank=True, default="")
     observaciones = models.TextField("Observaciones / Detalles", blank=True)
 
     class Meta:

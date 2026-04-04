@@ -15,7 +15,15 @@ class RegistroAsistencia(models.Model):
         Actividad, 
         on_delete=models.CASCADE, 
         related_name="asistencias",
-        null=True
+        null=True,
+        blank=True
+    )
+    clase = models.ForeignKey(
+        'academia.Cronograma', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name="asistencias_sesion"
     )
     fecha_hora = models.DateTimeField(auto_now_add=True)
 

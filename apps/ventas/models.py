@@ -269,12 +269,29 @@ class Pedido(models.Model):
         self.stock_descontado = True
         self.save()
 
+    def restaurar_stock(self):
+        """ Devuelve el inventario si se cancela un pedido entregado """
+        if not self.stock_descontado: return
+        for item in self.items.all():
+            if item.variante:
+                item.variante.stock += item.cantidad
+                item.variante.save()
+            else:
+                item.producto.stock += item.cantidad
+                item.producto.save()
+        self.stock_descontado = False
+        self.save()
+
     def save(self, *args, **kwargs):
-        # Al pasar a ENTREGADO, descontamos automáticamente si no se hizo
+        # Al pasar a ENTREGADO, descontamos automáticamente
         if self.estado == self.Estado.ENTREGADO and not self.stock_descontado:
-            # Necesitamos que los items existan, asi que guardamos primero si es nuevo
-            # (Pero un pedido ENTREGADO usualmente ya existe)
-            pass 
+            # Solo podemos descontar si el pedido ya existe en la DB (para tener items)
+            if self.pk:
+                self.descontar_stock()
+        
+        # Al pasar a CANCELADO, restauramos automáticamente si se había descontado
+        if self.estado == self.Estado.CANCELADO and self.stock_descontado:
+            self.restaurar_stock()
         
         if self.estado == self.Estado.PAGADO:
             total_costo = 0

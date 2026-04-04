@@ -10,6 +10,7 @@ class CategoriaContenido(models.Model):
         verbose_name = "Biblioteca: Categoría"
         verbose_name_plural = "05.1 - Biblioteca: Categorías"
         ordering = ['orden']
+        db_table = 'core_categoriacontenido'
 
     def __str__(self):
         return self.nombre
@@ -35,6 +36,7 @@ class MaterialEstudio(models.Model):
     
     fecha_publicacion = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
+    descargable = models.BooleanField("Permitir Descarga", default=True)
 
     class Meta:
         verbose_name = "Biblioteca: Material"
