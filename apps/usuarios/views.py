@@ -44,7 +44,7 @@ def acceso_opciones(request):
 
 def identificacion(request):
     if 'alumno_id' in request.session:
-        return redirect('inicio')
+        return redirect('perfil')
     if request.method == 'POST':
         identificador = request.POST.get('identificador', '').strip()
         if identificador:
@@ -53,7 +53,7 @@ def identificacion(request):
                 request.session['alumno_id'] = alumno.id
                 request.session['es_profe'] = alumno.es_profe
                 messages.success(request, f"¡Bienvenido nuevamente, {alumno.nombre}!")
-                return redirect('inicio')
+                return redirect('perfil')
             else:
                 messages.info(request, "No encontramos tus datos. ¡Por favor, completa tu inscripción!")
                 return redirect('onboarding')
@@ -61,7 +61,7 @@ def identificacion(request):
 
 def onboarding(request):
     if 'alumno_id' in request.session:
-        return redirect('inicio')
+        return redirect('perfil')
     if request.method == 'POST':
         form = AlumnoOnboardingForm(request.POST, request.FILES)
         if form.is_valid():
@@ -103,7 +103,7 @@ def onboarding(request):
                 usuario.actividades.add(actividad)
             request.session['alumno_id'] = usuario.id
             request.session['es_profe'] = usuario.es_profe
-            return redirect('inicio')
+            return redirect('perfil')
     else:
         form = AlumnoOnboardingForm()
     return render(request, 'usuarios/onboarding.html', {'form': form})

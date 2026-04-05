@@ -8,7 +8,8 @@ class AlumnoOnboardingForm(forms.ModelForm):
         label="¿A qué actividad quieres inscribirte?",
         empty_label="Selecciona una actividad",
         widget=forms.Select(attrs={
-            'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold'
+            'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
+            'x-model': 'actividad_inicial'
         }),
         error_messages={'required': 'Dime qué actividad quieres practicar.'}
     )
