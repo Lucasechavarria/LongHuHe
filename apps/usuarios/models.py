@@ -162,7 +162,10 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         rol = "Profesor" if self.es_profe else "Alumno"
-        return f"{self.apellido}, {self.nombre} ({rol}) - {self.celular}"
+        apellido = self.apellido or "Sin Apellido"
+        nombre = self.nombre or "Sin Nombre"
+        celular = self.celular or "---"
+        return f"{apellido}, {nombre} ({rol}) - {celular}"
 
     @property
     def generar_qr_base64(self):

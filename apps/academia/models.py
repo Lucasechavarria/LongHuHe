@@ -90,8 +90,14 @@ class Cronograma(models.Model):
         db_table = 'core_cronograma'
 
     def __str__(self):
-        horario_str = f"{self.get_dia_display()} {self.hora_inicio.strftime('%H:%M') if self.hora_inicio else '--:--'}"
-        return f"{self.actividad.nombre} ({horario_str}) - {self.sede.nombre} - Prof. {self.profesor.nombre}"
+        try:
+            horario_str = f"{self.get_dia_display()} {self.hora_inicio.strftime('%H:%M') if self.hora_inicio else '--:--'}"
+            act_nombre = self.actividad.nombre if self.actividad else "Sin Actividad"
+            sede_nombre = self.sede.nombre if self.sede else "Sin Sede"
+            prof_nombre = self.profesor.nombre if self.profesor else "Sin Profesor"
+            return f"{act_nombre} ({horario_str}) - {sede_nombre} - Prof. {prof_nombre}"
+        except Exception:
+            return f"Clase #{self.id} (Error al mostrar detalles)"
 
 class InscripcionClase(models.Model):
     """
@@ -114,4 +120,10 @@ class InscripcionClase(models.Model):
         db_table = 'core_inscripcionclase'
 
     def __str__(self):
-        return f"{self.alumno.nombre_completo} -> {self.clase} ({self.get_estado_display()})"
+        try:
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            clase_str = str(self.clase) if self.clase else "Clase no definida"
+            estado_str = self.get_estado_display()
+            return f"{alumno_str} -> {clase_str} ({estado_str})"
+        except Exception:
+            return f"Inscripción #{self.id} (Error al mostrar detalles)"

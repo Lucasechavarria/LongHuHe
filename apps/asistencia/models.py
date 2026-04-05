@@ -34,5 +34,9 @@ class RegistroAsistencia(models.Model):
         db_table = 'core_asistencia'
 
     def __str__(self):
-        fecha = self.fecha_hora.strftime("%d/%m/%Y %H:%M")
-        return f"Asistencia de {self.alumno.nombre_completo} - {fecha}"
+        try:
+            fecha = self.fecha_hora.strftime("%d/%m/%Y %H:%M") if self.fecha_hora else "Sin Fecha"
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            return f"Asistencia de {alumno_str} - {fecha}"
+        except Exception:
+            return f"Asistencia #{self.id} (Error al mostrar)"

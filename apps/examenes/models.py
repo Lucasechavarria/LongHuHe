@@ -44,7 +44,12 @@ class InscripcionExamen(models.Model):
         unique_together = ('mesa', 'alumno')
 
     def __str__(self):
-        return f"{self.alumno.nombre_completo} -> {self.grado_a_aspirar.nombre}"
+        try:
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            grado_str = self.grado_a_aspirar.nombre if self.grado_a_aspirar else "N/A"
+            return f"{alumno_str} -> {grado_str}"
+        except Exception:
+            return f"Inscripción Examen #{self.id}"
 
     def aplicar_ascenso(self):
         """ Task 7.3: Automatización de ascenso de grado """

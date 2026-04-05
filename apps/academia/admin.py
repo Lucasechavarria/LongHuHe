@@ -23,7 +23,10 @@ class SedeAdmin(SedesAdminMixin, admin.ModelAdmin):
 
     @admin.display(description="Usuarios Registrados")
     def total_usuarios(self, obj):
-        return obj.usuarios.count()
+        try:
+            return obj.usuarios.count()
+        except Exception:
+            return 0
 
 @admin.register(Cronograma)
 class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
@@ -36,7 +39,11 @@ class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
 
     @admin.display(description="Inscriptos")
     def total_inscriptos(self, obj):
-        return f"{obj.alumnos_inscritos.filter(estado='regular').count()} / {obj.cupo}"
+        try:
+            count = obj.alumnos_inscritos.filter(estado='regular').count()
+            return f"{count} / {obj.cupo if obj.cupo is not None else '?'}"
+        except Exception:
+            return "Error"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

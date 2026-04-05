@@ -71,12 +71,14 @@ class Pago(models.Model):
         db_table = 'core_pago'
 
     def __str__(self):
-        fecha = self.fecha_registro.strftime("%d/%m/%Y %H:%M")
-        return (
-            f"Pago de {self.alumno.nombre_completo} - "
-            f"{self.get_tipo_display()} - "
-            f"{self.get_estado_display()} - {fecha}"
-        )
+        try:
+            fecha = self.fecha_registro.strftime("%d/%m/%Y %H:%M") if self.fecha_registro else "Sin Fecha"
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            tipo_str = self.get_tipo_display()
+            estado_str = self.get_estado_display()
+            return f"Pago de {alumno_str} - {tipo_str} - {estado_str} - {fecha}"
+        except Exception:
+            return f"Pago #{self.id}"
 
     def recalcular_comisiones(self):
         """ Calcula cuanto va para el profe y cuanto para la asociacion. """
@@ -254,7 +256,11 @@ class Pedido(models.Model):
         db_table = 'core_pedido'
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.alumno.nombre_completo}"
+        try:
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            return f"Pedido #{self.id} - {alumno_str}"
+        except Exception:
+            return f"Pedido #{self.id}"
 
     def descontar_stock(self):
         """ Reduce el inventario al entregar el producto """

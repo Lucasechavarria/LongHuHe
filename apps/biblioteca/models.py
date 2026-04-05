@@ -44,7 +44,11 @@ class MaterialEstudio(models.Model):
         ordering = ['grado_minimo__orden', 'titulo']
 
     def __str__(self):
-        return f"[{self.grado_minimo.nombre}] {self.titulo}"
+        try:
+            grado = self.grado_minimo.nombre if self.grado_minimo else "Cualquiera"
+            return f"[{grado}] {self.titulo}"
+        except Exception:
+            return f"Material #{self.id}"
 
     @property
     def video_id(self):
@@ -81,7 +85,12 @@ class VisualizacionMaterial(models.Model):
         unique_together = ['alumno', 'material']
 
     def __str__(self):
-        return f"{self.alumno.nombre_completo} vio {self.material.titulo} ({self.veces} veces)"
+        try:
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            material_str = self.material.titulo if self.material else "Material desconocido"
+            return f"{alumno_str} vio {material_str} ({self.veces} veces)"
+        except Exception:
+            return f"Vista #{self.id}"
 
     @classmethod
     def registrar_vista(cls, alumno, material):
