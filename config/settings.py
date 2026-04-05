@@ -16,6 +16,7 @@ import dj_database_url
 from dotenv import load_dotenv
 
 # Carga las variables de entorno del archivo .env localizado en la raíz del proyecto
+# Test comment
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
