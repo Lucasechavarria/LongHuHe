@@ -16,7 +16,7 @@ class TestAsistenciaModel:
     def test_doble_registro_mismo_dia(self):
         alumno = mixer.blend(Usuario)
         actividad = mixer.blend('academia.Actividad')
-        hoy = timezone.now().date()
+        hoy = timezone.localdate()
         
         # 1. Primera asistencia
         RegistroAsistencia.objects.create(alumno=alumno, actividad=actividad)

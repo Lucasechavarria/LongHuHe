@@ -22,44 +22,53 @@ class AlumnoOnboardingForm(forms.ModelForm):
         ]
         widgets = {
             'foto_perfil': forms.ClearableFileInput(attrs={
-                'class': 'block w-full text-xl text-brown-800 file:mr-6 file:py-4 file:px-8 file:rounded-3xl file:border-0 file:text-xl file:font-black file:bg-orange-500 file:text-white hover:file:bg-orange-600 file:uppercase'
+                'class': 'block w-full text-xl text-brown-800 file:mr-6 file:py-4 file:px-8 file:rounded-3xl file:border-0 file:text-xl file:font-black file:bg-orange-500 file:text-white hover:file:bg-orange-600 file:uppercase',
+                'x-model': 'foto_perfil'
             }),
             'nombre': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
-                'placeholder': 'Ej: Juan'
+                'placeholder': 'Ej: Juan',
+                'x-model': 'nombre'
             }),
             'apellido': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
-                'placeholder': 'Ej: Pérez'
+                'placeholder': 'Ej: Pérez',
+                'x-model': 'apellido'
             }),
             'celular': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
                 'placeholder': 'Ej: 1112345678',
                 'type': 'tel',
                 'pattern': '[0-9]*',
-                'inputmode': 'numeric'
+                'inputmode': 'numeric',
+                'x-model': 'celular'
             }),
             'dni': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold',
                 'placeholder': 'Ej: 12345678',
                 'pattern': '[0-9]*',
-                'inputmode': 'numeric'
+                'inputmode': 'numeric',
+                'x-model': 'dni'
             }),
             'fecha_nacimiento': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 outline-none transition-all shaolin-shadow font-bold text-center',
                 'placeholder': 'DD/MM/AAAA',
-                'inputmode': 'numeric'
+                'inputmode': 'numeric',
+                'x-model': 'fecha_nacimiento'
             }),
             'domicilio': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold',
-                'placeholder': 'Ej: Av. Rivadavia 1234'
+                'placeholder': 'Ej: Av. Rivadavia 1234',
+                'x-model': 'domicilio'
             }),
             'localidad': forms.TextInput(attrs={
                 'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 placeholder-brown-800/40 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold',
-                'placeholder': 'Ej: CABA'
+                'placeholder': 'Ej: CABA',
+                'x-model': 'localidad'
             }),
             'sede': forms.Select(attrs={
-                'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold'
+                'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 focus:bg-white outline-none transition-all shaolin-shadow uppercase font-bold',
+                'x-model': 'sede'
             }),
         }
 
