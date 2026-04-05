@@ -26,12 +26,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p%mklucg$04%=%sdx=^@p16@b7*d9ot14zkwbkfv%widnq-!u*'
+SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-p%mklucg$04%=%sdx=^@p16@b7*d9ot14zkwbkfv%widnq-!u*')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['*', '.onrender.com'] # En producción lo limitaremos a tu dominio de Render
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*, .onrender.com").split(",")
+
+# CSRF Trusted Origins para producción
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.onrender.com",
+    "https://longhuhe.onrender.com",
+]
+
+# Configuración para que Django reconozca HTTPS detrás del Proxy de Render
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -86,10 +95,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Configuración de Base de Datos: PRIORIDAD LOCAL en DEBUG, REMOTE en PROD
+# Configuración de Base de Datos: PRIORIDAD REMOTA si existe el URL
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if os.getenv("FORCE_REMOTE_DB") == "True" or (not DEBUG and DATABASE_URL):
+if DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -98,7 +107,7 @@ if os.getenv("FORCE_REMOTE_DB") == "True" or (not DEBUG and DATABASE_URL):
         )
     }
 else:
-    # Fallback local para desarrollo (SQLite)
+    # Fallback local para desarrollo (SQLite) sino hay DATABASE_URL
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
