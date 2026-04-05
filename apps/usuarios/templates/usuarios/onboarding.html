@@ -11,6 +11,16 @@
      x-data="{ 
         step: 1, 
         totalSteps: 11,
+        nombre: '',
+        apellido: '',
+        celular: '',
+        dni: '',
+        fecha_nacimiento: '',
+        domicilio: '',
+        localidad: '',
+        sede: '',
+        actividad_inicial: '',
+        foto_perfil: '',
         init() {
             {% if form.nombre.errors %} this.step = 1;
             {% elif form.apellido.errors %} this.step = 2;
@@ -23,17 +33,28 @@
             {% elif form.actividad_inicial.errors %} this.step = 9;
             {% elif form.foto_perfil.errors %} this.step = 10;
             {% endif %}
+            
+            // Sync initial values
+            this.nombre = '{{ form.nombre.value|default:""|escapejs }}';
+            this.apellido = '{{ form.apellido.value|default:""|escapejs }}';
+            this.celular = '{{ form.celular.value|default:""|escapejs }}';
+            this.dni = '{{ form.dni.value|default:""|escapejs }}';
+            this.fecha_nacimiento = '{{ form.fecha_nacimiento.value|default:""|escapejs }}';
+            this.domicilio = '{{ form.domicilio.value|default:""|escapejs }}';
+            this.localidad = '{{ form.localidad.value|default:""|escapejs }}';
+            this.sede = '{{ form.sede.value|default:""|escapejs }}';
+            this.actividad_inicial = '{{ form.actividad_inicial.value|default:""|escapejs }}';
         },
         canGoNext() {
-            if (this.step === 1) return document.getElementById('id_nombre').value.trim() !== '';
-            if (this.step === 2) return document.getElementById('id_apellido').value.trim() !== '';
-            if (this.step === 3) return document.getElementById('id_celular').value.trim() !== '';
-            if (this.step === 4) return document.getElementById('id_dni').value.trim() !== '';
-            if (this.step === 5) return document.getElementById('id_fecha_nacimiento').value.trim() !== '';
-            if (this.step === 6) return document.getElementById('id_domicilio').value.trim() !== '';
-            if (this.step === 7) return document.getElementById('id_localidad').value.trim() !== '';
-            if (this.step === 8) return document.getElementById('id_sede').value.trim() !== '';
-            if (this.step === 9) return document.getElementById('id_actividad_inicial').value.trim() !== '';
+            if (this.step === 1) return this.nombre.trim() !== '';
+            if (this.step === 2) return this.apellido.trim() !== '';
+            if (this.step === 3) return this.celular.trim() !== '';
+            if (this.step === 4) return this.dni.trim() !== '';
+            if (this.step === 5) return this.fecha_nacimiento.trim() !== '';
+            if (this.step === 6) return this.domicilio.trim() !== '';
+            if (this.step === 7) return this.localidad.trim() !== '';
+            if (this.step === 8) return this.sede !== '';
+            if (this.step === 9) return this.actividad_inicial !== '';
             return true;
         }
      }">
@@ -59,7 +80,9 @@
         <div x-show="step === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cómo te llamas?</label>
             <div class="relative">
-                {{ form.nombre }}
+                <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'nombre') })">
+                    {{ form.nombre }}
+                </div>
             </div>
             {% if form.nombre.errors %}<p class="text-red-600 text-sm font-black uppercase mt-4 text-center tracking-widest">{{ form.nombre.errors.0 }}</p>{% endif %}
             
@@ -74,7 +97,9 @@
         <div x-show="step === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cuál es tu apellido?</label>
             <div class="relative">
-                {{ form.apellido }}
+                <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'apellido') })">
+                    {{ form.apellido }}
+                </div>
             </div>
             {% if form.apellido.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.apellido.errors.0 }}</p>{% endif %}
         </div>
@@ -83,7 +108,9 @@
         <div x-show="step === 3" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">Tu número de Celular</label>
             <div class="relative font-mono text-center">
-                {{ form.celular }}
+                <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'celular') })">
+                    {{ form.celular }}
+                </div>
             </div>
             <p class="text-white text-xl font-bold text-center">Para que podamos contactarte</p>
             {% if form.celular.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.celular.errors.0 }}</p>{% endif %}
@@ -93,7 +120,9 @@
         <div x-show="step === 4" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">Número de DNI</label>
             <div class="relative">
-                {{ form.dni }}
+                <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'dni') })">
+                    {{ form.dni }}
+                </div>
             </div>
             {% if form.dni.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
         </div>
@@ -111,10 +140,12 @@
                             value = value.slice(0, 2) + '/' + value.slice(2);
                         }
                         e.target.value = value;
+                        this.fecha_nacimiento = value;
                     }
                 }">
-                    {{ form.fecha_nacimiento }}
-                    <div x-init="$el.querySelector('input').addEventListener('input', (e) => mask(e))"></div>
+                    <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'fecha_nacimiento') })">
+                        {{ form.fecha_nacimiento }}
+                    </div>
                 </div>
                 
                 <div class="relative" x-data="{ 
@@ -124,7 +155,7 @@
                     }
                 }">
                     <input type="date" x-ref="dateInput" class="absolute inset-0 opacity-0 pointer-events-none" 
-                           @change="$el.closest('.space-y-6').querySelector('input[type=text]').value = $el.value.split('-').reverse().join('/')">
+                           @change="const dateVal = $el.value.split('-').reverse().join('/'); $el.closest('.space-y-6').querySelector('input[type=text]').value = dateVal; fecha_nacimiento = dateVal;">
                     
                     <button type="button" @click="openPicker()" 
                             class="bg-white/10 hover:bg-white/20 text-white p-6 rounded-3xl border-4 border-white/10 transition-all">
@@ -143,7 +174,9 @@
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Dónde vives?</label>
             <p class="text-sm font-black text-white text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
             <div class="relative">
-                {{ form.domicilio }}
+                <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'domicilio') })">
+                    {{ form.domicilio }}
+                </div>
             </div>
             {% if form.domicilio.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.domicilio.errors.0 }}</p>{% endif %}
         </div>
@@ -152,7 +185,9 @@
         <div x-show="step === 7" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿En qué ciudad / localidad?</label>
             <div class="relative">
-                {{ form.localidad }}
+                <div x-init="$nextTick(() => { $el.querySelector('input').setAttribute('x-model', 'localidad') })">
+                    {{ form.localidad }}
+                </div>
             </div>
             {% if form.localidad.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.localidad.errors.0 }}</p>{% endif %}
         </div>
@@ -161,7 +196,9 @@
         <div x-show="step === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué sede te inscribes?</label>
             <div class="relative">
-                {{ form.sede }}
+                <div x-init="$nextTick(() => { $el.querySelector('select').setAttribute('x-model', 'sede') })">
+                    {{ form.sede }}
+                </div>
             </div>
             {% if form.sede.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.sede.errors.0 }}</p>{% endif %}
         </div>
@@ -170,7 +207,9 @@
         <div x-show="step === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
             <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué actividad quieres inscribirte?</label>
             <div class="relative">
-                {{ form.actividad_inicial }}
+                <div x-init="$nextTick(() => { $el.querySelector('select').setAttribute('x-model', 'actividad_inicial') })">
+                    {{ form.actividad_inicial }}
+                </div>
             </div>
             {% if form.actividad_inicial.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.actividad_inicial.errors.0 }}</p>{% endif %}
         </div>
