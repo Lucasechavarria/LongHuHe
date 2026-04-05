@@ -61,19 +61,6 @@
                 {{ form.localidad }}
                 {% if form.localidad.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.localidad.errors.0 }}</p>{% endif %}
             </div>
-            <div class="md:col-span-2 border-t border-shaolin-red/20 pt-6 mt-4">
-                <h4 class="text-shaolin-red font-black uppercase tracking-widest text-lg mb-6 italic">Información Crítica de Salud</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <label class="block text-[10px] font-black uppercase text-white/20 tracking-[0.3em] mb-4">Alergias</label>
-                        {{ form.alergias }}
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black uppercase text-white/20 tracking-[0.3em] mb-4">Condiciones Médicas</label>
-                        {{ form.condiciones_medicas }}
-                    </div>
-                </div>
-            </div>
         </div>
 
         <div class="pt-10">

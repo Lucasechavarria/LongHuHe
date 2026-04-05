@@ -120,7 +120,7 @@ class AlumnoOnboardingForm(forms.ModelForm):
 class UsuarioPerfilForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ['foto_perfil', 'nombre', 'apellido', 'celular', 'domicilio', 'localidad', 'alergias', 'condiciones_medicas']
+        fields = ['foto_perfil', 'nombre', 'apellido', 'celular', 'domicilio', 'localidad']
         widgets = {
             'foto_perfil': forms.ClearableFileInput(attrs={
                 'class': 'block w-full text-sm text-white file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600'
@@ -140,12 +140,21 @@ class UsuarioPerfilForm(forms.ModelForm):
             'localidad': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all'
             }),
-            'alergias': forms.TextInput(attrs={
-                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all',
-                'placeholder': 'Ej: Penicilina, ninguna'
+        }
+
+class UsuarioSaludForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['alergias', 'condiciones_medicas']
+        widgets = {
+            'alergias': forms.Textarea(attrs={
+                'class': 'w-full rounded-[2.5rem] bg-white/5 border border-white/10 p-8 text-white focus:border-orange-500 outline-none transition-all text-xl font-bold italic',
+                'placeholder': 'Ej: Penicilina, ninguna notable...',
+                'rows': 3
             }),
-            'condiciones_medicas': forms.TextInput(attrs={
-                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all',
-                'placeholder': 'Ej: Asma, ninguna'
+            'condiciones_medicas': forms.Textarea(attrs={
+                'class': 'w-full rounded-[2.5rem] bg-white/5 border border-white/10 p-8 text-white focus:border-orange-500 outline-none transition-all text-xl font-bold italic',
+                'placeholder': 'Ej: Asma, hipertensión, ninguna notable...',
+                'rows': 3
             }),
         }

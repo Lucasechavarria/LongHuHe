@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from functools import wraps
 from .models import Usuario
-from .forms import AlumnoOnboardingForm, UsuarioPerfilForm
+from .forms import AlumnoOnboardingForm, UsuarioPerfilForm, UsuarioSaludForm
 
 def profe_requerido(view_func):
     @wraps(view_func)
@@ -129,6 +129,19 @@ def editar_perfil(request):
     else:
         form = UsuarioPerfilForm(instance=alumno)
     return render(request, 'usuarios/editar_perfil.html', {'form': form, 'alumno': alumno})
+
+@alumno_requerido
+def editar_salud(request):
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    if request.method == 'POST':
+        form = UsuarioSaludForm(request.POST, instance=alumno)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "¡Información de salud actualizada!")
+            return redirect('perfil')
+    else:
+        form = UsuarioSaludForm(instance=alumno)
+    return render(request, 'usuarios/editar_salud.html', {'form': form, 'alumno': alumno})
 def logout(request):
     request.session.flush()
     messages.info(request, "Sesión cerrada correctamente.")

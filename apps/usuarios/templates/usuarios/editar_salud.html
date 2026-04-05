@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Información de Salud - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="mb-10 pt-4 flex items-center gap-4">
+    <a href="{% url 'perfil' %}" class="bg-white/10 p-4 rounded-2xl hover:bg-white/20 transition-all">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </a>
+    <h2 class="text-5xl font-black tracking-tight uppercase text-white">Información Médica</h2>
+</div>
+
+<div class="premium-card rounded-[3rem] p-12 shadow-2xl relative border-t-8 border-shaolin-red">
+    <div class="absolute -right-20 -top-20 w-60 h-60 bg-red-500/10 rounded-full blur-[80px]"></div>
+    
+    <div class="mb-12 text-center relative z-10">
+        <p class="text-shaolin-red font-black uppercase tracking-[0.4em] text-sm mb-4 italic">Seguridad del Alumno</p>
+        <p class="text-white/60 text-lg leading-relaxed max-w-xl mx-auto">
+            Por favor, mantén esta información actualizada. Es fundamental para que los maestros puedan asistirte correctamente durante la práctica.
+        </p>
+    </div>
+
+    <form method="post" class="space-y-12 relative z-10">
+        {% csrf_token %}
+        
+        <div class="space-y-10">
+            <div class="space-y-4">
+                <label class="block text-sm font-black uppercase text-white tracking-[0.3em] ml-2">Alergias Conocidas</label>
+                {{ form.alergias }}
+                <p class="text-[10px] text-white/20 uppercase font-bold tracking-widest ml-4 italic">Ej: Penicilina, polen, ninguna notable...</p>
+                {% if form.alergias.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.alergias.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="space-y-4">
+                <label class="block text-sm font-black uppercase text-white tracking-[0.3em] ml-2">Condiciones Médicas / Lesiones</label>
+                {{ form.condiciones_medicas }}
+                <p class="text-[10px] text-white/20 uppercase font-bold tracking-widest ml-4 italic">Ej: Asma, hipertensión, lesiones de rodilla...</p>
+                {% if form.condiciones_medicas.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.condiciones_medicas.errors.0 }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="pt-6">
+            <button type="submit" class="w-full bg-shaolin-red text-white rounded-[2rem] py-8 text-3xl font-black shadow-2xl hover:bg-red-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] uppercase tracking-widest">
+                GUARDAR FICHA MÉDICA 💾
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="mt-8 text-center pb-20">
+    <p class="text-white/20 text-[10px] font-black uppercase tracking-[0.5em]">
+        Tus datos están protegidos y solo son visibles para el equipo docente.
+    </p>
+</div>
+{% endblock %}
