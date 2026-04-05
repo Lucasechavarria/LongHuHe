@@ -36,7 +36,7 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     <!-- Información Personal -->
     <div class="premium-card rounded-[3rem] p-10 space-y-8">
         <h3 class="text-2xl font-black uppercase text-white/40 border-b border-white/5 pb-4 tracking-widest">Información Personal</h3>
@@ -102,8 +102,8 @@
     </div>
 
     <!-- Carnet Digital / QR -->
-    <div class="md:col-span-2">
-        <div class="premium-card rounded-[3rem] p-12 text-center relative overflow-hidden group">
+    <div class="md:col-span-2 lg:col-span-1">
+        <div class="premium-card carnet-print-area rounded-[3rem] p-12 text-center relative overflow-hidden group h-full flex flex-col items-center justify-center">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-500 rounded-full blur-[80px] opacity-20 transition-all group-hover:opacity-40"></div>
             
             <div class="flex flex-col md:flex-row items-center justify-center gap-12">
@@ -173,6 +173,34 @@
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Print Styles for Digital Card */
+    @media print {
+        body * { visibility: hidden; }
+        .carnet-print-area, .carnet-print-area * { visibility: visible; }
+        .carnet-print-area {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 85.6mm;
+            height: 53.98mm;
+            background: #000 !important;
+            color: #fff !important;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            box-shadow: none;
+            print-color-adjust: exact;
+        }
+        .carnet-print-area img { width: 40mm; height: 40mm; }
+        footer, nav, .shaolin-watermark { display: none !important; }
     }
 </style>
 {% endblock %}

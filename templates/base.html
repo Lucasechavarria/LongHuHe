@@ -56,7 +56,7 @@
       class="font-sans antialiased text-[#E8E5DA]">
     <!-- Fondo Premium -->
     <div class="shaolin-watermark"></div>
-    <div class="max-w-xl mx-auto min-h-screen flex flex-col px-4 py-8 relative">
+    <div class="max-w-xl md:max-w-2xl lg:max-w-5xl mx-auto min-h-screen flex flex-col px-4 py-8 relative">
         
         {% if messages %}
             <div class="fixed top-4 left-0 right-0 z-50 px-4">
@@ -85,7 +85,7 @@
         <nav class="fixed bottom-8 left-4 right-4 z-40 max-w-lg mx-auto">
             <div class="bg-black/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3 flex justify-around items-center shadow-2xl">
                 {% if alumno_actual.grado or request.session.es_profe or user.is_staff %}
-                <a href="/" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group">
+                <a href="{% if request.session.alumno_id %}{% url 'lista_clases' %}{% else %}/{% endif %}" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
