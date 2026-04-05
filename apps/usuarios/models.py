@@ -258,4 +258,9 @@ class Examen(models.Model):
         db_table = 'core_examen' # Link to existing table
 
     def __str__(self):
-        return f"{self.alumno.nombre_completo} - {self.grado.nombre} ({self.fecha})"
+        try:
+            alumno_str = self.alumno.nombre_completo if self.alumno else "Alumno desconocido"
+            grado_str = self.grado.nombre if self.grado else "N/A"
+            return f"{alumno_str} - {grado_str} ({self.fecha})"
+        except Exception:
+            return f"Examen #{self.id}"
