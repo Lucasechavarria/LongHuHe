@@ -35,7 +35,22 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 pt-6 border-t border-white/5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+            <div>
+                <label class="block text-sm font-black uppercase text-white/40 tracking-widest mb-4">Nombre</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.nombre.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-black uppercase text-white/40 tracking-widest mb-4">Apellido</label>
+                {{ form.apellido }}
+                {% if form.apellido.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.apellido.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-black uppercase text-white/40 tracking-widest mb-4">Número de Celular</label>
+                {{ form.celular }}
+                {% if form.celular.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.celular.errors.0 }}</p>{% endif %}
+            </div>
             <div>
                 <label class="block text-sm font-black uppercase text-white/40 tracking-widest mb-4">Domicilio</label>
                 {{ form.domicilio }}
@@ -45,6 +60,19 @@
                 <label class="block text-sm font-black uppercase text-white/40 tracking-widest mb-4">Localidad</label>
                 {{ form.localidad }}
                 {% if form.localidad.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.localidad.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="md:col-span-2 border-t border-shaolin-red/20 pt-6 mt-4">
+                <h4 class="text-shaolin-red font-black uppercase tracking-widest text-lg mb-6 italic">Información Crítica de Salud</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-white/20 tracking-[0.3em] mb-4">Alergias</label>
+                        {{ form.alergias }}
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black uppercase text-white/20 tracking-[0.3em] mb-4">Condiciones Médicas</label>
+                        {{ form.condiciones_medicas }}
+                    </div>
+                </div>
             </div>
         </div>
 

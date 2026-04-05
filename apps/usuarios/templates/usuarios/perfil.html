@@ -33,26 +33,26 @@
         </div>
     </div>
 
-    <!-- SECCIONADOR DE DASHBOARD (Desktop Friendly) -->
-    <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-[2.5rem] border border-white/5 sticky top-4 z-40 backdrop-blur-3xl shadow-2xl max-w-2xl mx-auto">
+    <!-- SECCIONADOR DE DASHBOARD (Aumentado para mejor visibilidad) -->
+    <div class="flex flex-wrap justify-center gap-3 bg-black/60 p-3 rounded-[3rem] border border-white/10 sticky top-4 z-40 backdrop-blur-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-2xl mx-auto">
         <button @click="section = 'perfil'" 
-                :class="section === 'perfil' ? 'bg-orange-500 text-white shadow-xl scale-105' : 'text-white/40 hover:text-white'"
-                class="flex-1 px-4 py-4 rounded-[1.8rem] text-[10px] md:text-xs font-black uppercase tracking-widest transition-all transform active:scale-95">
-            Perfil
+                :class="section === 'perfil' ? 'bg-orange-500 text-white shadow-[0_0_20px_rgba(255,165,0,0.4)] scale-105' : 'text-white/60 hover:text-white bg-white/5'"
+                class="flex-1 px-4 py-5 rounded-[2rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all transform active:scale-95 border border-white/5">
+            Mi Ficha
         </button>
         <button @click="section = 'institucional'" 
-                :class="section === 'institucional' ? 'bg-orange-500 text-white shadow-xl scale-105' : 'text-white/40 hover:text-white'"
-                class="flex-1 px-4 py-4 rounded-[1.8rem] text-[10px] md:text-xs font-black uppercase tracking-widest transition-all transform active:scale-95">
+                :class="section === 'institucional' ? 'bg-shaolin-red text-white shadow-[0_0_20px_rgba(255,0,0,0.3)] scale-105' : 'text-white/60 hover:text-white bg-white/5'"
+                class="flex-1 px-4 py-5 rounded-[2rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all transform active:scale-95 border border-white/5">
             Estatus
         </button>
         <button @click="section = 'asistencia'" 
-                :class="section === 'asistencia' ? 'bg-orange-500 text-white shadow-xl scale-105' : 'text-white/40 hover:text-white'"
-                class="flex-1 px-4 py-4 rounded-[1.8rem] text-[10px] md:text-xs font-black uppercase tracking-widest transition-all transform active:scale-95">
-            QR
+                :class="section === 'asistencia' ? 'bg-green-600 text-white shadow-[0_0_20px_rgba(0,255,0,0.2)] scale-105' : 'text-white/60 hover:text-white bg-white/5'"
+                class="flex-1 px-4 py-5 rounded-[2rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all transform active:scale-95 border border-white/5">
+            Mi QR
         </button>
         <button @click="section = 'camino'" 
-                :class="section === 'camino' ? 'bg-orange-500 text-white shadow-xl scale-105' : 'text-white/40 hover:text-white'"
-                class="flex-1 px-4 py-4 rounded-[1.8rem] text-[10px] md:text-xs font-black uppercase tracking-widest transition-all transform active:scale-95">
+                :class="section === 'camino' ? 'bg-amber-600 text-white shadow-[0_0_20px_rgba(255,191,0,0.2)] scale-105' : 'text-white/60 hover:text-white bg-white/5'"
+                class="flex-1 px-4 py-5 rounded-[2rem] text-xs md:text-sm font-black uppercase tracking-widest transition-all transform active:scale-95 border border-white/5">
             Logros
         </button>
     </div>
@@ -102,18 +102,20 @@
                 <h3 class="text-3xl font-black uppercase text-white tracking-tight text-center relative z-10">Estatus Institucional</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                    <div class="bg-black/40 rounded-[2rem] p-8 border border-white/5 text-center flex flex-col items-center gap-4">
-                        <p class="text-xs font-black uppercase text-orange-500/60 tracking-[0.3em]">Membresía / Pagos</p>
+                    <a href="{% url 'pago_tipo' %}" class="bg-black/40 rounded-[2rem] p-8 border border-white/5 text-center flex flex-col items-center gap-4 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all group/card">
+                        <p class="text-xs font-black uppercase text-orange-500/60 tracking-[0.3em] group-hover/card:text-orange-500">Membresía / Pagos</p>
                         <div class="w-full py-4 bg-{{ alumno.color_estado }}-500/20 text-{{ alumno.color_estado }}-500 rounded-2xl text-xl font-black uppercase border border-{{ alumno.color_estado }}-500/30">
                             {{ alumno.estado_morosidad }}
                         </div>
-                    </div>
-                    <div class="bg-black/40 rounded-[2rem] p-8 border border-white/5 text-center flex flex-col items-center gap-4">
-                        <p class="text-xs font-black uppercase text-orange-500/60 tracking-[0.3em]">Apto Físico</p>
+                        <p class="text-[9px] text-white/20 font-bold uppercase tracking-widest group-hover/card:text-white/40">Gestionar Pago ➔</p>
+                    </a>
+                    <a href="{% url 'editar_perfil' %}" class="bg-black/40 rounded-[2rem] p-8 border border-white/5 text-center flex flex-col items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all group/card">
+                        <p class="text-xs font-black uppercase text-orange-500/60 tracking-[0.3em] group-hover/card:text-orange-500">Apto Físico</p>
                         <div class="w-full py-4 {% if alumno.apto_medico %}bg-green-500/20 text-green-500{% else %}bg-red-500/20 text-red-500{% endif %} rounded-2xl text-xl font-black uppercase border border-white/10">
                             {% if alumno.apto_medico %}PRESENTADO{% else %}PENDIENTE{% endif %}
                         </div>
-                    </div>
+                        <p class="text-[9px] text-white/20 font-bold uppercase tracking-widest group-hover/card:text-white/40">Actualizar Salud ➔</p>
+                    </a>
                 </div>
 
                 <div class="space-y-6 bg-white/5 p-8 rounded-[2.5rem] relative z-10">
@@ -130,11 +132,7 @@
                     </div>
                 </div>
 
-                <div class="pt-6 relative z-10">
-                    <a href="{% url 'lista_clases' %}" class="w-full block bg-white/5 hover:bg-white/10 text-white text-center py-6 rounded-3xl font-black uppercase tracking-[0.3em] transition-all border border-white/10">
-                        VOLVER AL PANEL PRINCIPAL
-                    </a>
-                </div>
+                <!-- Botón removido por redundancia -->
             </div>
         </div>
 
@@ -200,11 +198,16 @@
 
     </div>
 
-    <!-- BOTONES DE SOPORTE -->
-    <div class="pt-10 flex flex-col gap-4 text-center pb-20">
-        <a href="https://wa.me/5491112345678" target="_blank" class="text-white/20 hover:text-white transition-all text-[10px] font-black uppercase tracking-[0.4em]">Soporte Técnico 💬</a>
-        <a href="{% url 'logout' %}" class="text-white/10 hover:text-red-500 font-black uppercase text-[10px] tracking-[0.5em] transition-all">
-            CERRAR SESIÓN DE ALUMNO 🔒
+    <!-- BOTONES DE SOPORTE (Mejorado para Tercera Edad) -->
+    <div class="pt-20 flex flex-col gap-6 text-center pb-32">
+        <a href="https://wa.me/5491131078008" target="_blank" 
+           class="bg-green-600/20 hover:bg-green-600 text-green-500 hover:text-white p-8 rounded-[2.5rem] border-2 border-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-4 group">
+            <span class="text-2xl font-black uppercase tracking-tighter">SOPORTE TÉCNICO</span>
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
+        </a>
+        <a href="{% url 'logout' %}" 
+           class="bg-shaolin-red/10 text-shaolin-red p-6 rounded-[2rem] border-2 border-shaolin-red/20 font-black uppercase text-xs tracking-[0.4em] transition-all hover:bg-shaolin-red hover:text-white active:scale-95">
+            CERRAR SESIÓN 👋
         </a>
     </div>
 </div>

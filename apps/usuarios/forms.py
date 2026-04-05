@@ -120,15 +120,32 @@ class AlumnoOnboardingForm(forms.ModelForm):
 class UsuarioPerfilForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ['foto_perfil', 'domicilio', 'localidad']
+        fields = ['foto_perfil', 'nombre', 'apellido', 'celular', 'domicilio', 'localidad', 'alergias', 'condiciones_medicas']
         widgets = {
             'foto_perfil': forms.ClearableFileInput(attrs={
                 'class': 'block w-full text-sm text-white file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600'
+            }),
+            'nombre': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all uppercase font-bold'
+            }),
+            'apellido': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all uppercase font-bold'
+            }),
+            'celular': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all'
             }),
             'domicilio': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all'
             }),
             'localidad': forms.TextInput(attrs={
                 'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all'
+            }),
+            'alergias': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all',
+                'placeholder': 'Ej: Penicilina, ninguna'
+            }),
+            'condiciones_medicas': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all',
+                'placeholder': 'Ej: Asma, ninguna'
             }),
         }
