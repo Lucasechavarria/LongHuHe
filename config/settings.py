@@ -162,13 +162,41 @@ MP_WEBHOOK_SECRET = os.getenv("MP_WEBHOOK_SECRET", "") # Para validación X-Sign
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-MEDIA_URL = "/media/"
+# --- CONFIGURACIÓN DE ALMACENAMIENTO (SUPABASE STORAGE) ---
+USE_S3 = all([
+    os.getenv('AWS_ACCESS_KEY_ID'),
+    os.getenv('AWS_SECRET_ACCESS_KEY'),
+    os.getenv('AWS_STORAGE_BUCKET_NAME'),
+    os.getenv('AWS_S3_ENDPOINT_URL')
+])
+
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+if USE_S3:
+    # Solo cargar storages si las variables están presentes
+    if 'storages' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('storages')
+    
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+    
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    AWS_S3_VERIFY = True
+    AWS_QUERYSTRING_AUTH = False # Importante para buckets públicos
+    AWS_S3_CUSTOM_DOMAIN = None
+    
+    # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: scfctiijrvsmgsvwswqu)
+    SUPABASE_PID = os.getenv('SUPABASE_PROJECT_ID', '')
+    MEDIA_URL = f"https://{SUPABASE_PID}.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}/"
+else:
+    MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
