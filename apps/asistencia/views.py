@@ -39,7 +39,14 @@ def registrar_asistencia_qr(request):
             
             # Detectar Actividad Actual (Inteligente: Horario + Inscripción)
             ahora = timezone.now()
-            dia_semana = ahora.strftime('%A').lower() # ej: 'monday'
+            
+            # Map strftime(%A) English to Cronograma codes
+            day_map = {
+                'monday': 'LU', 'tuesday': 'MA', 'wednesday': 'MI', 
+                'thursday': 'JU', 'friday': 'VI', 'saturday': 'SA', 'sunday': 'DO'
+            }
+            dia_semana_raw = ahora.strftime('%A').lower()
+            dia_semana = day_map.get(dia_semana_raw)
             
             # Buscamos en qué clases está el alumno HOY y CERCA de esta hora (+/- 2 horas de margen)
             rango_inicio = (ahora - timezone.timedelta(hours=2)).time()

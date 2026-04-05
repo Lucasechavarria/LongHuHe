@@ -4,7 +4,7 @@ from .models import Pago
 
 class PagoTipoForm(forms.Form):
     actividad = forms.ModelChoiceField(
-        queryset=Actividad.objects.all(),
+        queryset=Actividad.objects.none(),
         empty_label="Selecciona la actividad",
         widget=forms.Select(attrs={
             'class': 'w-full rounded-3xl bg-cream-50 border-4 border-brown-700/20 p-6 text-2xl text-brown-950 focus:border-orange-500 outline-none transition-all shaolin-shadow uppercase font-bold text-center'
@@ -14,6 +14,12 @@ class PagoTipoForm(forms.Form):
         choices=Pago.TipoPago.choices,
         widget=forms.RadioSelect(attrs={'class': 'hidden pe-none'})
     )
+
+    def __init__(self, *args, **kwargs):
+        alumno = kwargs.pop('alumno', None)
+        super().__init__(*args, **kwargs)
+        if alumno:
+            self.fields['actividad'].queryset = alumno.actividades.all()
     cantidad_clases = forms.IntegerField(
         required=False,
         min_value=1,
@@ -22,6 +28,16 @@ class PagoTipoForm(forms.Form):
             'placeholder': '¿Cuántas clases?'
         })
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        cantidad = cleaned_data.get('cantidad_clases')
+
+        if tipo == Pago.TipoPago.PAQUETE and not cantidad:
+            self.add_error('cantidad_clases', "Debes indicar cuántas clases incluye el paquete.")
+        
+        return cleaned_data
 
 class PagoMetodoForm(forms.Form):
     metodo = forms.ChoiceField(

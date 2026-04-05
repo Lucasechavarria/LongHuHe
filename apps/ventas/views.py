@@ -13,6 +13,12 @@ from django.conf import settings
 from .services.mercadopago_service import MercadoPagoService
 
 @alumno_requerido
+def gracias(request):
+    """ Vista de éxito genérica para pagos y pedidos. """
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    return render(request, 'ventas/gracias.html', {'alumno': alumno})
+
+@alumno_requerido
 def carrito_sync(request):
     """ Endpoint AJAX para sincronizar el carrito de Alpine.js con Django (Task 5.4). """
     if request.method == 'POST':
@@ -183,7 +189,10 @@ def pago_tipo(request):
                 if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
                     return redirect('pago_mercadopago_checkout', pago_id=pago.id)
                 return redirect('gracias')
-        form = PagoTipoForm(request.POST)
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    
+    if request.method == 'POST':
+        form = PagoTipoForm(request.POST, alumno=alumno)
         if form.is_valid():
             pago_data = form.cleaned_data
             if 'actividad' in pago_data and hasattr(pago_data['actividad'], 'id'):
@@ -192,8 +201,15 @@ def pago_tipo(request):
             request.session.modified = True
             return redirect('pago_metodo')
     else:
-        form = PagoTipoForm()
-    return render(request, 'ventas/pago_tipo.html', {'form': form})
+        # Pre-seleccionar si el alumno solo tiene una actividad autorizada
+        actividades_alumno = alumno.actividades.all()
+        initial = {}
+        if actividades_alumno.count() == 1:
+            initial['actividad'] = actividades_alumno.first()
+        
+        form = PagoTipoForm(alumno=alumno, initial=initial)
+        
+    return render(request, 'ventas/pago_tipo.html', {'form': form, 'alumno': alumno})
 
 @alumno_requerido
 def pago_metodo(request):
@@ -211,7 +227,8 @@ def pago_metodo(request):
             return redirect('pago_comprobante')
     else:
         form = PagoMetodoForm()
-    return render(request, 'ventas/pago_metodo.html', {'form': form})
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    return render(request, 'ventas/pago_metodo.html', {'form': form, 'alumno': alumno})
 
 @alumno_requerido
 def pago_comprobante(request):
@@ -238,7 +255,8 @@ def pago_comprobante(request):
             return redirect('gracias')
     else:
         form = PagoComprobanteForm()
-    return render(request, 'ventas/pago_comprobante.html', {'form': form})
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    return render(request, 'ventas/pago_comprobante.html', {'form': form, 'alumno': alumno})
 
 @alumno_requerido
 def pago_confirmacion(request):
