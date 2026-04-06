@@ -6,11 +6,11 @@ from .models import Pago, Pedido, CategoriaProducto, Producto, ProductoVariante
 
 @admin.register(Pago)
 class PagoAdmin(admin.ModelAdmin):
-    list_display = ("id", "alumno", "tipo", "metodo", "estado", "fecha_registro")
+    list_display = ("id", "alumno", "tipo", "cantidad_clases", "monto", "metodo", "estado", "fecha_registro")
     list_filter = ("estado", "tipo", "fecha_registro")
-    search_fields = ("alumno__nombre", "alumno__apellido")
+    search_fields = ("alumno__nombre", "alumno__apellido", "alumno__celular", "alumno__dni")
     autocomplete_fields = ("alumno",)
-    list_editable = ("estado",)
+    list_editable = ("cantidad_clases", "monto", "estado")
 
     def has_module_permission(self, request):
         user = request.user

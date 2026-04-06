@@ -102,13 +102,31 @@
                 <h3 class="text-3xl font-black uppercase text-white tracking-tight text-center relative z-10">Estatus Institucional</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                    <a href="{% url 'pago_tipo' %}" class="bg-black/40 rounded-[2rem] p-8 border border-white/5 text-center flex flex-col items-center gap-4 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all group/card">
-                        <p class="text-xs font-black uppercase text-orange-500/60 tracking-[0.3em] group-hover/card:text-orange-500">Membresía / Pagos</p>
-                        <div class="w-full py-4 bg-{{ alumno.color_estado }}-500/20 text-{{ alumno.color_estado }}-500 rounded-2xl text-xl font-black uppercase border border-{{ alumno.color_estado }}-500/30">
-                            {{ alumno.estado_morosidad }}
-                        </div>
-                        <p class="text-[9px] text-white/20 font-bold uppercase tracking-widest group-hover/card:text-white/40">Gestionar Pago ➔</p>
-                    </a>
+                    <div class="flex flex-col gap-3 h-full">
+                        <a href="{% url 'pago_tipo' %}" class="bg-black/40 rounded-[2rem] p-6 border border-white/5 text-center flex flex-col items-center gap-3 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all group/card flex-1 justify-center">
+                            <p class="text-[10px] font-black uppercase text-orange-500/60 tracking-[0.3em] group-hover/card:text-orange-500">Saldos & Membresía</p>
+                            <div class="w-full py-3 bg-{{ alumno.color_estado }}-500/20 text-{{ alumno.color_estado }}-500 rounded-xl text-lg font-black uppercase border border-{{ alumno.color_estado }}-500/30 flex flex-col leading-tight">
+                                {% if alumno.estado_morosidad == 'vencido' and alumno.fecha_prorroga %}
+                                    <span>EN PRÓRROGA</span>
+                                    <span class="text-[9px] opacity-70 font-bold tracking-widest">VENCE {{ alumno.fecha_prorroga|date:"d/m/Y" }}</span>
+                                {% else %}
+                                    <span class="my-1">{{ alumno.estado_morosidad }}</span>
+                                {% endif %}
+                            </div>
+                            {% if alumno.clases_disponibles > 0 %}
+                                <div class="bg-white/5 border border-white/10 w-full py-2 rounded-xl">
+                                    <p class="text-xs text-orange-400 font-black uppercase tracking-widest">{{ alumno.clases_disponibles }} CLASES LIBRES</p>
+                                </div>
+                            {% endif %}
+                            <p class="text-[9px] text-white/20 font-bold uppercase tracking-widest group-hover/card:text-white/40 mt-1">Gestionar Pago ➔</p>
+                        </a>
+                        {% if alumno.estado_morosidad == 'vencido' and not alumno.fecha_prorroga %}
+                        <a href="{% url 'solicitar_prorroga' %}" onclick="return confirm('¿Confirmas que deseas ampliar tu permiso de ingreso 15 días extra para poder asistir? El tesorero cobrará el mes adeudado normalmente en tu próxima visita.')" class="bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500/80 border border-red-500/30 rounded-xl py-3 px-2 text-center transition-all font-black uppercase text-[9px] tracking-widest flex items-center justify-center gap-2 group">
+                            <span class="text-sm group-hover:animate-bounce">⚠️</span>
+                            <span>PEDIR 15 DÍAS PRÓRROGA</span>
+                        </a>
+                        {% endif %}
+                    </div>
                     <a href="{% url 'editar_salud' %}" class="bg-black/40 rounded-[2rem] p-8 border border-white/5 text-center flex flex-col items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all group/card">
                         <p class="text-xs font-black uppercase text-orange-500/60 tracking-[0.3em] group-hover/card:text-orange-500">Apto Físico</p>
                         <div class="w-full py-4 {% if alumno.apto_medico %}bg-green-500/20 text-green-500{% else %}bg-red-500/20 text-red-500{% endif %} rounded-2xl text-xl font-black uppercase border border-white/10">

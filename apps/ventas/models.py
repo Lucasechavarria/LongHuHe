@@ -97,6 +97,15 @@ class Pago(models.Model):
         self.monto_utilidad_asociacion = self.monto - self.monto_comision_profesor
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        old_estado = None
+        if not is_new:
+            try:
+                old_pago = Pago.objects.get(pk=self.pk)
+                old_estado = old_pago.estado
+            except Pago.DoesNotExist:
+                pass
+
         # Auto-asignar monto si falta, basado en la actividad
         if not self.monto and self.actividad:
             if self.tipo == self.TipoPago.MES:
@@ -106,8 +115,41 @@ class Pago(models.Model):
             elif self.tipo == self.TipoPago.PAQUETE:
                 self.monto = self.actividad.precio_clase * (self.cantidad_clases or 1)
 
-        if self.estado == self.EstadoPago.APROBADO and self.monto_comision_profesor == 0:
-            self.recalcular_comisiones()
+        ha_sido_aprobado = (is_new and self.estado == self.EstadoPago.APROBADO) or (old_estado != self.EstadoPago.APROBADO and self.estado == self.EstadoPago.APROBADO)
+
+        if ha_sido_aprobado:
+            if self.monto_comision_profesor == 0:
+                self.recalcular_comisiones()
+            
+            # Lógica de Vencimiento / Expiración
+            from datetime import date
+            hoy = date.today()
+            alumno = self.alumno
+            
+            if self.tipo == self.TipoPago.MES:
+                vencimiento_actual = alumno.fecha_vencimiento_cuota
+                mes_prox = hoy.month % 12 + 1
+                anio_prox = hoy.year + (1 if hoy.month == 12 else 0)
+                
+                # Respetar el día de vencimiento cíclico
+                dia_corte = vencimiento_actual.day if vencimiento_actual else hoy.day
+                
+                try:
+                    nuevo_vencimiento = date(anio_prox, mes_prox, dia_corte)
+                except ValueError:
+                    # En caso de febrero 29 u otros dias q no existan en el prox mes
+                    nuevo_vencimiento = date(anio_prox, mes_prox, 28)
+                
+                alumno.fecha_vencimiento_cuota = nuevo_vencimiento
+                alumno.fecha_prorroga = None # al pagar desaparece la prorroga
+                alumno.save(update_fields=['fecha_vencimiento_cuota', 'fecha_prorroga'])
+
+            elif self.tipo in [self.TipoPago.PAQUETE, self.TipoPago.CLASE_SUELTA]:
+                # La clase suelta funciona como un paquete de 1
+                clases_asumar = self.cantidad_clases or (1 if self.tipo == self.TipoPago.CLASE_SUELTA else 0)
+                alumno.clases_disponibles += clases_asumar
+                alumno.save(update_fields=['clases_disponibles'])
+
         super().save(*args, **kwargs)
 
     def clean(self):

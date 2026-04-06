@@ -25,17 +25,31 @@ def registrar_asistencia_qr(request):
             alumno = get_object_or_404(Usuario, uuid_carnet=uuid_carnet)
             hoy = timezone.now().date()
             
-            # Validaciones de Seguridad y Negocio
+            # Validaciones de Seguridad, Prórroga y Paquetes
             alertas = []
-            es_valido = True
+            es_valido = False
+            estado_pago = alumno.estado_morosidad
+            descuenta_paquete = False
             
-            if alumno.estado_morosidad == 'vencido':
-                alertas.append("CUOTA VENCIDA")
-                es_valido = False # Opcional: Bloquear o solo advertir. El task dice feedback visual.
+            if estado_pago in ["al_dia", "atrasado"]:
+                es_valido = True
+            elif alumno.fecha_prorroga and alumno.fecha_prorroga >= hoy:
+                es_valido = True
+                alertas.append("VENCIDO (EN PRÓRROGA)")
+            elif alumno.clases_disponibles > 0:
+                es_valido = True
+                descuenta_paquete = True
+            
+            if not es_valido:
+                 return JsonResponse({
+                    'success': False,
+                    'message': f"Bloqueado: {alumno.nombre} (Deuda / Sin Clases)",
+                    'color': 'red',
+                    'alertas': ["CUOTA VENCIDA"]
+                })
             
             if not alumno.apto_medico:
                 alertas.append("SIN APTO MÉDICO")
-                # No bloqueamos asistencia por defecto, pero advertimos fuerte.
             
             # Detectar Actividad Actual (Inteligente: Horario + Inscripción)
             ahora = timezone.now()
@@ -78,13 +92,11 @@ def registrar_asistencia_qr(request):
                     'color': 'orange'
                 })
 
-            if not es_valido and "CUOTA VENCIDA" in alertas:
-                 return JsonResponse({
-                    'success': False,
-                    'message': f"Bloqueado: {alumno.nombre} (Deuda)",
-                    'color': 'red',
-                    'alertas': alertas
-                })
+            # Si era válido solo por tener clases disponibles, consumimos 1
+            if descuenta_paquete:
+                alumno.clases_disponibles -= 1
+                alumno.save(update_fields=['clases_disponibles'])
+                alertas.append(f"PAQUETE: Quedan {alumno.clases_disponibles}")
 
             # Registrar Asistencia con actividad
             RegistroAsistencia.objects.create(alumno=alumno, actividad=actividad_detectada)

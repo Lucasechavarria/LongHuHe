@@ -77,6 +77,7 @@ class Usuario(AbstractUser):
     condiciones_medicas = models.TextField("Condiciones Médicas", blank=True, default="")
     contacto_emergencia_nombre = models.CharField("Nombre Contacto Emergencia", max_length=120, blank=True, default="")
     contacto_emergencia_telefono = models.CharField("Teléfono Contacto Emergencia", max_length=50, blank=True, default="")
+    contacto_emergencia_direccion = models.CharField("Dirección Contacto Emergencia", max_length=200, blank=True, default="")
     apto_medico = models.FileField("Certificado Apto Médico", upload_to="aptos_medicos/", null=True, blank=True)
 
     actividades = models.ManyToManyField('academia.Actividad', blank=True, related_name="alumnos")
@@ -84,6 +85,8 @@ class Usuario(AbstractUser):
     # --- ERP / Gestión de Asistencia y Pagos ---
     uuid_carnet = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     fecha_vencimiento_cuota = models.DateField("Fecha de Vencimiento de Cuota", null=True, blank=True)
+    clases_disponibles = models.PositiveIntegerField("Clases Disponibles (Paquetes)", default=0)
+    fecha_prorroga = models.DateField("Vencimiento de Prórroga", null=True, blank=True, help_text="Si solicita prórroga, tiene acceso hasta esta fecha.")
 
     # --- SEGURIDAD Y ROLES ERP (Fase Final) ---
     rol_acceso_total = models.BooleanField(

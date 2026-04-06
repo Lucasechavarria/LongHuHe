@@ -142,6 +142,25 @@ def editar_salud(request):
     else:
         form = UsuarioSaludForm(instance=alumno)
     return render(request, 'usuarios/editar_salud.html', {'form': form, 'alumno': alumno})
+@alumno_requerido
+def solicitar_prorroga(request):
+    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    
+    if alumno.estado_morosidad == 'vencido':
+        from datetime import date, timedelta
+        hoy = date.today()
+        # Solo permitir prórroga si no ha solicitado una recientemente (protección básica)
+        if not alumno.fecha_prorroga:
+            alumno.fecha_prorroga = hoy + timedelta(days=15)
+            alumno.save(update_fields=['fecha_prorroga'])
+            messages.success(request, "Prórroga de 15 días activada. Puedes seguir asistiendo.")
+        else:
+            messages.warning(request, "Ya tienes una prórroga activa o la tuviste recientemente.")
+    else:
+        messages.info(request, "No necesitas prórroga, tu cuota está al día.")
+        
+    return redirect('perfil')
+
 def logout(request):
     request.session.flush()
     messages.info(request, "Sesión cerrada correctamente.")

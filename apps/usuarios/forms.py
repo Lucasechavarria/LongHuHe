@@ -143,9 +143,15 @@ class UsuarioPerfilForm(forms.ModelForm):
         }
 
 class UsuarioSaludForm(forms.ModelForm):
+    declaracion_jurada = forms.BooleanField(
+        required=True,
+        label="Declaro bajo juramento que los datos brindados son correctos, reales y exentos de omisión.",
+        widget=forms.CheckboxInput(attrs={'class': 'w-6 h-6 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500'})
+    )
+
     class Meta:
         model = Usuario
-        fields = ['alergias', 'condiciones_medicas']
+        fields = ['alergias', 'condiciones_medicas', 'contacto_emergencia_nombre', 'contacto_emergencia_telefono', 'contacto_emergencia_direccion']
         widgets = {
             'alergias': forms.Textarea(attrs={
                 'class': 'w-full rounded-[2.5rem] bg-white/5 border border-white/10 p-8 text-white focus:border-orange-500 outline-none transition-all text-xl font-bold italic',
@@ -157,4 +163,28 @@ class UsuarioSaludForm(forms.ModelForm):
                 'placeholder': 'Ej: Asma, hipertensión, ninguna notable...',
                 'rows': 3
             }),
+            'contacto_emergencia_nombre': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all font-bold uppercase',
+                'placeholder': 'Ej: Roberto Pérez'
+            }),
+            'contacto_emergencia_telefono': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all font-bold uppercase',
+                'placeholder': 'Ej: 1112345678'
+            }),
+            'contacto_emergencia_direccion': forms.TextInput(attrs={
+                'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all font-bold uppercase',
+                'placeholder': 'Ej: Av. Rivadavia 1234'
+            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        n = cleaned_data.get('contacto_emergencia_nombre')
+        t = cleaned_data.get('contacto_emergencia_telefono')
+        d = cleaned_data.get('contacto_emergencia_direccion')
+        
+        if not n: self.add_error('contacto_emergencia_nombre', 'Este campo es obligatorio.')
+        if not t: self.add_error('contacto_emergencia_telefono', 'Este campo es obligatorio.')
+        if not d: self.add_error('contacto_emergencia_direccion', 'Este campo es obligatorio.')
+        
+        return cleaned_data
