@@ -52,10 +52,10 @@ def identificacion(request):
         if identificador and nacimiento:
             alumno = Usuario.objects.filter(Q(celular__icontains=identificador) | Q(dni=identificador)).first()
             if alumno:
-                # Security Hook
-                if getattr(alumno, 'is_staff', False) or getattr(alumno, 'is_superuser', False) or getattr(alumno, 'es_profe', False):
-                    messages.error(request, "🚫⛔ Acceso Denegado: Docentes y Staff deben iniciar sesión con Contraseña obligatoria.")
-                    return redirect('acceso_opciones')
+                # Security Hook (REMOVIDO: Permitir que los Docentes y Staff usen la App móvil)
+                # if getattr(alumno, 'is_staff', False) or getattr(alumno, 'is_superuser', False) or getattr(alumno, 'es_profe', False):
+                #     messages.error(request, "🚫⛔ Acceso Denegado: Docentes y Staff deben iniciar sesión con Contraseña obligatoria.")
+                #     return redirect('acceso_opciones')
                 
                 # Validation Hook
                 if alumno.fecha_nacimiento and str(alumno.fecha_nacimiento.year) == nacimiento:
