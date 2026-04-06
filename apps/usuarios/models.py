@@ -178,6 +178,24 @@ class Usuario(AbstractUser):
             img.save(buffer, format="PNG")
             self.qr_base64_cache = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
 
+        # 5. Optimización de Foto de Perfil (WebP) (Task - Visuals)
+        if not getattr(self, '_img_optimized', False):
+            if self.foto_perfil and not self.foto_perfil.name.endswith('.webp'):
+                from PIL import Image
+                import io
+                from django.core.files.base import ContentFile
+                try:
+                    img = Image.open(self.foto_perfil)
+                    if img.mode in ("RGBA", "P"):
+                        img = img.convert("RGB")
+                    thumb_io = io.BytesIO()
+                    img.save(thumb_io, 'WEBP', quality=85)
+                    new_name = self.foto_perfil.name.split('.')[0] + '.webp'
+                    self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
+                except Exception:
+                    pass
+            self._img_optimized = True
+
         super().save(*args, **kwargs)
 
     def __str__(self):

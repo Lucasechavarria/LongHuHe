@@ -193,7 +193,11 @@ if USE_S3:
     
     # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: scfctiijrvsmgsvwswqu)
     SUPABASE_PID = os.getenv('SUPABASE_PROJECT_ID', '')
-    MEDIA_URL = f"https://{SUPABASE_PID}.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}/"
+    if SUPABASE_PID:
+        MEDIA_URL = f"https://{SUPABASE_PID}.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}/"
+    else:
+        # Fallback para evitar URLs rotas si falta el PID en el .env
+        MEDIA_URL = f"https://s3.{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/"
 else:
     MEDIA_URL = "/media/"
 
