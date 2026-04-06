@@ -183,8 +183,11 @@ class UsuarioSaludForm(forms.ModelForm):
         t = cleaned_data.get('contacto_emergencia_telefono')
         d = cleaned_data.get('contacto_emergencia_direccion')
         
-        if not n: self.add_error('contacto_emergencia_nombre', 'Este campo es obligatorio.')
-        if not t: self.add_error('contacto_emergencia_telefono', 'Este campo es obligatorio.')
-        if not d: self.add_error('contacto_emergencia_direccion', 'Este campo es obligatorio.')
+        if not n:
+            self.add_error('contacto_emergencia_nombre', 'Este campo es obligatorio.')
+        if not t:
+            self.add_error('contacto_emergencia_telefono', 'Este campo es obligatorio.')
+        if not d:
+            self.add_error('contacto_emergencia_direccion', 'Este campo es obligatorio.')
         
         return cleaned_data

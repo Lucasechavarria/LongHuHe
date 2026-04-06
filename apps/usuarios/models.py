@@ -2,6 +2,8 @@ import uuid
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
 
 class NivelAcceso(models.TextChoices):
     ALUMNO = "alumno", "Alumnos (Todos)"
@@ -289,9 +291,6 @@ class Examen(models.Model):
 # ==========================================
 # SEÑALES DE LIMPIEZA DE ALMACENAMIENTO (S3)
 # ==========================================
-from django.db.models.signals import post_delete, pre_save
-from django.dispatch import receiver
-
 @receiver(post_delete, sender=Usuario)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
     """ Borra el archivo de S3 cuando se elimina el registro. """

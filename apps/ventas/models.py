@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
 from apps.usuarios.models import Usuario
 from apps.academia.models import Actividad, Cronograma
 
@@ -381,9 +383,6 @@ class PedidoItem(models.Model):
 # ==========================================
 # SEÑALES DE LIMPIEZA DE ALMACENAMIENTO (S3)
 # ==========================================
-from django.db.models.signals import post_delete, pre_save
-from django.dispatch import receiver
-
 # Limpiar imagenes de Producto
 @receiver(post_delete, sender=Producto)
 def auto_delete_file_on_delete_prod(sender, instance, **kwargs):

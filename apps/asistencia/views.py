@@ -94,7 +94,7 @@ def registrar_asistencia_qr(request):
             if ya_asistio:
                 return JsonResponse({
                     'success': False,
-                    'message': f"Escaneo reciente (cooldown 3hs).",
+                    'message': "Escaneo reciente (cooldown 3hs).",
                     'color': 'orange'
                 })
 
