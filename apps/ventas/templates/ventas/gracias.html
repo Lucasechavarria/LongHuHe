@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}¡Gracias! - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="text-center space-y-12 py-10">
+    <!-- Icono de Éxito -->
+    <div class="relative w-48 h-48 mx-auto group">
+        <div class="absolute inset-0 bg-orange-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div class="relative w-full h-full bg-orange-500 border-8 border-white/10 rounded-full flex items-center justify-center shadow-2xl">
+            <svg class="w-24 h-24 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- Mensaje -->
+    <div class="space-y-4">
+        <h1 class="text-6xl font-black tracking-tighter uppercase text-white leading-tight">
+            ¡Muchas <span class="text-orange-500">Gracias</span>!
+        </h1>
+        <p class="text-white/40 text-xl font-bold italic max-w-lg mx-auto leading-relaxed">
+            Tu pedido o pago ha sido registrado correctamente. Te notificaremos pronto sobre el estado.
+        </p>
+    </div>
+    
+    <!-- Botones de Acción -->
+    <div class="pt-8 space-y-4 max-w-sm mx-auto">
+        <a href="{% url 'perfil' %}" class="block w-full bg-white text-black rounded-3xl py-6 text-xl font-black shadow-2xl hover:bg-orange-500 hover:text-white transition-all transform active:scale-95 uppercase tracking-widest">
+            Ver mis Pedidos
+        </a>
+        <a href="{% url 'inicio' %}" class="block w-full bg-white/5 text-white/40 border border-white/10 rounded-3xl py-6 text-sm font-black hover:bg-white/10 transition-all uppercase tracking-widest">
+            Volver al inicio
+        </a>
+    </div>
+</div>
+{% endblock %}

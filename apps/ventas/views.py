@@ -1,5 +1,6 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
@@ -384,7 +385,7 @@ def tienda_comprar(request, producto_id):
             pref_url = mp_service.crear_preferencia_tienda(
                 titulo=f"Tienda LongHuHe: {producto.nombre} x{cantidad}",
                 precio=float(precio_total),
-                url_retorno=request.build_absolute_uri('/gracias/'),
+                url_retorno=request.build_absolute_uri(reverse('gracias')),
                 externo_id=f"TIENDA_{pedido.id}"
             )
             return redirect(pref_url)
