@@ -1,22 +1,30 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from apps.usuarios.views import alumno_requerido
-from .models import Cronograma, InscripcionClase, Sede
+from .models import Cronograma, InscripcionClase, Sede, Actividad
+from apps.usuarios.models import Usuario
 
 @alumno_requerido
 def lista_clases(request):
     """
-    Muestra la grilla semanal de clases disponibles por sede.
+    Muestra la grilla semanal global o filtrada dinámicamente.
     """
     sedes = Sede.objects.all()
+    actividades = Actividad.objects.all()
+    profesores = Usuario.objects.filter(es_profe=True).order_by('nombre')
+    
     sede_id = request.GET.get('sede')
+    actividad_id = request.GET.get('actividad')
+    profesor_id = request.GET.get('profesor')
+    
+    clases = Cronograma.objects.all().select_related('actividad', 'profesor', 'sede')
     
     if sede_id:
-        sede_seleccionada = get_object_or_404(Sede, id=sede_id)
-        clases = Cronograma.objects.filter(sede=sede_seleccionada).select_related('actividad', 'profesor')
-    else:
-        sede_seleccionada = sedes.first()
-        clases = Cronograma.objects.filter(sede=sede_seleccionada).select_related('actividad', 'profesor') if sedes.exists() else []
+        clases = clases.filter(sede_id=sede_id)
+    if actividad_id:
+        clases = clases.filter(actividad_id=actividad_id)
+    if profesor_id:
+        clases = clases.filter(profesor_id=profesor_id)
 
     # Agrupamos por día para facilitar el renderizado en la grilla
     clases_por_dia = {dia[0]: [] for dia in Cronograma.DiasSemana.choices}
@@ -31,7 +39,11 @@ def lista_clases(request):
 
     return render(request, 'academia/cronograma.html', {
         'sedes': sedes,
-        'sede_seleccionada': sede_seleccionada,
+        'actividades': actividades,
+        'profesores': profesores,
+        'sede_seleccionada': int(sede_id) if sede_id else '',
+        'actividad_seleccionada': int(actividad_id) if actividad_id else '',
+        'profesor_seleccionado': int(profesor_id) if profesor_id else '',
         'clases_por_dia': clases_por_dia,
         'mis_clases_ids': list(mis_clases_ids),
         'dias_semana': Cronograma.DiasSemana.choices

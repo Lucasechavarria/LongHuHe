@@ -28,6 +28,10 @@ class Actividad(models.Model):
     descripcion = models.TextField(blank=True)
     precio_mes = models.DecimalField("Precio Mensual", max_digits=10, decimal_places=2, default=0)
     precio_clase = models.DecimalField("Precio Clase Suelta", max_digits=10, decimal_places=2, default=0)
+    color_etiqueta = models.CharField(
+        "Color Hex", max_length=7, default="#f97316",
+        help_text="Color para diferenciar la actividad en el cronograma. (Ej: #3b82f6)"
+    )
 
     class Meta:
         verbose_name = "Actividad"
@@ -48,7 +52,6 @@ class Cronograma(models.Model):
         JUEVES = "JU", "Jueves"
         VIERNES = "VI", "Viernes"
         SABADO = "SA", "Sábado"
-        DOMINGO = "DO", "Domingo"
 
     profesor = models.ForeignKey(
         'usuarios.Usuario',
