@@ -126,6 +126,8 @@ class Usuario(AbstractUser):
         help_text="Interruptor de seguridad. Si es falso, el delegado no podrá entrar al panel de tesorería."
     )
 
+    qr_base64_cache = models.TextField(blank=True, null=True, help_text="Caché del código QR en base64 para evitar regenerarlo en memoria repetidamente.")
+
     class Meta:
         db_table = 'core_usuario' # Link to existing table
 
@@ -161,6 +163,19 @@ class Usuario(AbstractUser):
                 clean_username = f"u_{uuid.uuid4().hex[:8]}"
             self.username = clean_username[:150]
         
+        # 4. Auto-generación inteligente del QR cacheado (solo si está vacío)
+        if not self.qr_base64_cache and self.uuid_carnet:
+            import qrcode
+            import io
+            import base64
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(str(self.uuid_carnet))
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            self.qr_base64_cache = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -172,16 +187,19 @@ class Usuario(AbstractUser):
 
     @property
     def generar_qr_base64(self):
-        """ Genera el QR del UUID en formato Base64 para mostrar directo en el HTML. """
+        """ Retorna el QR desde el caché en DB. Si por algún motivo está vacío, invoca un resave silencioso. """
+        if self.qr_base64_cache:
+            return self.qr_base64_cache
+        
+        # Fallback de recuperación de sistema (Solo ocurrirá la primera vez antes de migrar)
+        # Se genera al vuelo sin necesidad de hacer save() explícito aquí para no causar recursiones.
         import qrcode
         import io
         import base64
-        
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(str(self.uuid_carnet))
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
-        
         buffer = io.BytesIO()
         img.save(buffer, format="PNG")
         return f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"

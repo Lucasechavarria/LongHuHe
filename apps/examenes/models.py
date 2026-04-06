@@ -70,4 +70,14 @@ class InscripcionExamen(models.Model):
             )
             
             self.procesado = True
-            self.save()
+            # No llamamos a self.save() aquí de nuevo para evitar un loop infinito si ya fue invocado por el save principal.
+            # En la vista de acción masiva, process_ascensos_masivo llama a .save() en su bucle (o deberíamos controlarlo allí).
+
+    def save(self, *args, **kwargs):
+        # Primero guardamos el estado del modelo base
+        super().save(*args, **kwargs)
+        # Luego verificamos si hay que disparar el ascenso como un hook para que cubra la "carga manual"
+        if self.resultado == self.EstadoResultado.APROBADO and not self.procesado:
+            self.aplicar_ascenso()
+            # El aplicar_ascenso ahora cambiará self.procesado a True, asique guardamos ese bit.
+            type(self).objects.filter(pk=self.pk).update(procesado=True)

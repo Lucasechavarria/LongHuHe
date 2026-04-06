@@ -44,7 +44,8 @@ def material_detalle(request, material_id):
         return redirect('biblioteca_inicio')
     
     # Registrar visualización (Tracking Task 6.4)
-    VisualizacionMaterial.objects.create(
+    # Corrección Bug N°2: Evitar Crash de repetición con get_or_create
+    VisualizacionMaterial.registrar_vista(
         alumno=alumno,
         material=material
     )

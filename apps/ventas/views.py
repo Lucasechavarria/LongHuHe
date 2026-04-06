@@ -328,10 +328,13 @@ def mercadopago_webhook(request):
                             if status == "accredited" or status == "approved":
                                 pago.estado = Pago.EstadoPago.APROBADO
                             pago.save()
-            return render(request, 'ventas/webhook_success.html', status=200)
-        except Exception:
-            return render(request, 'ventas/webhook_error.html', status=500)
-    return render(request, 'ventas/webhook_error.html', status=400)
+            from django.http import JsonResponse
+            return JsonResponse({'status': 'ok'}, status=200)
+        except Exception as e:
+            from django.http import JsonResponse
+            return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
+    from django.http import JsonResponse
+    return JsonResponse({'status': 'bad_request'}, status=400)
 
 @alumno_requerido
 def tienda_inicio(request):
