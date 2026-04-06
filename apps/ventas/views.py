@@ -83,13 +83,12 @@ def checkout(request):
         var = None
         if doc.get('variant_id'):
             var = ProductoVariante.objects.filter(id=doc['variant_id']).first()
-            if var and var.stock >= doc['qty']:
-                var.stock -= doc['qty']
-                var.save()
-        elif prod.stock >= doc['qty']:
-            # Descontar del stock global si NO hay variante
-            prod.stock -= doc['qty']
-            prod.save()
+            if var and var.stock < doc['qty']:
+                messages.warning(request, f"Stock insuficiente para {prod.nombre}.")
+                return redirect('carrito_ver')
+        elif prod.stock < doc['qty']:
+            messages.warning(request, f"Stock insuficiente para {prod.nombre}.")
+            return redirect('carrito_ver')
         
         item_total = prod.precio * doc['qty']
         total_gral += item_total

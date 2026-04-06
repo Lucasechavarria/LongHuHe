@@ -377,3 +377,56 @@ class PedidoItem(models.Model):
 
     def __str__(self):
         return f"{self.cantidad}x {self.producto.nombre}"
+
+# ==========================================
+# SEÑALES DE LIMPIEZA DE ALMACENAMIENTO (S3)
+# ==========================================
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
+
+# Limpiar imagenes de Producto
+@receiver(post_delete, sender=Producto)
+def auto_delete_file_on_delete_prod(sender, instance, **kwargs):
+    for i in range(1, 6):
+        img = getattr(instance, f'foto{i}')
+        if img and hasattr(img, 'delete'):
+            img.delete(save=False)
+
+@receiver(pre_save, sender=Producto)
+def auto_delete_file_on_change_prod(sender, instance, **kwargs):
+    if not instance.pk:
+        return False
+    try:
+        old_obj = Producto.objects.get(pk=instance.pk)
+    except Producto.DoesNotExist:
+        return False
+
+    for i in range(1, 6):
+        attr = f'foto{i}'
+        old_file = getattr(old_obj, attr)
+        new_file = getattr(instance, attr)
+        if not old_file == new_file and old_file:
+            if hasattr(old_file, 'delete'):
+                old_file.delete(save=False)
+
+# Limpiar comprobantes de Pago y Pedido
+for modelo in [Pago, Pedido]:
+    @receiver(post_delete, sender=modelo)
+    def auto_delete_file_on_delete_comp(sender, instance, **kwargs):
+        if instance.comprobante and hasattr(instance.comprobante, 'delete'):
+            instance.comprobante.delete(save=False)
+
+    @receiver(pre_save, sender=modelo)
+    def auto_delete_file_on_change_comp(sender, instance, **kwargs):
+        if not instance.pk:
+            return False
+        try:
+            old_obj = sender.objects.get(pk=instance.pk)
+        except sender.DoesNotExist:
+            return False
+
+        old_file = getattr(old_obj, 'comprobante', None)
+        new_file = getattr(instance, 'comprobante', None)
+        if old_file and old_file != new_file:
+            if hasattr(old_file, 'delete'):
+                old_file.delete(save=False)

@@ -83,12 +83,18 @@ def registrar_asistencia_qr(request):
                 if inscripcion_activa:
                     actividad_detectada = inscripcion_activa.clase.actividad
 
-            # Bloqueo de doble registro hoy para la MISMA actividad
-            ya_asistio = RegistroAsistencia.objects.filter(alumno=alumno, actividad=actividad_detectada, fecha_hora__date=hoy).exists()
+            # Cooldown: Bloqueo si vino a esta misma actividad hace menos de 3 horas
+            limite_cooldown = ahora - timezone.timedelta(hours=3)
+            ya_asistio = RegistroAsistencia.objects.filter(
+                alumno=alumno, 
+                actividad=actividad_detectada, 
+                fecha_hora__gte=limite_cooldown
+            ).exists()
+            
             if ya_asistio:
                 return JsonResponse({
                     'success': False,
-                    'message': f"Ya vino a {actividad_detectada.nombre if actividad_detectada else 'clase'} hoy.",
+                    'message': f"Escaneo reciente (cooldown 3hs).",
                     'color': 'orange'
                 })
 

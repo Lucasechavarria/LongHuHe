@@ -267,3 +267,31 @@ class Examen(models.Model):
             return f"{alumno_str} - {grado_str} ({self.fecha})"
         except Exception:
             return f"Examen #{self.id}"
+
+# ==========================================
+# SEÑALES DE LIMPIEZA DE ALMACENAMIENTO (S3)
+# ==========================================
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
+
+@receiver(post_delete, sender=Usuario)
+def auto_delete_file_on_delete(sender, instance, **kwargs):
+    """ Borra el archivo de S3 cuando se elimina el registro. """
+    if instance.foto_perfil:
+        if hasattr(instance.foto_perfil, 'delete'):
+            instance.foto_perfil.delete(save=False)
+
+@receiver(pre_save, sender=Usuario)
+def auto_delete_file_on_change(sender, instance, **kwargs):
+    """ Borra el archivo viejo de S3 cuando se reemplaza por uno nuevo. """
+    if not instance.pk:
+        return False
+    try:
+        old_file = Usuario.objects.get(pk=instance.pk).foto_perfil
+    except Usuario.DoesNotExist:
+        return False
+
+    new_file = instance.foto_perfil
+    if not old_file == new_file and old_file:
+        if hasattr(old_file, 'delete'):
+            old_file.delete(save=False)

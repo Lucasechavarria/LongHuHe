@@ -47,16 +47,29 @@ def identificacion(request):
         return redirect('perfil')
     if request.method == 'POST':
         identificador = request.POST.get('identificador', '').strip()
-        if identificador:
+        nacimiento = request.POST.get('nacimiento', '').strip()
+        
+        if identificador and nacimiento:
             alumno = Usuario.objects.filter(Q(celular__icontains=identificador) | Q(dni=identificador)).first()
             if alumno:
-                request.session['alumno_id'] = alumno.id
-                request.session['es_profe'] = alumno.es_profe
-                messages.success(request, f"¡Bienvenido nuevamente, {alumno.nombre}!")
-                return redirect('perfil')
+                # Security Hook
+                if getattr(alumno, 'is_staff', False) or getattr(alumno, 'is_superuser', False) or getattr(alumno, 'es_profe', False):
+                    messages.error(request, "🚫⛔ Acceso Denegado: Docentes y Staff deben iniciar sesión con Contraseña obligatoria.")
+                    return redirect('acceso_opciones')
+                
+                # Validation Hook
+                if alumno.fecha_nacimiento and str(alumno.fecha_nacimiento.year) == nacimiento:
+                    request.session['alumno_id'] = alumno.id
+                    request.session['es_profe'] = alumno.es_profe
+                    messages.success(request, f"¡Bienvenido, {alumno.nombre}!")
+                    return redirect('perfil')
+                else:
+                    messages.error(request, "⚠️ El Año de Nacimiento proveido es incorrecto.")
             else:
                 messages.info(request, "No encontramos tus datos. ¡Por favor, completa tu inscripción!")
                 return redirect('onboarding')
+        else:
+            messages.warning(request, "Debes completar el DNI y el Año de Nacimiento.")
     return render(request, 'usuarios/identificacion.html')
 
 def onboarding(request):
