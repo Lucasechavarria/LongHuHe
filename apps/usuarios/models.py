@@ -254,37 +254,35 @@ class Usuario(AbstractUser):
 
     @property
     def generar_qr_base64(self):
-        """ Retorna la URL del QR físico o genera uno base64 como fallback final. """
+        """ Retorna el QR en formato data URI base64 para embeber en HTML/PDF. """
         if self.qr_image:
-            return self.qr_image.url
-        if self.qr_base64_cache:
-            return self.qr_base64_cache
+            try:
+                import base64
+                with self.qr_image.open('rb') as f:
+                    encoded_string = base64.b64encode(f.read()).decode('utf-8')
+                return f"data:image/png;base64,{encoded_string}"
+            except Exception:
+                pass
         
-        # Fallback de emergencia
+        if self.qr_base64_cache:
+             if self.qr_base64_cache.startswith('data:image'):
+                 return self.qr_base64_cache
+             return f"data:image/png;base64,{self.qr_base64_cache}"
+        
         return ""
 
     @property
     def alerta_inasistencia(self):
         """ 
         Retorna True si el alumno no registra asistencias hace mas de 15 dias. 
-        Toma en cuenta la fecha_ingreso_real para evitar alertas falsas en alumnos nuevos.
         """
         ultima = self.asistencias.order_by('-fecha_hora').first()
         from datetime import timedelta
         hoy = timezone.now()
         
-        # Fecha base para conteo: ingreso real o registro en el sistema
-        inicio_actividad = self.date_joined
-        if self.fecha_ingreso_real:
-            # Convertir date a datetime para comparar con timezone.now()
-            from datetime import datetime
-            inicio_actividad = timezone.make_aware(
-                datetime.combine(self.fecha_ingreso_real, datetime.min.time())
-            )
-
         if not ultima:
-            # Si no hay asistencias, solo marcar alerta si pasaron > 15 días desde que debió empezar
-            return (hoy - inicio_actividad) > timedelta(days=15)
+            # Requerimiento de QA: Alumno sin asistencias = Alerta.
+            return True
         
         return (hoy - ultima.fecha_hora) > timedelta(days=15)
 
