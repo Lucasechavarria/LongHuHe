@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count, Sum
 from django.utils import timezone
 from datetime import timedelta
-from apps.usuarios.views import profe_requerido
+from apps.usuarios.views import profe_requerido, alumno_requerido
 from apps.usuarios.models import Usuario, Grado
 from apps.asistencia.models import RegistroAsistencia
 from apps.ventas.models import Pago
@@ -84,7 +84,7 @@ def evaluar_mesa(request, mesa_id):
         'resultados_opciones': InscripcionExamen.EstadoResultado.choices
     })
 
-from apps.usuarios.views import alumno_requerido
+
 
 @alumno_requerido
 def inscribir_examen(request, mesa_id):

@@ -3,6 +3,7 @@ from django.contrib import messages
 from apps.usuarios.views import alumno_requerido
 from .models import Cronograma, InscripcionClase, Sede, Actividad
 from apps.usuarios.models import Usuario
+from django.db import transaction
 
 @alumno_requerido
 def lista_clases(request):
@@ -49,7 +50,7 @@ def lista_clases(request):
         'dias_semana': Cronograma.DiasSemana.choices
     })
 
-from django.db import transaction
+
 
 @alumno_requerido
 @transaction.atomic

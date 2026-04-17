@@ -80,7 +80,6 @@ class InscripcionExamen(models.Model):
 
     def save(self, *args, **kwargs):
         # 1. Guardado base
-        es_nuevo = self.pk is None
         super().save(*args, **kwargs)
         
         # 2. Disparar ascenso si está aprobado y no procesado

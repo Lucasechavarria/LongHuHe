@@ -7,13 +7,13 @@ from django.utils import timezone
 from decimal import Decimal
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
-from apps.academia.models import Actividad, Cronograma
+from apps.academia.models import Actividad
 from django.http import JsonResponse
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Sum, Count, Q, Prefetch
+from django.db.models import Sum, Count, Prefetch
 from django.db.models.functions import TruncDate
 from .services.mercadopago_service import MercadoPagoService
 import csv
@@ -196,8 +196,6 @@ def gestion_tesoreria(request):
         messages.error(request, "No tienes permisos para acceder a Tesorería.")
         return redirect('inicio')
     
-    from django.db.models import Sum, Count, Q
-    from django.db.models.functions import TruncDate
     from datetime import timedelta
     
     hoy = timezone.now().date()
@@ -415,12 +413,14 @@ def pago_confirmacion(request):
             else:
                 # Ya no es aplicable, limpiar
                 del pago_data['descuento_id']
-                if 'monto_descontado' in pago_data: del pago_data['monto_descontado']
+                if 'monto_descontado' in pago_data:
+                    del pago_data['monto_descontado']
                 messages.warning(request, "El cupón previo no aplica a este nuevo tipo de pago.")
         else:
             # Ya no es válido, limpiar
             del pago_data['descuento_id']
-            if 'monto_descontado' in pago_data: del pago_data['monto_descontado']
+            if 'monto_descontado' in pago_data:
+                del pago_data['monto_descontado']
 
     if request.method == 'POST':
         accion = request.POST.get('accion')

@@ -87,7 +87,6 @@ class Descuento(models.Model):
         ]
 
     def __str__(self):
-        tipo_lbl = self.get_tipo_display()
         if self.tipo == self.TipoDescuento.PORCENTAJE:
             return f"{self.nombre} ({self.valor}%)"
         return f"{self.nombre} (${self.valor})"
@@ -105,7 +104,6 @@ class Descuento(models.Model):
 
     def calcular_descuento(self, monto_base):
         """Calcula el monto a descontar sobre un monto base dado, respetando el tope máximo."""
-        from decimal import Decimal
         
         # Validar monto mínimo
         if self.monto_minimo_pago and monto_base < self.monto_minimo_pago:
@@ -514,16 +512,6 @@ class Pedido(models.Model):
         if not logic_only:
             self.save(update_fields=['stock_descontado'])
 
-    def save(self, *args, **kwargs):
-        # 1. Detectar cambios de estado críticos para stock
-        if self.pk:
-            # Descontamos stock si el pedido se paga o se entrega (y no se ha descontado ya)
-            if self.estado in [self.Estado.PAGADO, self.Estado.ENTREGADO] and not self.stock_descontado:
-                self.descontar_stock(logic_only=True)
-            # Restauramos stock si se cancela y estaba descontado
-            if self.estado == self.Estado.CANCELADO and self.stock_descontado:
-                self.restaurar_stock(logic_only=True)
-        
     def recalcular_stats(self, logic_only=False):
         """ Recalcula costos de reposición y utilidad basándose en los items actuales. """
         if self.estado in [self.Estado.PAGADO, self.Estado.RESERVADO, self.Estado.ENTREGADO]:
@@ -572,15 +560,7 @@ class Pedido(models.Model):
         if self.pk:
             self.recalcular_stats(logic_only=False)
 
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
 
-@receiver(post_save, sender=PedidoItem)
-@receiver(post_delete, sender=PedidoItem)
-def actualizar_pedido_on_item_change(sender, instance, **kwargs):
-    """ Fuerza la recalculación del pedido cuando sus items cambian. """
-    if instance.pedido:
-        instance.pedido.recalcular_stats()
 
 class PedidoItem(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="items")
@@ -596,6 +576,13 @@ class PedidoItem(models.Model):
 
     def __str__(self):
         return f"{self.cantidad}x {self.producto.nombre}"
+
+@receiver(post_save, sender=PedidoItem)
+@receiver(post_delete, sender=PedidoItem)
+def actualizar_pedido_on_item_change(sender, instance, **kwargs):
+    """ Fuerza la recalculación del pedido cuando sus items cambian. """
+    if instance.pedido:
+        instance.pedido.recalcular_stats()
 
 # ==========================================
 # SEÑALES DE LIMPIEZA DE ALMACENAMIENTO (S3)

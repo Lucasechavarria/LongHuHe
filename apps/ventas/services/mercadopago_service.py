@@ -9,7 +9,6 @@ class MercadoPagoService:
         """
         Crea una preferencia de pago en Mercado Pago basada en un objeto Pago.
         """
-        from apps.ventas.models import Pago # Importación absoluta para evitar fallos
         
         # ✅ Validación de Webhook: Mercado Pago requiere una URL ABSOLUTA
         base_url = os.environ.get('WEBHOOK_URL_BASE', '')

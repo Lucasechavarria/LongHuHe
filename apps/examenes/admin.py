@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import transaction
 from .models import MesaExamen, InscripcionExamen
 from apps.usuarios.admin import ModularAdminMixin
 
