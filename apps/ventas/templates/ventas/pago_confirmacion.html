@@ -13,22 +13,72 @@
     </p>
 </div>
 
-<div class="glass rounded-[2.5rem] p-8 shadow-2xl text-center space-y-6">
-    <div class="p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50">
-        <p class="text-slate-400 text-sm uppercase tracking-widest font-bold mb-2">Detalle</p>
-        <p class="text-2xl font-extrabold text-amber-400 mb-2">
-            {% if pago_data.tipo == 'mes' %}Mes Completo
-            {% elif pago_data.tipo == 'clase_suelta' %}1 Clase
-            {% elif pago_data.tipo == 'paquete' %}Paquete ({{ pago_data.cantidad_clases }} clases)
-            {% endif %}
-        </p>
-        <p class="text-slate-300 font-medium">Método: {{ pago_data.metodo|title }}</p>
+<div class="glass rounded-[2.5rem] p-8 shadow-2xl text-center space-y-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Detalle del Pago -->
+        <div class="p-6 bg-slate-800/50 rounded-3xl border border-slate-700/50 text-left">
+            <p class="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-black mb-4">Resumen del Pago</p>
+            <p class="text-3xl font-black text-white mb-1">
+                {% if pago_data.tipo == 'mes' %}Mes Completo
+                {% elif pago_data.tipo == 'clase_suelta' %}1 Clase
+                {% elif pago_data.tipo == 'paquete' %}Paquete ({{ pago_data.cantidad_clases }} clases)
+                {% endif %}
+            </p>
+            <p class="text-orange-500 font-bold uppercase text-xs tracking-widest mb-4">{{ actividad.nombre }}</p>
+            <div class="h-px bg-white/5 my-4"></div>
+            <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Método: <span class="text-white">{{ pago_data.metodo|title }}</span></p>
+        </div>
+
+        <!-- Calculadora de Montos -->
+        <div class="p-6 bg-black/40 rounded-3xl border border-white/5 text-right flex flex-col justify-between">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-slate-500">
+                    <span class="text-[10px] font-black uppercase tracking-widest">Subtotal</span>
+                    <span class="text-xl font-bold font-mono">${{ monto_base }}</span>
+                </div>
+                
+                {% if pago_data.descuento_id %}
+                <div class="flex justify-between items-center text-green-500">
+                    <span class="text-[10px] font-black uppercase tracking-widest">Descuento</span>
+                    <span class="text-xl font-bold font-mono items-center flex gap-1">
+                        - ${{ pago_data.monto_descontado|default:"0" }}
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-white/10">
+                <p class="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em] mb-1">Total Final</p>
+                <p class="text-5xl font-black text-white font-mono tracking-tighter">
+                    ${{ monto_total }}
+                </p>
+            </div>
+        </div>
     </div>
 
+    <!-- Sección de Cupón -->
+    <div class="p-6 bg-slate-800/30 rounded-3xl border border-white/5">
+        <form method="post" class="flex flex-col md:flex-row gap-4 items-end">
+            {% csrf_token %}
+            <div class="flex-1 text-left w-full">
+                <label class="block text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3 ml-2">¿Tenés un código de descuento?</label>
+                <input type="text" name="codigo_descuento" placeholder="EJ: PROMO2025" 
+                       class="w-full bg-black/50 border border-white/10 rounded-2xl px-6 py-4 text-white font-black uppercase tracking-widest focus:border-orange-500 outline-none transition-all">
+            </div>
+            <button type="submit" name="accion" value="validar_cupon" 
+                    class="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all h-[58px]">
+                Validar ➔
+            </button>
+        </form>
+    </div>
+
+    <!-- Confirmación Final -->
     <form method="post">
         {% csrf_token %}
-        <button type="submit" class="w-full {% if pago_data.metodo == 'mercadopago' %}bg-sky-500 hover:bg-sky-400{% else %}bg-green-500 hover:bg-green-400{% endif %} text-slate-950 rounded-3xl py-6 text-2xl font-extrabold shadow-xl transition-all mt-8">
-            {% if pago_data.metodo == 'mercadopago' %}Pagar con Mercado Pago{% else %}Confirmar Aviso{% endif %}
+        <button type="submit" name="accion" value="confirmar" 
+                class="w-full {% if pago_data.metodo == 'mercadopago' %}bg-sky-500 hover:bg-sky-400{% else %}bg-green-600 hover:bg-green-500{% endif %} text-white rounded-3xl py-8 text-3xl font-black shadow-2xl transition-all transform hover:scale-[1.02] active:scale-95">
+            {% if pago_data.metodo == 'mercadopago' %}Pagar con Mercado Pago 💳{% else %}Confirmar Aviso de Pago ✅{% endif %}
         </button>
     </form>
 </div>

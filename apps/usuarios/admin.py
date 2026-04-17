@@ -44,8 +44,9 @@ class UsuarioAdminCreationForm(UserCreationForm):
 @admin.register(Usuario)
 class UsuarioAdmin(UserAdmin):
     add_form = UsuarioAdminCreationForm
-    list_display = ("id", "nombre", "apellido", "celular", "sede", "es_profe", "estado_pago_visual", "is_active")
-    list_filter = ("es_profe", "rol_acceso_total", "sede", "is_active")
+    list_display = ("id", "nombre", "apellido", "celular", "sede", "es_profe", "es_becado", "estado_pago_visual", "is_active")
+    list_filter = ("es_profe", "es_becado", "rol_acceso_total", "sede", "is_active")
+    list_select_related = ("grado", "sede")
     search_fields = ("nombre", "apellido", "celular", "dni", "username")
     ordering = ("apellido", "nombre")
 
@@ -67,6 +68,10 @@ class UsuarioAdmin(UserAdmin):
             "fields": ("tesorero_autorizado", "autorizacion_tesoreria_activa"),
             "description": "Permite que otro usuario gestione la tesorería de un profesor."
         }),
+        ("BECAS", {
+            "fields": ("es_becado", "motivo_beca"),
+            "description": "Un alumno becado queda exento de cuota mensual de forma automática."
+        }),
         ("Carnet y ERP", {"fields": ("uuid_carnet", "fecha_vencimiento_cuota")}),
         ("Información Marcial", {"fields": ("nombre", "apellido", "celular", "sede", "grado", "actividades", "fecha_ingreso_real")}),
         ("Salud y Seguridad (Alertas Críticas)", {"fields": ("alergias", "condiciones_medicas", "contacto_emergencia_nombre", "contacto_emergencia_telefono", "apto_medico")}),
@@ -78,8 +83,14 @@ class UsuarioAdmin(UserAdmin):
 
     @admin.display(description="Estado Pago")
     def estado_pago_visual(self, obj):
+        estado = obj.estado_morosidad
         color = obj.color_estado
-        return format_html('<b style="color:{}; text-transform:uppercase;">{}</b>', color, obj.estado_morosidad)
+        if estado == "becado":
+            return format_html(
+                '<span style="background:{};color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;">BECADO</span>',
+                color
+            )
+        return format_html('<b style="color:{}; text-transform:uppercase;">{}</b>', color, estado)
 
     def has_module_permission(self, request):
         if not request.user.is_authenticated:

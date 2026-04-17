@@ -85,6 +85,10 @@ class Cronograma(models.Model):
         " % Comisión Asistente", max_digits=5, decimal_places=2, default=0,
         help_text="Comisión que se lleva el asistente por las ventas registradas en esta clase."
     )
+    porcentaje_comision_profesor = models.DecimalField(
+        " % Comisión Profesor", max_digits=5, decimal_places=2, default=50,
+        help_text="Porcentaje de la cuota o clase que se lleva el profesor principal."
+    )
 
     class Meta:
         verbose_name = "Horario / Clase"
@@ -121,6 +125,20 @@ class InscripcionClase(models.Model):
         verbose_name_plural = "01.4 - Inscripciones (Control de Cupo)"
         unique_together = ['alumno', 'clase'] # Un alumno no puede inscribirse 2 veces al mismo horario
         db_table = 'core_inscripcionclase'
+
+    def save(self, *args, **kwargs):
+        from django.db import transaction
+        # 🛡️ Blindaje: Validar cupo máximo con bloqueo de base de datos
+        if not self.pk: # Solo en nuevas inscripciones
+            with transaction.atomic():
+                # Bloqueamos la fila del cronograma para evitar race conditions
+                clase_bloqueada = type(self.clase).objects.select_for_update().get(pk=self.clase.pk)
+                Cupo = clase_bloqueada.alumnos_inscritos.filter(estado=self.EstadoInscrito.REGULAR).count()
+                if Cupo >= clase_bloqueada.cupo:
+                    raise ValidationError(f"No hay cupo disponible para esta clase ({clase_bloqueada.cupo} alumnos máximo).")
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         try:

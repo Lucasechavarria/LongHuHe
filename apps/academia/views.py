@@ -49,12 +49,16 @@ def lista_clases(request):
         'dias_semana': Cronograma.DiasSemana.choices
     })
 
+from django.db import transaction
+
 @alumno_requerido
+@transaction.atomic
 def inscribir_clase(request, clase_id):
     """
-    Lógica de inscripción: verifica cupo y gestiona lista de espera.
+    Lógica de inscripción: verifica cupo y gestiona lista de espera con bloqueo de BD.
     """
-    clase = get_object_or_404(Cronograma, id=clase_id)
+    # Bloqueamos la fila del cronograma para que nadie más chequee cupos al mismo tiempo
+    clase = Cronograma.objects.select_for_update().get(id=clase_id)
     alumno_id = request.session['alumno_id']
     
     # 1. Verificar si ya está inscrito
@@ -82,19 +86,27 @@ def inscribir_clase(request, clase_id):
     return redirect('lista_clases')
 
 @alumno_requerido
+@transaction.atomic
 def desanotarse_clase(request, clase_id):
     """
     Permite al alumno bajarse de una clase y libera cupo para alguien en espera.
+    Blindado con select_for_update en el Cronograma para evitar condiciones de carrera.
     """
-    inscripcion = get_object_or_404(InscripcionClase, alumno_id=request.session['alumno_id'], clase_id=clase_id)
+    # Bloqueamos el cronograma para evitar que otras inscripciones/bajas interfieran
+    clase = get_object_or_404(Cronograma.objects.select_for_update(), id=clase_id)
+    inscripcion = get_object_or_404(InscripcionClase.objects.select_for_update(), alumno_id=request.session['alumno_id'], clase=clase)
     
-    if inscripcion.estado == 'regular':
-        # Liberar cupo: buscar el primero en espera
-        proximo_en_espera = InscripcionClase.objects.filter(clase=inscripcion.clase, estado='espera').order_by('fecha_inscripcion').first()
+    if inscripcion.estado == InscripcionClase.EstadoInscrito.REGULAR:
+        # Liberar cupo: buscar el primero en espera con bloqueo
+        proximo_en_espera = InscripcionClase.objects.filter(
+            clase=clase, 
+            estado=InscripcionClase.EstadoInscrito.ESPERA
+        ).select_for_update().order_by('fecha_inscripcion').first()
+        
         if proximo_en_espera:
-            proximo_en_espera.estado = 'regular'
+            proximo_en_espera.estado = InscripcionClase.EstadoInscrito.REGULAR
             proximo_en_espera.save()
-            # Aquí se podría disparar una notificación
+            # Opcional: Aquí se podría disparar una notificación al alumno promovido
 
     inscripcion.estado = 'baja'
     inscripcion.save()

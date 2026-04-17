@@ -20,14 +20,14 @@
             ¡Muchas <span class="text-orange-500">Gracias</span>!
         </h1>
         <p class="text-white/40 text-xl font-bold italic max-w-lg mx-auto leading-relaxed">
-            Tu pedido o pago ha sido registrado correctamente. Te notificaremos pronto sobre el estado.
+            Tu pedido o pago ha sido registrado correctamente. Podrás ver el seguimiento en tu historial.
         </p>
     </div>
     
     <!-- Botones de Acción -->
     <div class="pt-8 space-y-4 max-w-sm mx-auto">
-        <a href="{% url 'perfil' %}" class="block w-full bg-white text-black rounded-3xl py-6 text-xl font-black shadow-2xl hover:bg-orange-500 hover:text-white transition-all transform active:scale-95 uppercase tracking-widest">
-            Ver mis Pedidos
+        <a href="{% url 'pago_historial' %}" class="block w-full bg-white text-black rounded-3xl py-6 text-xl font-black shadow-2xl hover:bg-orange-500 hover:text-white transition-all transform active:scale-95 uppercase tracking-widest">
+            Ver mi Historial
         </a>
         <a href="{% url 'inicio' %}" class="block w-full bg-white/5 text-white/40 border border-white/10 rounded-3xl py-6 text-sm font-black hover:bg-white/10 transition-all uppercase tracking-widest">
             Volver al inicio

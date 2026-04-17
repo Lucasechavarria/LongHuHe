@@ -21,4 +21,6 @@ urlpatterns = [
     path('gestion/', views.gestion_tesoreria, name='gestion_tesoreria'),
     path('gestion/pago/<int:pago_id>/', views.gestionar_pago_accion, name='gestionar_pago_accion'),
     path('gracias/', views.gracias, name='gracias'),
+    path('historial/', views.pago_historial, name='pago_historial'),
+    path('exportar-csv/', views.exportar_tesoreria_csv, name='exportar_tesoreria_csv'),
 ]

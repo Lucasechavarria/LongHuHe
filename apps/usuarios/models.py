@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
+from django.utils.functional import cached_property
 
 class NivelAcceso(models.TextChoices):
     ALUMNO = "alumno", "Alumnos (Todos)"
@@ -61,6 +62,13 @@ class Usuario(AbstractUser):
         verbose_name="Grado / Faja Actual"
     )
     es_profe = models.BooleanField(default=False)
+    nivel_acceso = models.CharField(
+        "Nivel de Acceso Academia", 
+        max_length=20, 
+        choices=NivelAcceso.choices, 
+        default=NivelAcceso.ALUMNO,
+        help_text="Determina qué contenido de la biblioteca puede ver el alumno."
+    )
     foto_perfil = models.ImageField("Foto de Perfil", upload_to="perfiles/", null=True, blank=True)
 
     # Campos de Mercado Pago para Profesores (Marketplace)
@@ -84,11 +92,33 @@ class Usuario(AbstractUser):
 
     actividades = models.ManyToManyField('academia.Actividad', blank=True, related_name="alumnos")
     
+    # --- BECAS ---
+    es_becado = models.BooleanField(
+        "Es Becado", default=False,
+        help_text="Si está activo, el alumno tiene exención total de cuota. No necesita registrar pagos mensuales."
+    )
+    motivo_beca = models.CharField(
+        "Motivo de Beca", max_length=255, blank=True, default="",
+        help_text="Ej: Hijo del instructor, Situación económica, Beca de rendimiento."
+    )
+
     # --- ERP / Gestión de Asistencia y Pagos ---
     uuid_carnet = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     fecha_vencimiento_cuota = models.DateField("Fecha de Vencimiento de Cuota", null=True, blank=True)
+    dia_corte_cuota = models.PositiveSmallIntegerField(
+        "Día de Corte de Cuota", default=0,
+        help_text="Día del mes en que vence la cuota del alumno (Ej: 5 = vence el día 5 de cada mes). "
+                  "0 = se usa el día actual del primer pago. Se asigna automáticamente al aprobar el primer pago."
+    )
     clases_disponibles = models.PositiveIntegerField("Clases Disponibles (Paquetes)", default=0)
-    fecha_prorroga = models.DateField("Vencimiento de Prórroga", null=True, blank=True, help_text="Si solicita prórroga, tiene acceso hasta esta fecha.")
+    fecha_prorroga = models.DateField(
+        "Vencimiento de Prórroga", null=True, blank=True,
+        help_text="Si solicita prórroga, tiene acceso de asistencia hasta esta fecha. Solo 1 por período de cuota."
+    )
+    ultima_prorroga_solicitada = models.DateField(
+        "Última Prórroga Solicitada", null=True, blank=True,
+        help_text="Fecha en que se solicitó la última prórroga. Se usa para limitar a una por mes."
+    )
 
     # --- SEGURIDAD Y ROLES ERP (Fase Final) ---
     rol_acceso_total = models.BooleanField(
@@ -128,7 +158,8 @@ class Usuario(AbstractUser):
         help_text="Interruptor de seguridad. Si es falso, el delegado no podrá entrar al panel de tesorería."
     )
 
-    qr_base64_cache = models.TextField(blank=True, null=True, help_text="Caché del código QR en base64 para evitar regenerarlo en memoria repetidamente.")
+    qr_image = models.ImageField("Código QR", upload_to="qrs/", null=True, blank=True)
+    qr_base64_cache = models.TextField(blank=True, null=True, help_text="[DEPRECATED] Usar qr_image en su lugar.")
 
     class Meta:
         db_table = 'core_usuario' # Link to existing table
@@ -165,18 +196,30 @@ class Usuario(AbstractUser):
                 clean_username = f"u_{uuid.uuid4().hex[:8]}"
             self.username = clean_username[:150]
         
-        # 4. Auto-generación inteligente del QR cacheado (solo si está vacío)
-        if not self.qr_base64_cache and self.uuid_carnet:
+        # 4. Generación de QR físico (Optimización Sprint 8 + Audit Sprint 9)
+        uuid_cambio = False
+        if self.pk:
+            old_inst = Usuario.objects.filter(pk=self.pk).values('uuid_carnet', 'qr_image').first()
+            if old_inst and old_inst['uuid_carnet'] != self.uuid_carnet:
+                uuid_cambio = True
+                if old_inst['qr_image']:
+                    self.qr_image.delete(save=False)
+
+        if (not self.qr_image or uuid_cambio) and self.uuid_carnet:
             import qrcode
             import io
-            import base64
+            from django.core.files.base import ContentFile
+            
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(str(self.uuid_carnet))
             qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
+            
             buffer = io.BytesIO()
             img.save(buffer, format="PNG")
-            self.qr_base64_cache = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
+            
+            file_name = f"qr_{self.pk or uuid.uuid4().hex[:8]}.png"
+            self.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=False)
 
         # 5. Optimización de Foto de Perfil (WebP) (Task - Visuals)
         if not getattr(self, '_img_optimized', False):
@@ -195,6 +238,10 @@ class Usuario(AbstractUser):
                 except Exception:
                     pass
             self._img_optimized = True
+        
+        # 6. Sincronización de Nivel de Acceso con Grado (Audit de Coherencia)
+        if self.grado and self.grado.nivel_desbloqueado:
+            self.nivel_acceso = self.grado.nivel_desbloqueado
 
         super().save(*args, **kwargs)
 
@@ -207,30 +254,39 @@ class Usuario(AbstractUser):
 
     @property
     def generar_qr_base64(self):
-        """ Retorna el QR desde el caché en DB. Si por algún motivo está vacío, invoca un resave silencioso. """
+        """ Retorna la URL del QR físico o genera uno base64 como fallback final. """
+        if self.qr_image:
+            return self.qr_image.url
         if self.qr_base64_cache:
             return self.qr_base64_cache
         
-        # Fallback de recuperación de sistema (Solo ocurrirá la primera vez antes de migrar)
-        # Se genera al vuelo sin necesidad de hacer save() explícito aquí para no causar recursiones.
-        import qrcode
-        import io
-        import base64
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(str(self.uuid_carnet))
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
-        return f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
+        # Fallback de emergencia
+        return ""
 
     @property
     def alerta_inasistencia(self):
-        """ Retorna True si el alumno no registra asistencias hace mas de 15 dias. """
+        """ 
+        Retorna True si el alumno no registra asistencias hace mas de 15 dias. 
+        Toma en cuenta la fecha_ingreso_real para evitar alertas falsas en alumnos nuevos.
+        """
         ultima = self.asistencias.order_by('-fecha_hora').first()
+        from datetime import timedelta
+        hoy = timezone.now()
+        
+        # Fecha base para conteo: ingreso real o registro en el sistema
+        inicio_actividad = self.date_joined
+        if self.fecha_ingreso_real:
+            # Convertir date a datetime para comparar con timezone.now()
+            from datetime import datetime
+            inicio_actividad = timezone.make_aware(
+                datetime.combine(self.fecha_ingreso_real, datetime.min.time())
+            )
+
         if not ultima:
-            return True
-        return (timezone.now() - ultima.fecha_hora).days > 15
+            # Si no hay asistencias, solo marcar alerta si pasaron > 15 días desde que debió empezar
+            return (hoy - inicio_actividad) > timedelta(days=15)
+        
+        return (hoy - ultima.fecha_hora) > timedelta(days=15)
 
     @property
     def nombre_completo(self):
@@ -244,13 +300,17 @@ class Usuario(AbstractUser):
         anios = hoy.year - inicio.year - ((hoy.month, hoy.day) < (inicio.month, inicio.day))
         return anios
 
-    @property
+    @cached_property
     def estado_morosidad(self):
         from datetime import date
         hoy = date.today()
-        
+
+        # 1. Alumnos becados: exentos de cuota, siempre al día.
+        if self.es_becado:
+            return "becado"
+
+        # 2. Sin fecha de vencimiento aún (alumno nuevo o sin primer pago aprobado)
         if not self.fecha_vencimiento_cuota:
-            # Import circular? No, Pago está en ventas, lo importamos aquí localmente
             from apps.ventas.models import Pago
             pago_mes_actual = Pago.objects.filter(
                 alumno=self,
@@ -263,23 +323,33 @@ class Usuario(AbstractUser):
                 return "al_dia"
             return "vencido"
 
+        # 3. Cuota vigente
         if hoy <= self.fecha_vencimiento_cuota:
             return "al_dia"
-        
+
+        # 4. Dentro del período de gracia (5 días)
         from datetime import timedelta
         if hoy <= (self.fecha_vencimiento_cuota + timedelta(days=5)):
             return "atrasado"
-            
+
+        # 5. Cuota vencida pero con prórroga activa
+        if self.fecha_prorroga and hoy <= self.fecha_prorroga:
+            return "prorroga"
+
+        # 6. Vencida sin prórroga o prórroga expirada
         return "vencido"
 
     @property
     def color_estado(self):
         estado = self.estado_morosidad
-        if estado == "al_dia":
-            return "green"
-        if estado == "atrasado":
-            return "yellow"
-        return "red"
+        colores = {
+            "becado":   "#3b82f6",  # Azul
+            "al_dia":  "#22c55e",  # Verde
+            "atrasado": "#f97316",  # Naranja
+            "prorroga": "#a855f7",  # Púrpura
+            "vencido":  "#ef4444",  # Rojo
+        }
+        return colores.get(estado, "#6b7280")
 
 class Examen(models.Model):
     """
@@ -330,3 +400,14 @@ def auto_delete_file_on_change(sender, instance, **kwargs):
     if not old_file == new_file and old_file:
         if hasattr(old_file, 'delete'):
             old_file.delete(save=False)
+
+@receiver(pre_save, sender=Usuario)
+def sincronizar_nivel_acceso_con_grado(sender, instance, **kwargs):
+    """
+    Sincroniza el nivel_acceso del usuario basado en su grado.
+    Permite carga inicial de alumnos graduados sin pasar por exámenes.
+    """
+    if instance.grado and instance.grado.nivel_desbloqueado:
+        # Solo actualizamos si el nivel cambió o es una carga inicial
+        if instance.nivel_acceso != instance.grado.nivel_desbloqueado:
+            instance.nivel_acceso = instance.grado.nivel_desbloqueado

@@ -77,11 +77,21 @@ def registrar_asistencia_qr(request):
             actividad_detectada = None
             if clase_actual:
                 actividad_detectada = clase_actual.actividad
-            else:
-                # Fallback: Si no hay clase programada exacta, tomamos su inscripción principal
+            elif descuenta_paquete:
+                # Si no hay horario fijo pero tiene créditos, permitimos el ingreso libre
                 inscripcion_activa = alumno.inscripciones_academia.filter(estado='regular').first()
                 if inscripcion_activa:
                     actividad_detectada = inscripcion_activa.clase.actividad
+                else:
+                    actividad_detectada = "Clase Libre"
+            else:
+                # Alumno regular fuera de su horario y sin créditos
+                return JsonResponse({
+                    'success': False,
+                    'message': f"Bloqueado: No tienes clase programada ahora ({ahora.strftime('%H:%M')}).",
+                    'color': 'red',
+                    'alertas': ["HORARIO NO CORRESPONDIENTE"]
+                })
 
             # Cooldown: Bloqueo si vino a esta misma actividad hace menos de 3 horas
             limite_cooldown = ahora - timezone.timedelta(hours=3)

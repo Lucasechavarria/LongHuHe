@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from decimal import Decimal
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
@@ -11,13 +12,17 @@ from django.http import JsonResponse
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
+from django.db import transaction
+from django.db.models import Sum, Count, Q, Prefetch
+from django.db.models.functions import TruncDate
 from .services.mercadopago_service import MercadoPagoService
+import csv
+from django.http import HttpResponse
 
 @alumno_requerido
 def gracias(request):
     """ Vista de éxito genérica para pagos y pedidos. """
-    alumno = Usuario.objects.get(id=request.session['alumno_id'])
-    return render(request, 'ventas/gracias.html', {'alumno': alumno})
+    return render(request, 'ventas/gracias.html', {'alumno': request.user_obj})
 
 @alumno_requerido
 def carrito_sync(request):
@@ -62,16 +67,17 @@ def carrito_ver(request):
     })
 
 @alumno_requerido
+@transaction.atomic
 def checkout(request):
     """ Procesa el carrito y genera el pedido (Task 5.5). """
     carrito_data = request.session.get('carrito', [])
     if not carrito_data:
         return redirect('tienda_inicio')
     
-    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    alumno = request.user_obj
+    metodo = request.POST.get('metodo', 'transferencia')
     
     # 1. Crear el Pedido (Pendiente)
-    metodo = request.POST.get('metodo', 'transferencia')
     pedido = Pedido.objects.create(
         alumno=alumno,
         estado=Pedido.Estado.PENDIENTE,
@@ -79,31 +85,45 @@ def checkout(request):
     )
     
     total_gral = Decimal('0.0')
+    tiene_backorder = False
+
     for doc in carrito_data:
-        prod = get_object_or_404(Producto, id=doc['id'])
+        # Bloqueamos el producto y la variante para que nadie más los mueva durante la transacción
+        prod = get_object_or_404(Producto.objects.select_for_update(), id=doc['id'])
         var = None
-        if doc.get('variant_id'):
-            var = ProductoVariante.objects.filter(id=doc['variant_id']).first()
-            if var and var.stock < doc['qty']:
-                messages.warning(request, f"Stock insuficiente para {prod.nombre}.")
-                return redirect('carrito_ver')
-        elif prod.stock < doc['qty']:
-            messages.warning(request, f"Stock insuficiente para {prod.nombre}.")
-            return redirect('carrito_ver')
+        qty = int(doc['qty'])
         
-        item_total = prod.precio * doc['qty']
+        if doc.get('variant_id'):
+            var = get_object_or_404(ProductoVariante.objects.select_for_update(), id=doc['variant_id'])
+            if var.stock < qty:
+                if not prod.permite_backorder:
+                    transaction.set_rollback(True)
+                    messages.warning(request, f"¡Error! Por milisegundos alguien más se llevó lo último de {prod.nombre} ({var.talle}).")
+                    return redirect('carrito_ver')
+                else:
+                    tiene_backorder = True
+        elif prod.stock < qty:
+            if not prod.permite_backorder:
+                transaction.set_rollback(True)
+                messages.warning(request, f"¡Error! Por milisegundos alguien más se llevó lo último de {prod.nombre}.")
+                return redirect('carrito_ver')
+            else:
+                tiene_backorder = True
+        
+        item_total = prod.precio * qty
         total_gral += item_total
         
         PedidoItem.objects.create(
             pedido=pedido,
             producto=prod,
             variante=var,
-            cantidad=doc['qty'],
+            cantidad=qty,
             precio_unitario=prod.precio
         )
     
     pedido.total = total_gral
-    pedido.save() # Calcula comisiones en el save()
+    pedido.backorder = tiene_backorder
+    pedido.save() # Calcula comisiones (ahora sin recursión)
     
     # Limpiar carrito
     request.session['carrito'] = []
@@ -111,44 +131,166 @@ def checkout(request):
     request.session.modified = True
     
     if metodo == 'mercadopago':
-        # Redirigir a MP... (Omitido por brevedad en este step)
-        pass
+        # En la vida real aquí llamaríamos a MercadoPagoService.crear_preferencia(pedido)
+        return redirect('gracias') # Simplificado por ahora
+        
+    return redirect('gracias')
         
     messages.success(request, f"¡Pedido #{pedido.id} generado! Por favor, informa el pago.")
     return redirect('gracias')
 
 def validar_signature_mp(request):
-    """ Valida que la notificacion venga de Mercado Pago (Task 4.5). """
-    header = request.headers.get("X-Signature")
-    if not header:
-        return False
-    
-    # El cuerpo del webhook segun la documentacion oficial
-    # Depende de como se construye. Por simplicidad comparamos con el secreto si existe.
+    """
+    Valida que la notificación del webhook sea genuina de Mercado Pago.
+    Implementación oficial HMAC-SHA256:
+    https://www.mercadopago.com.ar/developers/es/docs/your-integrations/notifications/webhooks
+    """
+    import hmac
+    import hashlib
+
     secret = settings.MP_WEBHOOK_SECRET
     if not secret:
-        return True # Si no hay secreto configurado, asumimos que estamos en dev/test
-    
-    # Construcción de la firma esperada
-    # (Esto es una simplificación, la doc oficial pide reconstruir el string exacto)
-    return True # Placeholder: En produccion se debe implementar el HMAC SHA256 exacto
+        # Sin secreto configurado: aceptar en desarrollo, rechazar en producción
+        if settings.DEBUG:
+            return True
+        return False
+
+    header = request.headers.get("x-signature", "")
+    request_id = request.headers.get("x-request-id", "")
+
+    if not header:
+        return False
+
+    # Parsear el header: "ts=<timestamp>,v1=<hash>"
+    parts = {}
+    for part in header.split(","):
+        if "=" in part:
+            k, v = part.split("=", 1)
+            parts[k.strip()] = v.strip()
+
+    ts = parts.get("ts", "")
+    v1 = parts.get("v1", "")
+
+    if not ts or not v1:
+        return False
+
+    # Extraer el resource_id del body o la querystring
+    data_id = request.GET.get("data.id") or request.GET.get("id", "")
+
+    # Construir el string a firmar según la spec oficial de MP
+    # Formato: "id:[data.id];request-id:[x-request-id];ts:[ts];"
+    manifest = f"id:{data_id};request-id:{request_id};ts:{ts};"
+
+    expected = hmac.new(
+        secret.encode("utf-8"),
+        msg=manifest.encode("utf-8"),
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(expected, v1)
 
 @profe_requerido
 def gestion_tesoreria(request):
-    """ Panel administrativo para el tesorero de la asociacion. """
+    """ Panel administrativo para el tesorero de la asociacion con Dashboard de Métricas. """
     if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
         messages.error(request, "No tienes permisos para acceder a Tesorería.")
         return redirect('inicio')
     
-    pagos_pendientes = Pago.objects.filter(estado='pendiente').order_by('-fecha_registro')
+    from django.db.models import Sum, Count, Q
+    from django.db.models.functions import TruncDate
+    from datetime import timedelta
+    
+    hoy = timezone.now().date()
+    hace_30_dias = hoy - timedelta(days=30)
+    
+    # 1. KPIs Principales
+    pagos_aprobados_mes = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO, 
+        fecha_registro__date__month=hoy.month,
+        fecha_registro__date__year=hoy.year
+    )
+    pedidos_pagados_mes = Pedido.objects.filter(
+        estado__in=[Pedido.Estado.PAGADO, Pedido.Estado.ENTREGADO],
+        fecha_registro__date__month=hoy.month,
+        fecha_registro__date__year=hoy.year
+    )
+    
+    ingresos_pagos = pagos_aprobados_mes.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+    ingresos_pedidos = pedidos_pagados_mes.aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+    ingresos_totales_mes = ingresos_pagos + ingresos_pedidos
+    
+    pendientes_count = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).count()
+    pendientes_monto = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+    
+    # 2. Tendencia Diaria (Últimos 30 días)
+    tendencia_data = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__date__gte=hace_30_dias
+    ).annotate(date=TruncDate('fecha_registro')).values('date').annotate(
+        total=Sum('monto')
+    ).order_by('date')
+    
+    chart_labels = [d['date'].strftime("%d/%m") for d in tendencia_data]
+    chart_values = [float(d['total']) for d in tendencia_data]
+    
+    # 3. Métodos de Pago
+    metodos_data = Pago.objects.filter(estado=Pago.EstadoPago.APROBADO).values('metodo').annotate(count=Count('id'))
+    metodos_labels = [dict(Pago.MetodoPago.choices).get(d['metodo'], d['metodo']) for d in metodos_data]
+    metodos_values = [d['count'] for d in metodos_data]
+    
+    pagos_pendientes = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).order_by('-fecha_registro')
+    
     return render(request, 'ventas/gestion_tesoreria.html', {
-        'pagos_pendientes': pagos_pendientes
+        'pagos_pendientes': pagos_pendientes,
+        'kpis': {
+            'ingresos_mes': ingresos_totales_mes,
+            'pendientes_count': pendientes_count,
+            'pendientes_monto': pendientes_monto,
+        },
+        'chart_data': {
+            'labels': chart_labels,
+            'values': chart_values,
+            'metodos_labels': metodos_labels,
+            'metodos_values': metodos_values,
+        }
     })
 
 @profe_requerido
+def exportar_tesoreria_csv(request):
+    """ Genera un reporte CSV de los pagos aprobados del mes actual (Sprint 12). """
+    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
+        return HttpResponse("No autorizado", status=403)
+
+    hoy = timezone.now().date()
+    pagos = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__date__month=hoy.month,
+        fecha_registro__date__year=hoy.year
+    ).select_related('alumno', 'actividad')
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="tesoreria_{hoy.strftime("%Y_%m")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Fecha', 'Alumno', 'Tipo', 'Monto', 'Método', 'Actividad'])
+
+    for p in pagos:
+        writer.writerow([
+            p.fecha_registro.strftime("%Y-%m-%d %H:%M"),
+            p.alumno.nombre_completo,
+            p.get_tipo_display(),
+            p.monto,
+            p.get_metodo_display(),
+            p.actividad.nombre if p.actividad else "Tienda/Otro"
+        ])
+
+    return response
+
+@profe_requerido
+@transaction.atomic
 def gestionar_pago_accion(request, pago_id):
     """ Procesa la aprobacion o rechazo de un pago manual. """
-    pago = get_object_or_404(Pago, id=pago_id)
+    pago = get_object_or_404(Pago.objects.select_for_update(), id=pago_id)
     if request.method == 'POST':
         accion = request.POST.get('accion')
         motivo = request.POST.get('motivo', '')
@@ -167,36 +309,18 @@ def gestionar_pago_accion(request, pago_id):
 
 @alumno_requerido
 def pago_tipo(request):
-    if request.method == 'POST':
-        if 'metodo' in request.POST:
-            form_tipo = PagoTipoForm(request.POST)
-            form_metodo = PagoMetodoForm(request.POST)
-            if form_tipo.is_valid() and form_metodo.is_valid():
-                alumno = Usuario.objects.get(id=request.session['alumno_id'])
-                clase_prog_id = request.POST.get('clase_programada')
-                clase_prog = Cronograma.objects.filter(id=clase_prog_id).first() if clase_prog_id else None
-                pago = Pago.objects.create(
-                    alumno=alumno,
-                    actividad=form_tipo.cleaned_data['actividad'],
-                    clase_programada=clase_prog,
-                    tipo=form_tipo.cleaned_data['tipo'],
-                    cantidad_clases=form_tipo.cleaned_data.get('cantidad_clases'),
-                    metodo=form_metodo.cleaned_data['metodo'],
-                    comprobante=request.FILES.get('comprobante')
-                )
-                if 'pago_data' in request.session:
-                    del request.session['pago_data']
-                if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
-                    return redirect('pago_mercadopago_checkout', pago_id=pago.id)
-                return redirect('gracias')
-    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    """ Task 2.1: Selección de Actividad y Tipo de Pago (Flujo Limpio) """
+    alumno = request.user_obj
     
     if request.method == 'POST':
         form = PagoTipoForm(request.POST, alumno=alumno)
         if form.is_valid():
             pago_data = form.cleaned_data
+            # Convertir objetos a IDs para serialización en sesión
             if 'actividad' in pago_data and hasattr(pago_data['actividad'], 'id'):
                 pago_data['actividad'] = pago_data['actividad'].id
+            
+            # Guardamos en sesión y avanzamos al siguiente paso
             request.session['pago_data'] = pago_data
             request.session.modified = True
             return redirect('pago_metodo')
@@ -262,22 +386,99 @@ def pago_comprobante(request):
 def pago_confirmacion(request):
     if 'pago_data' not in request.session:
         return redirect('pago_tipo')
-    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    
+    alumno = request.user_obj
     pago_data = request.session['pago_data']
     actividad = get_object_or_404(Actividad, id=pago_data['actividad'])
+    
+    # Calcular monto base
+    monto_base = Decimal('0.00')
+    if pago_data['tipo'] == Pago.TipoPago.MES:
+        monto_base = actividad.precio_mes
+    elif pago_data['tipo'] == Pago.TipoPago.CLASE_SUELTA:
+        monto_base = actividad.precio_clase
+    elif pago_data['tipo'] == Pago.TipoPago.PAQUETE:
+        monto_base = actividad.precio_clase * (pago_data.get('cantidad_clases') or 1)
+    
+    # 2. Gestionar cupón existente en sesión o nuevo
+    descuento_id = pago_data.get('descuento_id')
+    monto_desc = Decimal('0.00')
+    
+    if descuento_id:
+        from .models import Descuento
+        desc_obj = Descuento.objects.filter(id=descuento_id, activo=True).first()
+        if desc_obj and desc_obj.esta_vigente and desc_obj.monto_minimo_pago <= monto_base:
+            # Validar que siga siendo aplicable al nuevo tipo (por si cambió en el medio)
+            if desc_obj.aplicable_a == 'todos' or desc_obj.aplicable_a == pago_data['tipo']:
+                monto_desc = desc_obj.calcular_descuento(monto_base)
+                pago_data['monto_descontado'] = float(monto_desc)
+            else:
+                # Ya no es aplicable, limpiar
+                del pago_data['descuento_id']
+                if 'monto_descontado' in pago_data: del pago_data['monto_descontado']
+                messages.warning(request, "El cupón previo no aplica a este nuevo tipo de pago.")
+        else:
+            # Ya no es válido, limpiar
+            del pago_data['descuento_id']
+            if 'monto_descontado' in pago_data: del pago_data['monto_descontado']
+
     if request.method == 'POST':
-        pago = Pago.objects.create(
-            alumno=alumno,
-            actividad=actividad,
-            tipo=pago_data['tipo'],
-            cantidad_clases=pago_data.get('cantidad_clases'),
-            metodo=pago_data.get('metodo') or pago_data.get('método')
-        )
-        if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
-            return redirect('pago_mercadopago_checkout', pago_id=pago.id)
-        del request.session['pago_data']
-        return redirect('gracias')
-    return render(request, 'ventas/pago_confirmacion.html', {'pago_data': pago_data})
+        accion = request.POST.get('accion')
+        
+        # A. VALIDAR CUPÓN (Nuevo o reemplazo)
+        if accion == 'validar_cupon':
+            codigo = request.POST.get('codigo_descuento', '').strip().upper()
+            from .models import Descuento
+            descuento_obj = Descuento.objects.filter(codigo=codigo, activo=True).first()
+            
+            if not descuento_obj:
+                messages.error(request, "El código de cupón no es válido o ya no está activo.")
+            elif not descuento_obj.esta_vigente:
+                messages.error(request, "Este cupón ha expirado o ya no tiene usos disponibles.")
+            elif descuento_obj.monto_minimo_pago > monto_base:
+                messages.error(request, f"Este cupón requiere una compra mínima de ${descuento_obj.monto_minimo_pago}.")
+            elif descuento_obj.aplicable_a != 'todos' and descuento_obj.aplicable_a != pago_data['tipo']:
+                messages.error(request, f"Este cupón solo es válido para: {descuento_obj.get_aplicable_a_display()}.")
+            else:
+                pago_data['descuento_id'] = descuento_obj.id
+                monto_desc = descuento_obj.calcular_descuento(monto_base)
+                pago_data['monto_descontado'] = float(monto_desc)
+                request.session.modified = True
+                messages.success(request, f"Cupón '{descuento_obj.nombre}' aplicado correctamente.")
+            
+            monto_total = (monto_base - monto_desc).quantize(Decimal('0.01'))
+            return render(request, 'ventas/pago_confirmacion.html', {
+                'pago_data': pago_data, 
+                'actividad': actividad, 
+                'monto_base': monto_base,
+                'monto_total': monto_total
+            })
+
+        # B. CONFIRMAR PAGO
+        elif accion == 'confirmar':
+            pago = Pago.objects.create(
+                alumno=alumno,
+                actividad=actividad,
+                tipo=pago_data['tipo'],
+                cantidad_clases=pago_data.get('cantidad_clases'),
+                metodo=pago_data.get('metodo') or pago_data.get('método'),
+                descuento_id=pago_data.get('descuento_id')
+            )
+            
+            if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
+                return redirect('pago_mercadopago_checkout', pago_id=pago.id)
+            
+            del request.session['pago_data']
+            messages.success(request, "Pago registrado. Por favor informa el comprobante si fue transferencia.")
+            return redirect('gracias')
+
+    monto_total = (monto_base - monto_desc).quantize(Decimal('0.01'))
+    return render(request, 'ventas/pago_confirmacion.html', {
+        'pago_data': pago_data, 
+        'actividad': actividad, 
+        'monto_base': monto_base,
+        'monto_total': monto_total
+    })
 
 @alumno_requerido
 def pago_mercadopago_checkout(request, pago_id):
@@ -295,51 +496,58 @@ def pago_mercadopago_checkout(request, pago_id):
 
 @csrf_exempt
 def mercadopago_webhook(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            topic = request.GET.get("topic") or data.get("type")
-            resource_id = request.GET.get("id") or (data.get("data", {}).get("id"))
-            if topic == "payment" and resource_id:
+    if request.method != "POST":
+        return JsonResponse({'status': 'bad_request'}, status=400)
+
+    # ✅ Validación de firma HMAC-SHA256 oficial de Mercado Pago
+    if not validar_signature_mp(request):
+        return JsonResponse({'status': 'forbidden', 'detail': 'Firma inválida'}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        topic = request.GET.get("topic") or data.get("type")
+        resource_id = request.GET.get("id") or (data.get("data", {}).get("id"))
+
+        if topic == "payment" and resource_id:
+            with transaction.atomic():
                 identificador_pago = request.GET.get('identificador_pago')
                 access_token = None
                 if identificador_pago:
                     pago_original = Pago.objects.filter(id=identificador_pago).first()
                     if pago_original and pago_original.clase_programada and getattr(pago_original.clase_programada.profesor, 'mp_access_token', None):
                         access_token = pago_original.clase_programada.profesor.mp_access_token
+                
                 mp_service = MercadoPagoService(access_token)
                 payment_info = mp_service.obtener_pago(resource_id)
                 external_ref = payment_info.get("external_reference")
                 status = payment_info.get("status")
+                
                 if external_ref:
                     if external_ref.startswith('TIENDA_'):
                         pedido_id = external_ref.replace('TIENDA_', '')
-                        pedido = Pedido.objects.filter(id=pedido_id).first()
-                        if pedido:
+                        # LOCK del Pedido para procesar secuencialmente
+                        pedido = Pedido.objects.select_for_update().filter(id=pedido_id).first()
+                        if pedido and pedido.estado != Pedido.Estado.PAGADO:
                             pedido.mercado_pago_status = status
                             pedido.mercado_pago_id = resource_id
-                            if status == "accredited" or status == "approved":
+                            if status in ("accredited", "approved"):
                                 pedido.estado = Pedido.Estado.PAGADO
                             pedido.save()
                     else:
-                        pago = Pago.objects.filter(id=external_ref).first()
-                        if pago:
+                        # LOCK del Pago para procesar secuencialmente
+                        pago = Pago.objects.select_for_update().filter(id=external_ref).first()
+                        if pago and pago.estado != Pago.EstadoPago.APROBADO:
                             pago.mercado_pago_status = status
                             pago.mercado_pago_id = resource_id
-                            if status == "accredited" or status == "approved":
+                            if status in ("accredited", "approved"):
                                 pago.estado = Pago.EstadoPago.APROBADO
                             pago.save()
-            from django.http import JsonResponse
-            return JsonResponse({'status': 'ok'}, status=200)
-        except Exception as e:
-            from django.http import JsonResponse
-            return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
-    from django.http import JsonResponse
-    return JsonResponse({'status': 'bad_request'}, status=400)
+        return JsonResponse({'status': 'ok'}, status=200)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
 
 @alumno_requerido
 def tienda_inicio(request):
-    from django.db.models import Prefetch
     # Filtrar solo productos activos en el prefetch
     productos_activos = Producto.objects.filter(activo=True)
     
@@ -393,3 +601,21 @@ def tienda_comprar(request, producto_id):
             messages.success(request, "Pedido generado con éxito.")
             return redirect('gracias')
     return render(request, 'ventas/tienda_comprar.html', {'producto': producto})
+
+@alumno_requerido
+def pago_historial(request):
+    """
+    Lista todos los pagos y pedidos realizados por el alumno.
+    """
+    from .models import Pago, Pedido
+    alumno = request.user_obj
+    
+    pagos = Pago.objects.filter(alumno=alumno).order_by('-fecha_registro')
+    pedidos = Pedido.objects.filter(alumno=alumno).order_by('-fecha_registro')
+    
+    return render(request, 'ventas/historial.html', {
+        'pagos': pagos,
+        'pedidos': pedidos,
+        'alumno': alumno,
+        'hoy': timezone.now().date()
+    })

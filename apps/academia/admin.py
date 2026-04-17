@@ -32,6 +32,7 @@ class SedeAdmin(SedesAdminMixin, admin.ModelAdmin):
 class CronogramaAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_display = ("actividad", "sede", "dia", "hora_inicio", "cupo", "total_inscriptos", "profesor")
     list_filter = ("actividad", "sede", "profesor", "dia")
+    list_select_related = ("actividad", "sede", "profesor")
     autocomplete_fields = ("profesor", "profesor_asistente")
     list_editable = ("dia", "hora_inicio", "cupo", "profesor")
     search_fields = ("actividad__nombre", "sede__nombre", "profesor__nombre", "profesor__apellido")

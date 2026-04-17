@@ -25,9 +25,33 @@ def alumno_requerido(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if 'alumno_id' not in request.session:
             return redirect('onboarding')
-        if not Usuario.objects.filter(id=request.session['alumno_id']).exists():
+        
+        usuario_id = request.session['alumno_id']
+        # Optimización Sprint 7: Cargar grado y sede de una vez
+        usuario = Usuario.objects.select_related('grado', 'sede').filter(id=usuario_id).first()
+        
+        if not usuario:
             del request.session['alumno_id']
             return redirect('onboarding')
+
+        # --- SISTEMA DE RESTRICCIÓN POR MOROSIDAD ---
+        if usuario.estado_morosidad == 'vencido':
+            from django.urls import resolve
+            try:
+                url_name = resolve(request.path_info).url_name
+            except Exception:
+                url_name = ""
+            
+            urls_permitidas = [
+                'pago_tipo', 'pago_metodo', 'pago_comprobante', 'pago_confirmacion', 
+                'pago_mercadopago_checkout', 'mercadopago_webhook', 'logout', 
+                'cuota_vencida', 'gracias', 'solicitar_prorroga', 'splash'
+            ]
+            
+            if url_name not in urls_permitidas:
+                return redirect('cuota_vencida')
+
+        request.user_obj = usuario
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
@@ -123,11 +147,17 @@ def onboarding(request):
 
 @alumno_requerido
 def perfil(request):
-    alumno = Usuario.objects.get(id=request.session['alumno_id'])
-    linea_tiempo = alumno.examenes.select_related('grado', 'examinador').all()
+    """ Muestra el dashboard del alumno con sus datos y QR. """
+    alumno = request.user_obj
+    from apps.examenes.models import MesaExamen
+    
+    mesas_disponibles = MesaExamen.objects.filter(esta_abierta=True).exclude(
+        candidatos__alumno=alumno
+    ).order_by('fecha')
+    
     return render(request, 'usuarios/perfil.html', {
         'alumno': alumno,
-        'linea_tiempo': linea_tiempo
+        'mesas_disponibles': mesas_disponibles
     })
 
 @alumno_requerido
@@ -157,22 +187,40 @@ def editar_salud(request):
     return render(request, 'usuarios/editar_salud.html', {'form': form, 'alumno': alumno})
 @alumno_requerido
 def solicitar_prorroga(request):
-    alumno = Usuario.objects.get(id=request.session['alumno_id'])
+    alumno = request.user_obj
     
     if alumno.estado_morosidad == 'vencido':
         from datetime import date, timedelta
         hoy = date.today()
-        # Solo permitir prórroga si no ha solicitado una recientemente (protección básica)
-        if not alumno.fecha_prorroga:
-            alumno.fecha_prorroga = hoy + timedelta(days=15)
-            alumno.save(update_fields=['fecha_prorroga'])
-            messages.success(request, "Prórroga de 15 días activada. Puedes seguir asistiendo.")
-        else:
-            messages.warning(request, "Ya tienes una prórroga activa o la tuviste recientemente.")
+        
+        # Validación de "Una sola prórroga por mes"
+        if alumno.ultima_prorroga_solicitada and \
+           alumno.ultima_prorroga_solicitada.month == hoy.month and \
+           alumno.ultima_prorroga_solicitada.year == hoy.year:
+            messages.warning(request, "Ya has solicitado una prórroga este mes. Por favor, regulariza tu cuota para continuar.")
+            return redirect('cuota_vencida')
+
+        # Si no tiene fecha_prorroga activa o expiré, le otorgamos 15 días desde hoy
+        alumno.fecha_prorroga = hoy + timedelta(days=15)
+        alumno.ultima_prorroga_solicitada = hoy
+        alumno.save(update_fields=['fecha_prorroga', 'ultima_prorroga_solicitada'])
+        
+        messages.success(request, "🛡️ Prórroga de 15 días activada. Tenés acceso completo temporariamente.")
+        return redirect('perfil')
     else:
         messages.info(request, "No necesitas prórroga, tu cuota está al día.")
-        
-    return redirect('perfil')
+        return redirect('perfil')
+
+@alumno_requerido
+def cuota_vencida(request):
+    """ Vista de bloqueo para alumnos morosos (Sprint 2) """
+    alumno = request.user_obj
+    if alumno.estado_morosidad != 'vencido':
+        return redirect('perfil')
+    
+    return render(request, 'usuarios/cuota_vencida.html', {
+        'alumno': alumno,
+    })
 
 def logout(request):
     request.session.flush()

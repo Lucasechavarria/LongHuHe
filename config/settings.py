@@ -14,10 +14,20 @@ from pathlib import Path
 import os
 import dj_database_url
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 # Carga las variables de entorno del archivo .env localizado en la raíz del proyecto
-# Test comment
 load_dotenv()
+
+def get_env(name, default=None, required=False):
+    """Obtiene una variable de entorno. Lanza error si es requerida y no existe."""
+    value = os.getenv(name, default)
+    if required and not value:
+        raise ImproperlyConfigured(
+            f"❌ Variable de entorno requerida no definida: '{name}'. "
+            f"Agregala a tu archivo .env o a las variables secretas de Render."
+        )
+    return value
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,12 +37,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-p%mklucg$04%=%sdx=^@p16@b7*d9ot14zkwbkfv%widnq-!u*')
+# La clave DEBE estar definida en las variables de entorno (Render Secrets / .env local).
+# Si no está definida, el servidor NO arrancará.
+SECRET_KEY = get_env("SECRET_KEY", required=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True") == "True"
+# En producción, definir DEBUG=False en las variables de entorno.
+# El default seguro es False — nunca True en producción.
+DEBUG = get_env("DEBUG", default="False") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*, .onrender.com").split(",")
+ALLOWED_HOSTS = get_env("ALLOWED_HOSTS", default="localhost,127.0.0.1,.onrender.com").split(",")
 
 # CSRF Trusted Origins para producción
 CSRF_TRUSTED_ORIGINS = [
@@ -42,6 +56,16 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Configuración para que Django reconozca HTTPS detrás del Proxy de Render
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Configuraciones de seguridad — solo activas en producción (DEBUG=False)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 
 # Application definition

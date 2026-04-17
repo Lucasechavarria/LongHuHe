@@ -23,7 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.admin_site.urls if hasattr(admin.site, 'admin_site') else admin.site.urls),
     path('', include('apps.usuarios.urls')),
     path('clases/', include('apps.academia.urls')),
-    path('usuarios/', include('apps.usuarios.urls')),
     path('asistencia/', include('apps.asistencia.urls')),
     path('pagos/', include('apps.ventas.urls')),
     path('biblioteca/', include('apps.biblioteca.urls')),

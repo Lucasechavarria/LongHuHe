@@ -8,18 +8,17 @@ class MercadoPagoService:
     def crear_preferencia(self, pago):
         """
         Crea una preferencia de pago en Mercado Pago basada en un objeto Pago.
-        Retorna el init_point para redirigir al usuario.
         """
-        from .models import Pago # Importar aquí para evitar circularidad
-        # Calcular el monto basado en el tipo de pago
-        unit_price = 0
-        if pago.tipo == Pago.TipoPago.MES:
-            unit_price = float(pago.actividad.precio_mes)
-        elif pago.tipo == Pago.TipoPago.CLASE_SUELTA:
-            unit_price = float(pago.actividad.precio_clase)
-        elif pago.tipo == Pago.TipoPago.PAQUETE:
-            # Si es paquete, podríamos calcular precio_clase * cantidad_clases
-            unit_price = float(pago.actividad.precio_clase) * (pago.cantidad_clases or 1)
+        from apps.ventas.models import Pago # Importación absoluta para evitar fallos
+        
+        # ✅ Validación de Webhook: Mercado Pago requiere una URL ABSOLUTA
+        base_url = os.environ.get('WEBHOOK_URL_BASE', '')
+        if not base_url.startswith('http'):
+            # En producción esto sería un error crítico
+            print(f"WARNING: WEBHOOK_URL_BASE ('{base_url}') no es una URL absoluta. Las notificaciones de MP fallarán.")
+        
+        # ✅ BUG FIX: Usar el monto final calculado en el ERP (con descuentos)
+        unit_price = float(pago.monto)
 
         # Generación del título descriptivo del ticket ("Triangulación Perfecta")
         if pago.clase_programada:

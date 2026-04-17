@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from apps.usuarios.models import Usuario, Grado, Examen
 
 class MesaExamen(models.Model):
@@ -34,7 +34,6 @@ class InscripcionExamen(models.Model):
     resultado = models.CharField(max_length=20, choices=EstadoResultado.choices, default=EstadoResultado.PENDIENTE)
     nota_tecnica = models.PositiveIntegerField(blank=True, null=True, help_text="Puntaje 0-100")
     observaciones = models.TextField(blank=True)
-    
     fecha_inscripcion = models.DateTimeField(auto_now_add=True)
     procesado = models.BooleanField(default=False, help_text="Indica si ya se aplicó el ascenso en el perfil")
 
@@ -51,33 +50,41 @@ class InscripcionExamen(models.Model):
         except Exception:
             return f"Inscripción Examen #{self.id}"
 
+    @transaction.atomic
     def aplicar_ascenso(self):
-        """ Task 7.3: Automatización de ascenso de grado """
+        """ Task 7.3: Automatización de ascenso de grado y nivel de acceso """
         if self.resultado == self.EstadoResultado.APROBADO and not self.procesado:
             alumno = self.alumno
-            # Actualizamos el grado principal
-            alumno.grado = self.grado_a_aspirar
-            alumno.save()
             
-            # Registramos el examen en el historial de 'usuarios'
+            # 1. Actualización Atómica del Alumno
+            alumno.grado = self.grado_a_aspirar
+            # Desbloqueo de nivel según el nuevo grado
+            if self.grado_a_aspirar.nivel_desbloqueado:
+                alumno.nivel_acceso = self.grado_a_aspirar.nivel_desbloqueado
+            
+            alumno.save(update_fields=['grado', 'nivel_acceso'])
+            
+            # 2. Registro histórico
             Examen.objects.create(
                 alumno=alumno,
                 grado=self.grado_a_aspirar,
                 fecha=self.mesa.fecha.date(),
-                examinador=self.mesa.examinadores.first(), # Tomamos el primer profe como referencia
+                examinador=self.mesa.examinadores.first(),
                 examinador_externo=self.mesa.maestro_invitado,
-                observaciones=f"Aprobado en Mesa {self.mesa.id}. Nota: {self.nota_tecnica}. {self.observaciones}"
+                observaciones=f"Aprobado en Mesa {self.mesa.id}. Nota: {self.nota_tecnica or 'N/A'}. {self.observaciones}"
             )
             
             self.procesado = True
-            # No llamamos a self.save() aquí de nuevo para evitar un loop infinito si ya fue invocado por el save principal.
-            # En la vista de acción masiva, process_ascensos_masivo llama a .save() en su bucle (o deberíamos controlarlo allí).
+            # No llamamos a self.save() aquí para evitar recursión.
+            # El llamador (save() o admin action) se encarga de persistir self.procesado.
 
     def save(self, *args, **kwargs):
-        # Primero guardamos el estado del modelo base
+        # 1. Guardado base
+        es_nuevo = self.pk is None
         super().save(*args, **kwargs)
-        # Luego verificamos si hay que disparar el ascenso como un hook para que cubra la "carga manual"
+        
+        # 2. Disparar ascenso si está aprobado y no procesado
         if self.resultado == self.EstadoResultado.APROBADO and not self.procesado:
             self.aplicar_ascenso()
-            # El aplicar_ascenso ahora cambiará self.procesado a True, asique guardamos ese bit.
-            type(self).objects.filter(pk=self.pk).update(procesado=True)
+            # Persistimos el flag procesado sin re-disparar save() completo
+            InscripcionExamen.objects.filter(pk=self.pk).update(procesado=True)

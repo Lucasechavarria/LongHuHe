@@ -83,3 +83,33 @@ def evaluar_mesa(request, mesa_id):
         'candidatos': candidatos,
         'resultados_opciones': InscripcionExamen.EstadoResultado.choices
     })
+
+from apps.usuarios.views import alumno_requerido
+
+@alumno_requerido
+def inscribir_examen(request, mesa_id):
+    """ Permite al alumno inscribirse a una mesa abierta. """
+    mesa = get_object_or_404(MesaExamen, id=mesa_id, esta_abierta=True)
+    alumno = request.user_obj
+    
+    if InscripcionExamen.objects.filter(mesa=mesa, alumno=alumno).exists():
+        messages.warning(request, "Ya estás inscripto en esta mesa.")
+        return redirect('perfil')
+    
+    # El grado a aspirar es el siguiente al actual
+    grado_actual_orden = alumno.grado.orden if alumno.grado else 0
+    siguiente_grado = Grado.objects.filter(orden__gt=grado_actual_orden).order_by('orden').first()
+    
+    if not siguiente_grado:
+        messages.info(request, "Ya has alcanzado el grado máximo disponible.")
+        return redirect('perfil')
+        
+    InscripcionExamen.objects.create(
+        mesa=mesa,
+        alumno=alumno,
+        grado_a_aspirar=siguiente_grado,
+        estado_resultado=InscripcionExamen.EstadoResultado.PENDIENTE
+    )
+    
+    messages.success(request, f"Inscripción exitosa para el grado: {siguiente_grado.nombre}")
+    return redirect('perfil')

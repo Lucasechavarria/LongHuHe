@@ -28,6 +28,7 @@ class MesaExamenAdmin(ExamAdminMixin, admin.ModelAdmin):
 class InscripcionExamenAdmin(ExamAdminMixin, admin.ModelAdmin):
     list_display = ("alumno", "mesa", "grado_a_aspirar", "resultado", "procesado")
     list_filter = ("resultado", "procesado", "grado_a_aspirar")
+    list_select_related = ("alumno", "mesa", "grado_a_aspirar")
     search_fields = ("alumno__nombre", "alumno__apellido")
     autocomplete_fields = ("alumno", "mesa")
     actions = ["procesar_ascensos_masivo"]
@@ -35,7 +36,12 @@ class InscripcionExamenAdmin(ExamAdminMixin, admin.ModelAdmin):
     @admin.action(description="Ejecutar ascensos de grado (Aprobados)")
     def procesar_ascensos_masivo(self, request, queryset):
         count = 0
-        for insc in queryset.filter(resultado="aprobado", procesado=False):
-            insc.aplicar_ascenso()
-            count += 1
-        self.message_user(request, f"Se procesaron {count} ascensos de grado exitosamente.")
+        try:
+            with transaction.atomic():
+                for insc in queryset.filter(resultado="aprobado", procesado=False):
+                    insc.aplicar_ascenso()
+                    insc.save() # Persiste el flag 'procesado' que aplicar_ascenso activó
+                    count += 1
+            self.message_user(request, f"Se procesaron {count} ascensos de grado exitosamente.")
+        except Exception as e:
+            self.message_user(request, f"Error en el proceso masivo: {str(e)}", level='error')

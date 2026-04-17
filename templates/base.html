@@ -117,8 +117,33 @@
                 </a>
                 {% endif %}
                 
-                {% if request.session.es_profe %}
-                <a href="{% url 'escaner' %}" class="p-4 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all transform hover:scale-110">
+                {% if request.session.es_profe or user.is_staff %}
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Gestión">
+                        <!-- Briefcase Icon -->
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                    <!-- Dropdown de Gestión -->
+                    <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="absolute bottom-20 left-1/2 -translate-x-1/2 w-48 bg-black/95 backdrop-blur-3xl border border-white/10 rounded-3xl p-2 shadow-2xl z-50">
+                        <a href="{% url 'gestion_tesoreria' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-sm text-white/70 hover:text-orange-500 transition-colors">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span> Tesorería
+                        </a>
+                        <a href="{% url 'dashboard_institucional' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-sm text-white/70 hover:text-orange-500 transition-colors">
+                            <span class="w-2 h-2 rounded-full bg-shaolin-red"></span> Exámenes
+                        </a>
+                        <a href="{% url 'gestion_biblioteca' %}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-sm text-white/70 hover:text-orange-500 transition-colors">
+                            <span class="w-2 h-2 rounded-full bg-orange-500"></span> Biblioteca
+                        </a>
+                        <div class="h-px bg-white/5 my-1"></div>
+                        <a href="/admin/" target="_blank" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 text-sm text-white/40 hover:text-white transition-colors">
+                            ⚙️ Django Admin
+                        </a>
+                    </div>
+                </div>
+
+                <a href="{% url 'escaner' %}" class="p-4 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all transform hover:scale-110" title="Escáner QR">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1l-3 3h2v5H7l3 3-3 3h2v5h2v-5h2l-3-3 3-3h-2V8h2l-3-3zM4 4h3v3H4zM17 4h3v3h-3zM4 17h3v3H4z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v4m0 8v4M4 12h4m8 0h4"></path>
