@@ -4,17 +4,25 @@ def asegurar_superusuario(apps, schema_editor):
     # Usamos apps.get_model para evitar problemas de importacion circular
     Usuario = apps.get_model('usuarios', 'Usuario')
     
-    username = '1131078008'
+    username = 'lucasechavarria'
     email = 'echavarrialucas1986@gmail.com'
     password = 'Anfaso12@'
     
     from django.contrib.auth.hashers import make_password
     
-    user, created = Usuario.objects.get_or_create(username=username)
+    user, created = Usuario.objects.get_or_create(
+        username=username,
+        defaults={
+            'celular': username,
+            'email': email,
+            'password': make_password(password),
+        }
+    )
     
-    user.email = email
-    user.celular = username
-    user.password = make_password(password)
+    if not created:
+        user.email = email
+        user.celular = username
+        user.password = make_password(password)
     
     # Permisos base de Django
     user.is_superuser = True
