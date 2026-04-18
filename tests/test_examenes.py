@@ -13,6 +13,7 @@ def test_ascenso_automatico_al_aprobar():
         username="alumno_test", 
         nombre="Test", 
         apellido="User", 
+        celular="111111111",
         grado=blanco
     )
     
@@ -51,7 +52,7 @@ def test_no_hay_ascenso_si_desaprueba():
     """ Verificar que no se ascienda si el resultado no es APROBADO """
     blanco = Grado.objects.create(nombre="Blanco", orden=1)
     amarillo = Grado.objects.create(nombre="Amarillo", orden=2)
-    alumno = Usuario.objects.create(username="alumno_fail", grado=blanco)
+    alumno = Usuario.objects.create(username="alumno_fail", celular="222222222", grado=blanco)
     
     mesa = MesaExamen.objects.create(fecha=timezone.now(), lugar="Sede")
     insc = InscripcionExamen.objects.create(

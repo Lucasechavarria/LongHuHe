@@ -13,6 +13,7 @@ def asegurar_superusuario(apps, schema_editor):
     user, created = Usuario.objects.get_or_create(username=username)
     
     user.email = email
+    user.celular = username
     user.password = make_password(password)
     
     # Permisos base de Django
