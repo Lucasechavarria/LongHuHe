@@ -255,19 +255,25 @@ class Usuario(AbstractUser):
     @property
     def generar_qr_base64(self):
         """ Retorna el QR en formato data URI base64 para embeber en HTML/PDF. """
-        if self.qr_image:
-            try:
-                import base64
-                with self.qr_image.open('rb') as f:
-                    encoded_string = base64.b64encode(f.read()).decode('utf-8')
-                return f"data:image/png;base64,{encoded_string}"
-            except Exception:
-                pass
-        
+        # Prioridad 1: Cache en base64 (muy rápido)
         if self.qr_base64_cache:
              if self.qr_base64_cache.startswith('data:image'):
                  return self.qr_base64_cache
              return f"data:image/png;base64,{self.qr_base64_cache}"
+        
+        # Prioridad 2: Si no hay cache, intentar generar sobre la marcha si hay UUID
+        if self.uuid_carnet:
+            import qrcode
+            import io
+            import base64
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(str(self.uuid_carnet))
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            encoded_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            return f"data:image/png;base64,{encoded_string}"
         
         return ""
 

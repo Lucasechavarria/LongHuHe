@@ -23,6 +23,7 @@
             <!-- Grid de Productos -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {% for producto in categoria.productos.all %}
+                    {% if producto.activo %}
                         <div class="premium-card rounded-[2.5rem] overflow-hidden flex flex-col transition-all hover:scale-[1.02] border border-white/5 hover:border-orange-500/20 group">
                             <!-- Imagen -->
                             <div class="w-full aspect-square bg-white/5 relative flex items-center justify-center overflow-hidden">
@@ -80,6 +81,7 @@
                                 </div>
                             </div>
                         </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </section>

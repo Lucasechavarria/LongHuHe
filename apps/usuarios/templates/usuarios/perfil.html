@@ -179,20 +179,12 @@
                 
                 <div class="relative z-10 p-2 bg-gradient-to-br from-orange-500 to-amber-400 rounded-[3.5rem] shadow-2xl border-4 border-black/50">
                     <div class="bg-white p-8 rounded-[3.2rem]">
-                        {% if alumno.qr_image %}
-                            <img src="{{ alumno.qr_image.url }}" alt="QR" class="w-64 h-64">
-                        {% else %}
-                            <img src="{{ alumno.generar_qr_base64 }}" alt="QR" class="w-64 h-64">
-                        {% endif %}
+                        <img src="{{ alumno.generar_qr_base64 }}" alt="QR" class="w-64 h-64">
                     </div>
                 </div>
 
                 <div class="space-y-6 max-w-xs relative z-10 no-print text-center">
                     <p class="text-white/40 font-bold text-sm uppercase tracking-widest leading-loose mx-auto">Escanea este código en recepción para marcar tu ingreso.</p>
-                    <button onclick="window.print()" class="w-full bg-white text-black font-black py-4 rounded-2xl uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all transform active:scale-95 shadow-2xl flex items-center justify-center gap-3">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2-2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Imprimir Carnet
-                    </button>
                 </div>
             </div>
         </div>

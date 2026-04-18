@@ -548,19 +548,12 @@ def mercadopago_webhook(request):
 
 @alumno_requerido
 def tienda_inicio(request):
-    # Filtrar solo productos activos en el prefetch
-    productos_activos = Producto.objects.filter(activo=True)
-    
-    # Traer categorías que tengan al menos un producto activo
-    categorias = CategoriaProducto.objects.filter(
-        productos__activo=True
-    ).distinct().prefetch_related(
-        Prefetch('productos', queryset=productos_activos)
-    )
+    # Consulta simplificada para evitar errores de prefetch complejo en producción
+    categorias = CategoriaProducto.objects.all().prefetch_related('productos')
     
     return render(request, 'ventas/tienda.html', {
         'categorias': categorias,
-        'productos': productos_activos
+        'productos': Producto.objects.filter(activo=True)
     })
 
 @alumno_requerido
