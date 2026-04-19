@@ -39,6 +39,9 @@
                 <p class="text-white/40 font-bold text-lg leading-none">DNI: {{ alumno.dni|default:"-" }} · ID: {{ alumno.id }}0101</p>
                 <div class="flex flex-wrap gap-2 pt-1">
                     <div class="inline-flex items-center bg-orange-500 text-white px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider shadow-sm shadow-orange-500/30">
+                        <span class="mr-2 opacity-70">G</span> {{ alumno.grado_nombre }}
+                    </div>
+                    <div class="inline-flex items-center bg-white/5 border border-white/10 text-white/80 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-wider">
                         <span class="mr-2 opacity-70">L</span> {{ alumno.locacion.nombre }}
                     </div>
                     {% for act in alumno.actividades.all %}

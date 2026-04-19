@@ -37,7 +37,33 @@ class Grado(models.Model):
         db_table = 'core_grado' # Link to existing table
         
     def __str__(self):
+        return self.nombre_formateado
+
+    @property
+    def nombre_formateado(self):
+        """ 
+        Retorna el nombre del grado formateado (ej: Negro 1 -> I Tuan).
+        """
+        import re
+        # Buscar patrón "Negro [numero]"
+        match = re.search(r'Negro\s*(\d+)', self.nombre, re.IGNORECASE)
+        if match:
+            nivel = int(match.group(1))
+            # Usar la función estática de conversión (definida en Usuario o moverla aquí)
+            romano = self.int_to_roman(nivel)
+            return f"{romano} Thuan"
+        
+        # Si es solo "Negro"
+        if "Negro" in self.nombre.strip():
+            return "Cinto Negro"
+
         return self.nombre
+
+    @staticmethod
+    def int_to_roman(n):
+        """ Convierte enteros a números romanos (hasta 10). """
+        romanos = {1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X'}
+        return romanos.get(n, str(n))
 
 class Usuario(AbstractUser):
     # Opcionalmente ocultamos first_name y last_name heredados para evitar duplicidad
@@ -284,6 +310,16 @@ class Usuario(AbstractUser):
             return f"data:image/png;base64,{encoded_string}"
         
         return ""
+
+    @property
+    def grado_nombre(self):
+        """ 
+        Retorna el nombre del grado formateado del alumno. 
+        Si no tiene grado, retorna Blanco.
+        """
+        if not self.grado:
+            return "Blanco"
+        return self.grado.nombre_formateado
 
     @property
     def alerta_inasistencia(self):
