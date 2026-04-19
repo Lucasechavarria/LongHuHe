@@ -240,7 +240,8 @@ class Usuario(AbstractUser):
                     # Marcamos como optimizado ANTES para evitar bucles si decidimos usar save=True
                     self._img_optimized = True
                     self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
-                except Exception:
+                except Exception as e:
+                    print(f"ERROR en optimización/subida de imagen: {str(e)}")
                     self._img_optimized = True # Evitar re-intentos fallidos en el mismo ciclo
             else:
                 self._img_optimized = True
