@@ -13,7 +13,7 @@ from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, Produ
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Sum, Count, Prefetch
+from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
 from .services.mercadopago_service import MercadoPagoService
 import csv
