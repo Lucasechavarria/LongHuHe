@@ -216,17 +216,11 @@ if USE_S3:
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_ADDRESSING_STYLE = "path"
     AWS_S3_CUSTOM_DOMAIN = None
+    AWS_S3_MIMETYPE_GUESSED = True
     
     # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: scfctiijrvsmgsvwswqu)
-    SUPABASE_PID = os.getenv('SUPABASE_PROJECT_ID', '')
-    if SUPABASE_PID:
-        # Usamos el hostname estándar de la API de Supabase para objetos públicos
-        AWS_S3_CUSTOM_DOMAIN = f"{SUPABASE_PID}.supabase.co/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}"
-        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-    else:
-        # Fallback para evitar URLs rotas si falta el PID en el .env
-        AWS_S3_CUSTOM_DOMAIN = None
-        MEDIA_URL = f"https://s3.{AWS_S3_REGION_NAME}.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}/"
+    # Desactivamos temporalmente el Custom Domain para depuración
+    AWS_S3_CUSTOM_DOMAIN = None
 else:
     MEDIA_URL = "/media/"
 
