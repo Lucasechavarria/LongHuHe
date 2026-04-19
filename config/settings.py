@@ -215,7 +215,7 @@ if USE_S3:
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
-    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+    AWS_S3_REGION_NAME = 'sa-east-1' # Fijamos la región para evitar errores de firma
     
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = None
@@ -228,8 +228,10 @@ if USE_S3:
     
     # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: pzikczglcocxhosdpinw)
     SUPABASE_PID = os.getenv('SUPABASE_PROJECT_ID', 'pzikczglcocxhosdpinw')
-    AWS_S3_CUSTOM_DOMAIN = f"{SUPABASE_PID}.supabase.co/storage/v1/object/public/media"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+    # IMPORTANTE: No usamos CUSTOM_DOMAIN en la subida S3 para evitar errores de firma.
+    # El MEDIA_URL lo construimos manualmente para que apunte al API Público de Supabase.
+    AWS_S3_CUSTOM_DOMAIN = None
+    MEDIA_URL = f"https://{SUPABASE_PID}.supabase.co/storage/v1/object/public/media/"
 else:
     MEDIA_URL = "/media/"
 
