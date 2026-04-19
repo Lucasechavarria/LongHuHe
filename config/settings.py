@@ -218,9 +218,10 @@ if USE_S3:
     AWS_S3_CUSTOM_DOMAIN = None
     AWS_S3_MIMETYPE_GUESSED = True
     
-    # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: scfctiijrvsmgsvwswqu)
-    # Desactivamos temporalmente el Custom Domain para depuración
-    AWS_S3_CUSTOM_DOMAIN = None
+    # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: pzikczglcocxhosdpinw)
+    SUPABASE_PID = os.getenv('SUPABASE_PROJECT_ID', 'pzikczglcocxhosdpinw')
+    AWS_S3_CUSTOM_DOMAIN = f"{SUPABASE_PID}.supabase.co/storage/v1/object/public/media"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 else:
     MEDIA_URL = "/media/"
 
