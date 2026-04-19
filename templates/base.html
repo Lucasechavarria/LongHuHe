@@ -48,6 +48,51 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
+
+        /* EFECTO LÍQUIDO GLOBAL */
+        .btn-liquid {
+            position: relative;
+            overflow: hidden !important;
+            z-index: 1;
+            isolation: isolate;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-liquid::before {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 42% 38% 44% 40% / 45% 42% 43% 40%;
+            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: -1;
+            pointer-events: none;
+            transform: translateZ(0); /* Hardware acceleration */
+        }
+
+        .btn-liquid:hover::before {
+            top: -50%;
+            transform: rotate(180deg) translateZ(0);
+        }
+
+        /* Variante Orange */
+        .btn-liquid-orange::before {
+            background: linear-gradient(135deg, #FF8C00, #E67E22);
+            opacity: 0;
+            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .btn-liquid-orange:hover::before {
+            opacity: 1;
+        }
+
+        /* Variante Red (Shaolin) */
+        .btn-liquid-red::before {
+            background: linear-gradient(135deg, #C53030, #9B2C2C);
+        }
     </style>
 </head>
 <body x-data="globalApp()" 
@@ -106,33 +151,33 @@
         <nav class="fixed bottom-8 left-4 right-4 z-40 max-w-lg mx-auto">
             <div class="bg-black/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-3 flex justify-around items-center shadow-2xl">
                 {% if alumno_actual.grado or request.session.es_profe or user.is_staff %}
-                <a href="{% if request.session.alumno_id or request.session.es_profe %}{% url 'perfil' %}{% else %}/{% endif %}" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Inicio">
+                <a href="{% if request.session.alumno_id or request.session.es_profe %}{% url 'perfil' %}{% else %}/{% endif %}" class="btn-liquid p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Inicio">
                     <!-- Home Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
                 </a>
-                <a href="{% url 'lista_clases' %}" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Clases">
+                <a href="{% url 'lista_clases' %}" class="btn-liquid p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Clases">
                     <!-- Calendar Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path>
                     </svg>
                 </a>
-                <a href="{% url 'biblioteca_inicio' %}" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Biblioteca">
+                <a href="{% url 'biblioteca_inicio' %}" class="btn-liquid p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Biblioteca">
                     <!-- Book Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
                 </a>
-                <a href="{% url 'tienda_inicio' %}" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Tienda">
+                <a href="{% url 'tienda_inicio' %}" class="btn-liquid p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Tienda">
                     <!-- Shopping Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                     </svg>
                 </a>
-                <a href="{% if request.session.alumno_id %}{% url 'editar_perfil' %}{% else %}{% url 'acceso_opciones' %}{% endif %}" class="p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Mi Perfil">
+                <a href="{% if request.session.alumno_id %}{% url 'editar_perfil' %}{% else %}{% url 'acceso_opciones' %}{% endif %}" class="btn-liquid p-4 rounded-2xl text-white/40 hover:bg-white/5 hover:text-orange-500 transition-all group" title="Mi Perfil">
                     <!-- User Icon -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </a>

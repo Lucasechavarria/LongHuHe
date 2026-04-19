@@ -45,9 +45,9 @@
                         {% if loc.mapa_url %}
                             <div class="mt-6 pt-6 border-t border-white/10 group-hover:border-black/20">
                                 <a href="{{ loc.mapa_url }}" target="_blank" 
-                                   class="inline-flex items-center gap-2 bg-white/5 text-white/40 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest border border-white/5 hover:bg-black hover:text-orange-500 hover:border-orange-500 transition-all group-hover:bg-black/20 group-hover:text-black group-hover:border-black/30">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L16 4m0 13V4m0 0L9 7"></path></svg>
-                                    Ver en Google Maps
+                                   class="btn-liquid btn-liquid-orange inline-flex items-center gap-2 bg-white/5 text-white/40 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest border border-white/5 hover:bg-black hover:text-orange-500 hover:border-orange-500 transition-all group-hover:bg-black/20 group-hover:text-black group-hover:border-black/30">
+                                    <svg class="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L16 4m0 13V4m0 0L9 7"></path></svg>
+                                    <span class="relative z-10">Ver en Google Maps</span>
                                 </a>
                             </div>
                         {% endif %}
@@ -63,8 +63,8 @@
         <!-- Footer -->
         <div class="p-8 border-t border-white/5 text-center">
             <button @click="showSedes = false" 
-                    class="w-full bg-white text-black rounded-[2rem] py-4 text-xl font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all active:scale-95 shadow-xl">
-                Cerrar
+                    class="btn-liquid btn-liquid-orange w-full bg-white text-black rounded-[2rem] py-4 text-xl font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all active:scale-95 shadow-xl">
+                <span class="relative z-10">Cerrar</span>
             </button>
         </div>
     </div>

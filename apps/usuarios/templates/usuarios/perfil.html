@@ -30,10 +30,10 @@
 
     <!-- TABS DE NAVEGACIÓN -->
     <div class="flex bg-white/5 p-2 rounded-[2.5rem] no-print">
-        <button @click="section = 'perfil'" :class="section === 'perfil' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Datos</button>
-        <button @click="section = 'institucional'" :class="section === 'institucional' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Cuenta</button>
-        <button @click="section = 'camino'" :class="section === 'camino' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Camino</button>
-        <button @click="section = 'asistencia'" :class="section === 'asistencia' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Carnet</button>
+        <button @click="section = 'perfil'" :class="section === 'perfil' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Datos</button>
+        <button @click="section = 'institucional'" :class="section === 'institucional' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Cuenta</button>
+        <button @click="section = 'camino'" :class="section === 'camino' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Camino</button>
+        <button @click="section = 'asistencia'" :class="section === 'asistencia' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Carnet</button>
     </div>
 
     <div class="relative min-h-[500px]">
@@ -45,8 +45,8 @@
                 
                 <div class="flex items-center justify-between relative z-10 mb-10">
                     <h3 class="text-3xl font-black uppercase text-white tracking-tight">Mi Información</h3>
-                    <a href="{% url 'editar_perfil' %}" class="bg-white/5 hover:bg-orange-600 hover:text-white text-orange-500 p-4 rounded-2xl transition-all border border-white/10 group/btn">
-                        <svg class="w-6 h-6 transform group-hover/btn:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <a href="{% url 'editar_perfil' %}" class="btn-liquid btn-liquid-orange bg-white/5 hover:bg-orange-600 hover:text-white text-orange-500 p-4 rounded-2xl transition-all border border-white/10 group/btn">
+                        <svg class="w-6 h-6 transform group-hover/btn:rotate-12 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </a>
                 </div>
                 
@@ -66,8 +66,8 @@
                 </div>
                 
                 <div class="pt-6 relative z-10">
-                    <a href="{% url 'editar_perfil' %}" class="w-full block bg-gradient-to-r from-orange-600 to-amber-600 text-white text-center py-6 rounded-3xl font-black uppercase tracking-widest transition-all hover:shadow-[0_15px_40px_rgba(234,88,12,0.4)] active:scale-95">
-                        ACTUALIZAR FICHA 📝
+                    <a href="{% url 'editar_perfil' %}" class="btn-liquid w-full block bg-gradient-to-r from-orange-600 to-amber-600 text-white text-center py-6 rounded-3xl font-black uppercase tracking-widest transition-all hover:shadow-[0_15px_40px_rgba(234,88,12,0.4)] active:scale-95">
+                        <span class="relative z-10">ACTUALIZAR FICHA 📝</span>
                     </a>
                 </div>
             </div>
@@ -87,8 +87,8 @@
                             <span class="text-[10px] font-bold uppercase py-1 px-3 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
                                 Abierta
                             </span>
-                            <a href="{% url 'inscribir_examen' mesa.id %}" class="bg-orange-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all shadow-lg active:scale-95">
-                                Inscribirme
+                            <a href="{% url 'inscribir_examen' mesa.id %}" class="btn-liquid bg-orange-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all shadow-lg active:scale-95">
+                                <span class="relative z-10">Inscribirme</span>
                             </a>
                         </div>
                     </div>
@@ -132,12 +132,12 @@
                         </div>
                         <svg class="w-8 h-8 text-white/10 group-hover/card:text-orange-500 group-hover/card:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                     </a>
-                    <a href="{% url 'pago_tipo' %}" class="premium-card bg-orange-600 hover:bg-orange-500 p-8 rounded-[2rem] shadow-2xl flex items-center justify-between group/card transition-all">
-                        <div class="space-y-1">
+                    <a href="{% url 'pago_tipo' %}" class="btn-liquid premium-card bg-orange-600 hover:bg-orange-500 p-8 rounded-[2rem] shadow-2xl flex items-center justify-between group/card transition-all">
+                        <div class="space-y-1 relative z-10">
                             <p class="text-xl font-black text-white uppercase">Pagar Cuota</p>
                             <p class="text-xs text-white/80 font-bold">Renovar membresía ahora</p>
                         </div>
-                        <svg class="w-8 h-8 text-white/60 group-hover/card:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-8 h-8 text-white/60 group-hover/card:translate-x-2 transition-all relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </a>
                 </div>
             </div>
@@ -232,13 +232,13 @@
     <!-- BOTONES DE SOPORTE -->
     <div class="pt-20 flex flex-col gap-6 text-center pb-32 no-print">
         <a href="https://wa.me/5491131078008" target="_blank" 
-           class="bg-green-600/20 hover:bg-green-600 text-green-500 hover:text-white p-8 rounded-[2.5rem] border-2 border-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-4 group">
-            <span class="text-2xl font-black uppercase tracking-tighter">SOPORTE TÉCNICO</span>
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
+           class="btn-liquid bg-green-600/20 hover:bg-green-600 text-green-500 hover:text-white p-8 rounded-[2.5rem] border-2 border-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-4 group">
+            <span class="text-2xl font-black uppercase tracking-tighter relative z-10">SOPORTE TÉCNICO</span>
+            <svg class="w-8 h-8 relative z-10" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
         </a>
         <a href="{% url 'logout' %}" 
-           class="bg-shaolin-red/10 text-shaolin-red p-6 rounded-[2rem] border-2 border-shaolin-red/20 font-black uppercase text-xs tracking-[0.4em] transition-all hover:bg-shaolin-red hover:text-white active:scale-95">
-            CERRAR SESIÓN 👋
+           class="btn-liquid btn-liquid-red bg-shaolin-red/10 text-shaolin-red p-6 rounded-[2rem] border-2 border-shaolin-red/20 font-black uppercase text-xs tracking-[0.4em] transition-all hover:bg-shaolin-red hover:text-white active:scale-95">
+            <span class="relative z-10">CERRAR SESIÓN 👋</span>
         </a>
     </div>
 </div>
