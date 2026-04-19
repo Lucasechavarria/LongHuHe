@@ -205,11 +205,14 @@ print("------------------------------")
 MEDIA_ROOT = BASE_DIR / "media"
 
 if USE_S3:
-    # Solo cargar storages si las variables están presentes
-    if 'storages' not in INSTALLED_APPS:
-        INSTALLED_APPS.append('storages')
-    
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
     
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -233,8 +236,15 @@ if USE_S3:
     AWS_S3_CUSTOM_DOMAIN = None
     MEDIA_URL = f"https://{SUPABASE_PID}.supabase.co/storage/v1/object/public/media/"
 else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
     MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
