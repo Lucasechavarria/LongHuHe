@@ -240,7 +240,7 @@ class Usuario(AbstractUser):
                     # Marcamos como optimizado ANTES para evitar bucles si decidimos usar save=True
                     self._img_optimized = True
                     from django.core.files.storage import default_storage
-                    print(f"--- INFO GUARDADO ---")
+                    print("--- INFO GUARDADO ---")
                     print(f"Storage activo: {type(default_storage)}")
                     print(f"Intentando guardar imagen optimizada: {new_name}")
                     self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
