@@ -187,12 +187,20 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # --- CONFIGURACIÓN DE ALMACENAMIENTO (SUPABASE STORAGE) ---
-USE_S3 = all([
-    os.getenv('AWS_ACCESS_KEY_ID'),
-    os.getenv('AWS_SECRET_ACCESS_KEY'),
-    os.getenv('AWS_STORAGE_BUCKET_NAME'),
-    os.getenv('AWS_S3_ENDPOINT_URL')
-])
+USE_S3_VARS = {
+    'AWS_ACCESS_KEY_ID': os.getenv('AWS_ACCESS_KEY_ID'),
+    'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
+    'AWS_STORAGE_BUCKET_NAME': os.getenv('AWS_STORAGE_BUCKET_NAME'),
+    'AWS_S3_ENDPOINT_URL': os.getenv('AWS_S3_ENDPOINT_URL')
+}
+USE_S3 = all(USE_S3_VARS.values())
+
+print("--- DIAGNÓSTICO S3 STARTUP ---")
+print(f"Estado USE_S3: {USE_S3}")
+if not USE_S3:
+    missing = [k for k, v in USE_S3_VARS.items() if not v]
+    print(f"Variables faltantes o vacías: {missing}")
+print("------------------------------")
 
 MEDIA_ROOT = BASE_DIR / "media"
 

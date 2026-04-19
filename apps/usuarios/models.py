@@ -239,12 +239,15 @@ class Usuario(AbstractUser):
                     
                     # Marcamos como optimizado ANTES para evitar bucles si decidimos usar save=True
                     self._img_optimized = True
+                    from django.core.files.storage import default_storage
+                    print(f"--- INFO GUARDADO ---")
+                    print(f"Storage activo: {type(default_storage)}")
                     print(f"Intentando guardar imagen optimizada: {new_name}")
                     self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
                     try:
-                        print(f"Imagen guardada exitosamente. URL técnica: {self.foto_perfil.url}")
+                        print(f"Imagen guardada. URL técnica: {self.foto_perfil.url}")
                     except Exception:
-                        print("Imagen guardada, pero no se pudo generar la URL técnica.")
+                        print("Imagen guardada, pero no se pudo generar la URL.")
                 except Exception as e:
                     import traceback
                     print(f"ERROR CRITICO en optimización/subida de imagen: {str(e)}")
