@@ -213,6 +213,8 @@ if USE_S3:
     AWS_DEFAULT_ACL = None
     AWS_S3_VERIFY = True
     AWS_QUERYSTRING_AUTH = False # Importante para buckets públicos
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_ADDRESSING_STYLE = "path"
     AWS_S3_CUSTOM_DOMAIN = None
     
     # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: scfctiijrvsmgsvwswqu)

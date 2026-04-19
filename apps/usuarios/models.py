@@ -219,6 +219,8 @@ class Usuario(AbstractUser):
             img.save(buffer, format="PNG")
             
             file_name = f"qr_{self.pk or uuid.uuid4().hex[:8]}.png"
+            # NO llamamos a .save() del campo aquí para evitar interferencias con el super().save()
+            # Simplemente asignamos el contenido
             self.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=False)
 
         # 5. Optimización de Foto de Perfil (WebP) (Task - Visuals)
@@ -234,10 +236,14 @@ class Usuario(AbstractUser):
                     thumb_io = io.BytesIO()
                     img.save(thumb_io, 'WEBP', quality=85)
                     new_name = self.foto_perfil.name.split('.')[0] + '.webp'
+                    
+                    # Marcamos como optimizado ANTES para evitar bucles si decidimos usar save=True
+                    self._img_optimized = True
                     self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
                 except Exception:
-                    pass
-            self._img_optimized = True
+                    self._img_optimized = True # Evitar re-intentos fallidos en el mismo ciclo
+            else:
+                self._img_optimized = True
         
         # 6. Sincronización de Nivel de Acceso con Grado (Audit de Coherencia)
         if self.grado and self.grado.nivel_desbloqueado:
