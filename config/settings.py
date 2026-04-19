@@ -208,11 +208,38 @@ if USE_S3:
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                "access_key": os.getenv('AWS_ACCESS_KEY_ID'),
+                "secret_key": os.getenv('AWS_SECRET_ACCESS_KEY'),
+                "bucket_name": os.getenv('AWS_STORAGE_BUCKET_NAME'),
+                "endpoint_url": os.getenv('AWS_S3_ENDPOINT_URL'),
+                "region_name": "sa-east-1",
+                "signature_version": "s3v4",
+                "addressing_style": "path",
+                "file_overwrite": False,
+                "default_acl": None,
+                "querystring_auth": False,
+            }
         },
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
+    
+    # Test de conexión S3 en el arranque
+    try:
+        from storages.backends.s3boto3 import S3Boto3Storage
+        test_storage = S3Boto3Storage(
+            access_key=os.getenv('AWS_ACCESS_KEY_ID'),
+            secret_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            bucket_name=os.getenv('AWS_STORAGE_BUCKET_NAME'),
+            endpoint_url=os.getenv('AWS_S3_ENDPOINT_URL'),
+            region_name="sa-east-1"
+        )
+        test_storage.exists('test_connection.txt')
+        print("--- S3 CONNECTION TEST: SUCCESS ---")
+    except Exception as e:
+        print(f"--- S3 CONNECTION TEST: FAILED - {str(e)} ---")
     
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -229,11 +256,8 @@ if USE_S3:
     AWS_S3_CUSTOM_DOMAIN = None
     AWS_S3_MIMETYPE_GUESSED = True
     
-    # Suprema importancia: SUPABASE_PROJECT_ID debe ser el ID de tu proyecto (ej: pzikczglcocxhosdpinw)
     SUPABASE_PID = os.getenv('SUPABASE_PROJECT_ID', 'pzikczglcocxhosdpinw')
-    # IMPORTANTE: No usamos CUSTOM_DOMAIN en la subida S3 para evitar errores de firma.
-    # El MEDIA_URL lo construimos manualmente para que apunte al API Público de Supabase.
-    AWS_S3_CUSTOM_DOMAIN = None
+    # MEDIA_URL lo construimos manualmente para que apunte al API Público de Supabase.
     MEDIA_URL = f"https://{SUPABASE_PID}.supabase.co/storage/v1/object/public/media/"
 else:
     STORAGES = {
