@@ -243,8 +243,8 @@ class Usuario(AbstractUser):
                     self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
                     try:
                         print(f"Imagen guardada exitosamente. URL técnica: {self.foto_perfil.url}")
-                    except:
-                        print(f"Imagen guardada, pero no se pudo generar la URL técnica.")
+                    except Exception:
+                        print("Imagen guardada, pero no se pudo generar la URL técnica.")
                 except Exception as e:
                     import traceback
                     print(f"ERROR CRITICO en optimización/subida de imagen: {str(e)}")
