@@ -21,8 +21,18 @@ from django.http import HttpResponse
 
 @alumno_requerido
 def gracias(request):
-    """ Vista de éxito genérica para pagos y pedidos. """
-    return render(request, 'ventas/gracias.html', {'alumno': request.user_obj})
+    """ Vista de éxito genérica para pagos y pedidos con feedback. """
+    pedido_id = request.GET.get('pedido_id')
+    pago_id = request.GET.get('pago_id')
+    
+    pedido = None
+    if pedido_id:
+        pedido = Pedido.objects.filter(pk=pedido_id, alumno=request.user_obj).first()
+    
+    return render(request, 'ventas/gracias.html', {
+        'alumno': request.user_obj,
+        'pedido': pedido
+    })
 
 @alumno_requerido
 def carrito_sync(request):
@@ -125,19 +135,26 @@ def checkout(request):
     pedido.backorder = tiene_backorder
     pedido.save() # Calcula comisiones (ahora sin recursión)
     
-    # Limpiar carrito
+    # Limpiar carrito de la sesión (el localStorage se limpia en la vista 'gracias')
     request.session['carrito'] = []
     request.session['carrito_count'] = 0
     request.session.modified = True
     
     if metodo == 'mercadopago':
-        # En la vida real aquí llamaríamos a MercadoPagoService.crear_preferencia(pedido)
-        return redirect('gracias') # Simplificado por ahora
-        
-    return redirect('gracias')
-        
-    messages.success(request, f"¡Pedido #{pedido.id} generado! Por favor, informa el pago.")
-    return redirect('gracias')
+        try:
+            mp = MercadoPagoService()
+            init_point = mp.crear_preferencia_tienda(
+                titulo=f"Pedido #{pedido.id} - Academia LHH",
+                precio=float(pedido.total),
+                url_retorno=request.build_absolute_uri(reverse('gracias') + f"?pedido_id={pedido.id}"),
+                externo_id=pedido.id
+            )
+            return redirect(init_point)
+        except Exception as e:
+            print(f"Error MP Tienda: {e}")
+            messages.warning(request, "Error al conectar con Mercado Pago. Tu pedido quedó registrado, coordina el pago con tu profesor.")
+    
+    return redirect(reverse('gracias') + f"?pedido_id={pedido.id}")
 
 def validar_signature_mp(request):
     """

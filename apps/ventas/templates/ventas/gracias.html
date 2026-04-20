@@ -15,11 +15,22 @@
     </div>
     
     <!-- Mensaje -->
-    <div class="space-y-4">
+    <div class="space-y-6">
         <h1 class="text-6xl font-black tracking-tighter uppercase text-white leading-tight">
             ¡Muchas <span class="text-orange-500">Gracias</span>!
         </h1>
-        <p class="text-white/40 text-xl font-bold italic max-w-lg mx-auto leading-relaxed">
+        
+        {% if pedido %}
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-8 max-w-sm mx-auto animate-fade-in group">
+            <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] mb-2">Resumen del Pedido</p>
+            <p class="text-3xl font-black text-white italic">#{{ pedido.id }}</p>
+            <p class="text-white/40 text-xs font-bold mt-2 uppercase tracking-widest">Estado: {{ pedido.get_estado_display }}</p>
+            <div class="h-px bg-white/10 my-4"></div>
+            <p class="text-xl font-black text-white">$ {{ pedido.total|floatformat:0 }}</p>
+        </div>
+        {% endif %}
+
+        <p class="text-white/40 text-xl font-bold italic max-w-lg mx-auto leading-relaxed pt-4">
             Tu pedido o pago ha sido registrado correctamente. Podrás ver el seguimiento en tu historial.
         </p>
     </div>
@@ -34,4 +45,13 @@
         </a>
     </div>
 </div>
+
+<script>
+    // Limpiar el carrito local tras una compra exitosa
+    document.addEventListener('DOMContentLoaded', () => {
+        localStorage.removeItem('longhuhe_cart');
+        // Notificar a la barra de navegación
+        window.dispatchEvent(new CustomEvent('cart-update', { detail: { count: 0 } }));
+    });
+</script>
 {% endblock %}
