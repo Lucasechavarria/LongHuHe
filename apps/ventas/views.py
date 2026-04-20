@@ -23,7 +23,6 @@ from django.http import HttpResponse
 def gracias(request):
     """ Vista de éxito genérica para pagos y pedidos con feedback. """
     pedido_id = request.GET.get('pedido_id')
-    pago_id = request.GET.get('pago_id')
     
     pedido = None
     if pedido_id:
