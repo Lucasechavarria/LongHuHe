@@ -29,9 +29,11 @@ def dashboard_institucional(request):
     asistencias_recientes = RegistroAsistencia.objects.filter(fecha_hora__date__gte=fecha_limite).count()
 
     # Datos para Graficos (Chart.js Task 7.5)
-    grados_data = list(Grado.objects.annotate(
-        alumnos_count=Count('alumnos')
-    ).values('nombre', 'alumnos_count').order_by('orden'))
+    grados_qs = Grado.objects.annotate(alumnos_count=Count('alumnos')).order_by('orden')
+    grados_data = [
+        {'nombre': g.nombre_formateado, 'alumnos_count': g.alumnos_count} 
+        for g in grados_qs
+    ]
     
     distribucion_grados_json = json.dumps(grados_data, cls=DjangoJSONEncoder)
 
@@ -112,8 +114,61 @@ def inscribir_examen(request, mesa_id):
         mesa=mesa,
         alumno=alumno,
         grado_a_aspirar=siguiente_grado,
-        estado_resultado=InscripcionExamen.EstadoResultado.PENDIENTE
+        grado_actual=alumno.grado,
+        costo_inscripcion=siguiente_grado.costo_examen
     )
     
-    messages.success(request, f"Inscripción exitosa para el grado: {siguiente_grado.nombre}")
-    return redirect('perfil')
+    messages.success(request, f"Inscripción exitosa para el grado: {siguiente_grado.nombre}. Ahora procede al pago.")
+    return redirect('pago_examen', mesa_id=mesa.id)
+
+@alumno_requerido
+def pago_examen(request, mesa_id):
+    """ Task 12.3: Selección de método de pago para el examen. """
+    mesa = get_object_or_404(MesaExamen, id=mesa_id)
+    inscripcion = get_object_or_404(InscripcionExamen, mesa=mesa, alumno=request.user_obj)
+    
+    if request.method == 'POST':
+        metodo = request.POST.get('metodo')
+        if not metodo:
+            messages.error(request, "Debes seleccionar un método de pago.")
+        else:
+            # Creamos el objeto Pago similar a la tienda
+            pago = Pago.objects.create(
+                alumno=request.user_obj,
+                monto=inscripcion.costo_inscripcion,
+                metodo=metodo,
+                tipo=Pago.TipoPago.EXAMEN,
+                estado=Pago.EstadoPago.PENDIENTE
+            )
+            inscripcion.pago = pago
+            inscripcion.save()
+            
+            if metodo == Pago.MetodoPago.MERCADOPAGO:
+                return redirect('pago_mercadopago_checkout', pago_id=pago.id)
+            elif metodo == Pago.MetodoPago.TRANSFERENCIA:
+                return redirect('pago_comprobante_examen', pago_id=pago.id)
+            else: # Efectivo
+                messages.success(request, "Pedido de examen registrado. Deberás abonar en efectivo al profesor para confirmar.")
+                return redirect('perfil')
+
+    return render(request, 'examenes/pago_examen.html', {
+        'mesa': mesa,
+        'inscripcion': inscripcion
+    })
+
+@alumno_requerido
+def pago_comprobante_examen(request, pago_id):
+    """ Sube el comprobante de transferencia para el examen. """
+    pago = get_object_or_404(Pago, id=pago_id, alumno=request.user_obj)
+    from apps.ventas.forms import PagoComprobanteForm
+    
+    if request.method == 'POST':
+        form = PagoComprobanteForm(request.POST, request.FILES, instance=pago)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Comprobante enviado. El administrador verificará tu pago.")
+            return redirect('perfil')
+    else:
+        form = PagoComprobanteForm(instance=pago)
+        
+    return render(request, 'examenes/pago_comprobante.html', {'form': form, 'pago': pago})

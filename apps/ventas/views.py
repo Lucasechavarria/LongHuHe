@@ -17,7 +17,12 @@ from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
 from .services.mercadopago_service import MercadoPagoService
 import csv
-from django.http import HttpResponse
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import cm
+from django.http import HttpResponse, JsonResponse
 
 @alumno_requerido
 def gracias(request):
@@ -226,13 +231,13 @@ def gestion_tesoreria(request):
     # 1. KPIs Principales
     pagos_aprobados_mes = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO, 
-        fecha_registro__date__month=hoy.month,
-        fecha_registro__date__year=hoy.year
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
     )
     pedidos_pagados_mes = Pedido.objects.filter(
         estado__in=[Pedido.Estado.PAGADO, Pedido.Estado.ENTREGADO],
-        fecha_registro__date__month=hoy.month,
-        fecha_registro__date__year=hoy.year
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
     )
     
     ingresos_pagos = pagos_aprobados_mes.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
@@ -245,7 +250,7 @@ def gestion_tesoreria(request):
     # 2. Tendencia Diaria (Últimos 30 días)
     tendencia_data = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__date__gte=hace_30_dias
+        fecha_registro__gte=timezone.now() - timedelta(days=30)
     ).annotate(date=TruncDate('fecha_registro')).values('date').annotate(
         total=Sum('monto')
     ).order_by('date')
@@ -272,7 +277,8 @@ def gestion_tesoreria(request):
             'values': chart_values,
             'metodos_labels': metodos_labels,
             'metodos_values': metodos_values,
-        }
+        },
+        'cierres_recientes': CierreCaja.objects.all()[:12]
     })
 
 @profe_requerido
@@ -307,7 +313,152 @@ def exportar_tesoreria_csv(request):
     return response
 
 @profe_requerido
-@transaction.atomic
+def exportar_tesoreria_pdf(request):
+    """ Genera un reporte PDF profesional del cierre de caja (Sprint 12). """
+    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
+        return HttpResponse("No autorizado", status=403)
+
+    hoy = timezone.now()
+    pagos = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
+    ).select_related('alumno')
+
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    # Marca de Agua (Watermark institutional)
+    try:
+        import os
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'Logo Long Hu He Transparent.png')
+        if os.path.exists(logo_path):
+            p.saveState()
+            p.setFillAlpha(0.08)
+            img_w, img_h = 15*cm, 15*cm
+            p.drawImage(logo_path, (width-img_w)/2, (height-img_h)/2, width=img_w, height=img_h, mask='auto')
+            p.restoreState()
+    except Exception as e:
+        print(f"Error marcas de agua: {e}")
+
+    # Cabecera
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(2*cm, height - 2*cm, "Cierre de Caja Mensual - Long Hu He")
+    p.setFont("Helvetica", 10)
+    p.drawString(2*cm, height - 2.5*cm, f"Período: {hoy.strftime('%B %Y')} | Generado el: {hoy.strftime('%d/%m/%Y')}")
+    
+    # Tabla simple
+    y = height - 4*cm
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(2*cm, y, "Fecha")
+    p.drawString(5*cm, y, "Alumno")
+    p.drawString(11*cm, y, "Método")
+    p.drawString(15*cm, y, "Monto")
+    
+    y -= 0.5*cm
+    p.line(2*cm, y, width - 2*cm, y)
+    y -= 0.5*cm
+    
+    total = Decimal('0.00')
+    p.setFont("Helvetica", 9)
+    for pago in pagos:
+        if y < 3*cm: # Nueva página
+            p.showPage()
+            y = height - 2*cm
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(2*cm, y, "Fecha")
+            p.drawString(5*cm, y, "Alumno")
+            p.drawString(11*cm, y, "Método")
+            p.drawString(15*cm, y, "Monto")
+            y -= 0.5*cm
+            p.line(2*cm, y, width - 2*cm, y)
+            y -= 0.5*cm
+            p.setFont("Helvetica", 9)
+
+        p.drawString(2*cm, y, pago.fecha_registro.strftime("%d/%m/%y"))
+        p.drawString(5*cm, y, str(pago.alumno.nombre_completo)[:30])
+        p.drawString(11*cm, y, pago.get_metodo_display())
+        p.drawString(15*cm, y, f"$ {pago.monto}")
+        total += pago.monto
+        y -= 0.5*cm
+
+    y -= 1*cm
+    p.line(2*cm, y+0.5*cm, width-2*cm, y+0.5*cm)
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(11*cm, y, "TOTAL INGRESOS:")
+    p.drawString(15*cm, y, f"$ {total}")
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return buffer
+
+@profe_requerido
+def exportar_tesoreria_pdf(request):
+    """ Descarga el PDF del mes actual sin cerrar la caja. """
+    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
+        return HttpResponse("No autorizado", status=403)
+    
+    hoy = timezone.now()
+    buffer = generar_pdf_tesoreria(hoy.month, hoy.year)
+    
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="cierre_caja_{hoy.strftime("%Y_%m")}.pdf"'
+    return response
+
+@profe_requerido
+def cerrar_caja_mensual(request):
+    """ Task 12.2: Genera el PDF, lo guarda en el historial y 'cierra' el mes. """
+    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
+        return HttpResponse("No autorizado", status=403)
+    
+    hoy = timezone.now()
+    # Evitar duplicados para el mismo mes/año (simplificado)
+    if CierreCaja.objects.filter(mes=hoy.month, anio=hoy.year).exists():
+        messages.warning(request, f"Ya existe un cierre guardado para {hoy.strftime('%B %Y')}.")
+        return redirect('gestion_tesoreria')
+    
+    # 1. Obtener total
+    pagos = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
+    )
+    total = pagos.aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
+    
+    # 2. Generar PDF
+    buffer = generar_pdf_tesoreria(hoy.month, hoy.year)
+    
+    # 3. Guardar en Modelo
+    cierre = CierreCaja.objects.create(
+        mes=hoy.month,
+        anio=hoy.year,
+        total_recaudado=total,
+        usuario_genero=request.user_obj
+    )
+    
+    from django.core.files.base import ContentFile
+    filename = f"cierre_{hoy.year}_{hoy.month}.pdf"
+    cierre.archivo_pdf.save(filename, ContentFile(buffer.getvalue()))
+    cierre.save()
+    
+    messages.success(request, f"Cierre de caja de {hoy.strftime('%B %Y')} guardado con éxito en el historial.")
+    return redirect('gestion_tesoreria')
+
+def generar_pdf_tesoreria(mes, anio):
+    """ Lógica interna para construir el PDF (reutilizable). """
+    pagos = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__month=mes,
+        fecha_registro__year=anio
+    ).select_related('alumno')
+    
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    hoy = timezone.now()
 def gestionar_pago_accion(request, pago_id):
     """ Procesa la aprobacion o rechazo de un pago manual. """
     pago = get_object_or_404(Pago.objects.select_for_update(), id=pago_id)

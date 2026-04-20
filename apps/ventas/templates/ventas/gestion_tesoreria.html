@@ -54,15 +54,52 @@
         </div>
 
         <!-- Acciones Rápidas -->
-        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-orange-600 flex flex-col justify-center gap-4 group cursor-pointer transition-all hover:scale-[1.02]">
-            <h4 class="text-xl font-black text-white uppercase leading-none">Generar Reporte</h4>
-            <p class="text-xs text-white/60 font-medium">Exportar cierre de caja mensual en PDF para la asociación.</p>
-            <div class="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
-                 <span class="text-[10px] font-black uppercase tracking-widest">Próximamente</span>
-                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="{% url 'exportar_tesoreria_pdf' %}" class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-orange-600 flex flex-col justify-center gap-4 group cursor-pointer transition-all hover:scale-[1.02]">
+                <h4 class="text-xl font-black text-white uppercase leading-none">Descargar PDF</h4>
+                <p class="text-xs text-white/60 font-medium">Borrador del cierre de caja actual.</p>
+                <div class="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
+                     <span class="text-[10px] font-black uppercase tracking-widest">Generar Reporte</span>
+                </div>
+            </a>
+            
+            <a href="{% url 'cerrar_caja_mensual' %}" 
+               onclick="return confirm('¿Confirmar cierre de caja mensual? Esto guardará una copia permanente en el historial.')"
+               class="premium-card rounded-[2.5rem] p-8 border border-orange-500/20 bg-white/5 flex flex-col justify-center gap-4 group cursor-pointer transition-all hover:border-orange-500">
+                <h4 class="text-xl font-black text-white uppercase leading-none">Cerrar Mes</h4>
+                <p class="text-xs text-white/40 font-medium">Archivar el mes actual en el historial.</p>
+                <div class="flex items-center gap-2 text-orange-500 transition-colors">
+                     <span class="text-[10px] font-black uppercase tracking-widest">Guardar en Historial</span>
+                </div>
+            </a>
         </div>
     </div>
+
+    <!-- Historial de Cierres -->
+    <section class="px-4 space-y-6">
+        <h3 class="text-xl font-black uppercase tracking-tight text-white/50 px-4">Historial de Cierres de Caja</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for cierre in cierres_recientes %}
+            <div class="premium-card p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex flex-col gap-3">
+                <div class="flex justify-between items-start">
+                    <div class="bg-black/40 px-3 py-1 rounded-lg border border-white/5 text-center">
+                        <p class="text-[9px] font-black text-orange-500 uppercase">{{ cierre.mes|stringformat:"02d" }} / {{ cierre.anio }}</p>
+                    </div>
+                </div>
+                <p class="text-2xl font-black text-white">${{ cierre.total_recaudado }}</p>
+                <a href="{{ cierre.archivo_pdf.url }}" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-orange-500 transition-colors flex items-center gap-2">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Ver Comprobante
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white/10">No hay cierres archivados aún</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
 
     <!-- CHARTS SECTION -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-auto">
@@ -177,8 +214,7 @@
 </div>
 
 <!-- CHART SCRIPTS -->
-<!-- CHART SCRIPTS -->
-{% if chart_data.values %}
+{% if chart_data.labels %}
 {{ chart_data|json_script:"chart-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {

@@ -23,4 +23,6 @@ urlpatterns = [
     path('gracias/', views.gracias, name='gracias'),
     path('historial/', views.pago_historial, name='pago_historial'),
     path('exportar-csv/', views.exportar_tesoreria_csv, name='exportar_tesoreria_csv'),
+    path('exportar-pdf/', views.exportar_tesoreria_pdf, name='exportar_tesoreria_pdf'),
+    path('cerrar-caja/', views.cerrar_caja_mensual, name='cerrar_caja_mensual'),
 ]

@@ -10,12 +10,12 @@ class InscripcionExamenInline(admin.TabularInline):
     model = InscripcionExamen
     extra = 1
     autocomplete_fields = ('alumno', 'grado_actual', 'grado_a_aspirar')
-    fields = ('alumno', 'grado_actual', 'grado_a_aspirar', 'resultado', 'procesado')
+    fields = ('alumno', 'grado_actual', 'grado_a_aspirar', 'costo_inscripcion', 'pago', 'resultado', 'procesado')
     readonly_fields = ('procesado',)
 
 @admin.register(MesaExamen)
 class MesaExamenAdmin(ExamAdminMixin, admin.ModelAdmin):
-    list_display = ("id", "fecha", "lugar", "total_candidatos", "esta_abierta", "finalizada")
+    list_display = ("id", "fecha", "lugar", "total_candidatos", "precio_inscripcion", "esta_abierta", "finalizada")
     list_filter = ("esta_abierta", "finalizada", "lugar")
     search_fields = ("lugar", "maestro_invitado")
     filter_horizontal = ("examinadores",)
@@ -27,12 +27,18 @@ class MesaExamenAdmin(ExamAdminMixin, admin.ModelAdmin):
 
 @admin.register(InscripcionExamen)
 class InscripcionExamenAdmin(ExamAdminMixin, admin.ModelAdmin):
-    list_display = ("alumno", "mesa", "grado_a_aspirar", "resultado", "procesado")
+    list_display = ("alumno", "mesa", "grado_a_aspirar", "costo_inscripcion", "resultado", "pago_confirmado", "procesado")
     list_filter = ("resultado", "procesado", "grado_a_aspirar")
-    list_select_related = ("alumno", "mesa", "grado_a_aspirar")
+    list_select_related = ("alumno", "mesa", "grado_a_aspirar", "pago")
     search_fields = ("alumno__nombre", "alumno__apellido")
-    autocomplete_fields = ("alumno", "mesa")
+    autocomplete_fields = ("alumno", "mesa", "pago")
     actions = ["procesar_ascensos_masivo"]
+
+    def pago_confirmado(self, obj):
+        if obj.pago:
+            return obj.pago.estado == "approved"
+        return False
+    pago_confirmado.boolean = True
 
     @admin.action(description="Ejecutar ascensos de grado (Aprobados)")
     def procesar_ascensos_masivo(self, request, queryset):

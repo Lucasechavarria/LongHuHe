@@ -7,6 +7,7 @@ class MesaExamen(models.Model):
     lugar = models.CharField(max_length=200, help_text="Sede o Dirección del evento")
     examinadores = models.ManyToManyField(Usuario, related_name="mesas_examinadoras", limit_choices_to={'es_profe': True})
     maestro_invitado = models.CharField(max_length=200, blank=True, help_text="Para maestros externos a la app")
+    precio_inscripcion = models.DecimalField("Precio Base de Inscripción", max_digits=10, decimal_places=2, default=0, help_text="Costo base del examen para esta mesa")
     esta_abierta = models.BooleanField(default=True, help_text="Permite inscripciones")
     finalizada = models.BooleanField(default=False, help_text="Marca el evento como cerrado")
 
@@ -30,6 +31,9 @@ class InscripcionExamen(models.Model):
     alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="inscripciones_examenes")
     grado_actual = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="+")
     grado_a_aspirar = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="+")
+    
+    costo_inscripcion = models.DecimalField("Costo de Examen", max_digits=10, decimal_places=2, default=0)
+    pago = models.ForeignKey('ventas.Pago', on_delete=models.SET_NULL, null=True, blank=True, related_name="inscripcion_examen")
     
     resultado = models.CharField(max_length=20, choices=EstadoResultado.choices, default=EstadoResultado.PENDIENTE)
     nota_tecnica = models.PositiveIntegerField(blank=True, null=True, help_text="Puntaje 0-100")

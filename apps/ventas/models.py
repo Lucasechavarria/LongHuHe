@@ -118,6 +118,23 @@ class Descuento(models.Model):
         monto_final = min(self.valor, monto_base)  # No descontar más de lo que vale
         return monto_final
 
+class CierreCaja(models.Model):
+    """ Historial de cierres de caja mensuales (Task 12.2) """
+    mes = models.PositiveSmallIntegerField()
+    anio = models.PositiveIntegerField()
+    total_recaudado = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha_generacion = models.DateTimeField(auto_now_add=True)
+    archivo_pdf = models.FileField(upload_to="cierres_caja/", null=True, blank=True)
+    usuario_genero = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = "Cierre de Caja"
+        verbose_name_plural = "04.5 - Historial de Cierres de Caja"
+        ordering = ["-anio", "-mes"]
+
+    def __str__(self):
+        return f"Cierre {self.mes}/{self.anio} - ${self.total_recaudado}"
+
 class Pago(models.Model):
     """
     Aviso de pago generado por el alumno.
@@ -126,6 +143,7 @@ class Pago(models.Model):
         MES = "mes", "Mes Completo"
         CLASE_SUELTA = "clase_suelta", "1 Clase"
         PAQUETE = "paquete", "Paquete de Clases"
+        EXAMEN = "examen", "Derecho de Examen"
 
     class MetodoPago(models.TextChoices):
         TRANSFERENCIA = "transferencia", "Transferencia Bancaria"

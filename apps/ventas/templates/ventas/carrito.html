@@ -60,13 +60,13 @@
 
         <form action="{% url 'checkout' %}" method="POST" class="space-y-6">
             {% csrf_token %}
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-orange-500 transition-all group">
                     <input type="radio" name="metodo" value="transferencia" checked class="hidden peer">
                     <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-orange-500 transition-colors mb-4 flex items-center justify-center">
                         <div class="w-4 h-4 rounded-full bg-orange-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
                     </div>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest">Transferencia</span>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest text-center">Transferencia</span>
                 </label>
                 
                 <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-blue-500 transition-all">
@@ -74,7 +74,15 @@
                     <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-blue-500 transition-colors mb-4 flex items-center justify-center">
                         <div class="w-4 h-4 rounded-full bg-blue-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
                     </div>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest">Mercado Pago</span>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest text-center">Mercado Pago</span>
+                </label>
+
+                <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-emerald-500 transition-all">
+                    <input type="radio" name="metodo" value="efectivo" class="hidden peer">
+                    <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-emerald-500 transition-colors mb-4 flex items-center justify-center">
+                        <div class="w-4 h-4 rounded-full bg-emerald-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                    </div>
+                    <span class="text-[10px] font-black uppercase text-white tracking-widest text-center">Efectivo</span>
                 </label>
             </div>
 

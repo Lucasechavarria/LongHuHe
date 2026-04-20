@@ -30,6 +30,8 @@ class Grado(models.Model):
         help_text="Al obtener este grado en un examen, el alumno desbloquea este nivel de contenido en la academia."
     )
     
+    costo_examen = models.DecimalField("Costo de Examen", max_digits=10, decimal_places=2, default=0)
+    
     class Meta:
         verbose_name = "Escala de Grados"
         verbose_name_plural = "03.1 - Escala de Grados / Fajas"

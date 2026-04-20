@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Subir Comprobante - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto pt-10 px-6 mb-20 text-white">
+    <header class="text-center space-y-4 mb-12">
+        <div class="inline-block px-4 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black uppercase tracking-[0.4em] mb-2">
+            Verificación <span class="mx-2">📸</span> Long Hu He
+        </div>
+        <h1 class="text-5xl font-black italic tracking-tighter uppercase leading-none">
+            Subir <span class="text-orange-500">Comprobante</span>
+        </h1>
+        <p class="text-white/40 font-bold uppercase tracking-widest text-[10px]">Monto a Verificar: ${{ pago.monto }}</p>
+    </header>
+
+    <div class="premium-card p-10 rounded-[3rem] border border-white/5 bg-white/[0.02] shadow-2xl relative overflow-hidden">
+        <div class="relative z-10">
+            <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <div class="space-y-4">
+                    <p class="text-xs font-black uppercase tracking-widest text-white/30 text-center">Selecciona la imagen o PDF de tu transferencia</p>
+                    {{ form.comprobante }}
+                </div>
+
+                <div class="p-6 rounded-[2rem] bg-black/40 border border-white/5 text-[10px] space-y-2">
+                    <p class="font-black text-orange-500 uppercase tracking-widest">Información Importante:</p>
+                    <ul class="text-white/40 list-disc list-inside space-y-1">
+                        <li>Asegúrate de que el monto sea el correcto.</li>
+                        <li>El administrador verificará esto en las próximas 24-48hs.</li>
+                        <li>Una vez aprobado, tu inscripción quedará confirmada para la mesa.</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="w-full py-6 rounded-[2rem] bg-orange-500 text-white font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-[0_20px_50px_rgba(249,115,22,0.3)]">
+                    Enviar Comprobante
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
