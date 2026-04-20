@@ -37,7 +37,9 @@
                     
                     <div class="flex items-center gap-6 w-full md:w-auto">
                         <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all">
-                            {% if pago.metodo == 'mercadopago' %}
+                            {% if pago.tipo == 'examen' %}
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            {% elif pago.metodo == 'mercadopago' %}
                                 <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
                             {% else %}
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
@@ -45,7 +47,15 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-black uppercase text-orange-500 tracking-widest">{{ pago.get_tipo_display }}</p>
-                            <h3 class="text-xl md:text-2xl font-black text-white group-hover:text-orange-500 transition-colors">{{ pago.actividad.nombre }}</h3>
+                            <h3 class="text-xl md:text-2xl font-black text-white group-hover:text-orange-500 transition-colors">
+                                {% if pago.tipo == 'examen' %}
+                                    {% with insc=pago.inscripcion_examen.first %}
+                                        Derecho de Examen para {{ insc.grado_a_aspirar.nombre_formateado|default:"el siguiente nivel" }}
+                                    {% endwith %}
+                                {% else %}
+                                    {{ pago.actividad.nombre }}
+                                {% endif %}
+                            </h3>
                             <p class="text-white/40 text-xs font-bold">{{ pago.fecha_registro|date:"d M Y, H:i" }}</p>
                         </div>
                     </div>

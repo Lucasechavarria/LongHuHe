@@ -226,6 +226,38 @@ def gestion_tesoreria(request):
     
     hoy = timezone.now().date()
     
+    # --- AUTO-CIERRE PEREZOSO (Task 12.2 / Sprint Automático) ---
+    # Verificamos si el mes anterior está cerrado. Si no, lo cerramos automáticamente.
+    primer_dia_este_mes = hoy.replace(day=1)
+    ultimo_dia_mes_pasado = primer_dia_este_mes - timedelta(days=1)
+    
+    mes_pasado = ultimo_dia_mes_pasado.month
+    anio_pasado = ultimo_dia_mes_pasado.year
+    
+    if not CierreCaja.objects.filter(mes=mes_pasado, anio=anio_pasado).exists():
+        # Ejecutar cierre automático
+        pagos_pasado = Pago.objects.filter(
+            estado=Pago.EstadoPago.APROBADO,
+            fecha_registro__month=mes_pasado,
+            fecha_registro__year=anio_pasado
+        )
+        total_pasado = pagos_pasado.aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
+        
+        # Solo cerramos si hubo movimiento o si queremos persistir el historial vacío
+        # Lo cerramos siempre para mantener la continuidad del historial
+        buffer = generar_pdf_tesoreria(mes_pasado, anio_pasado)
+        
+        cierre = CierreCaja.objects.create(
+            mes=mes_pasado,
+            anio=anio_pasado,
+            total_recaudado=total_pasado,
+            usuario_genero=request.user_obj # El que disparó el lazy-load
+        )
+        from django.core.files.base import ContentFile
+        filename = f"cierre_auto_{anio_pasado}_{mes_pasado}.pdf"
+        cierre.archivo_pdf.save(filename, ContentFile(buffer.getvalue()))
+        cierre.save()
+    
     # 1. KPIs Principales
     pagos_aprobados_mes = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO, 
