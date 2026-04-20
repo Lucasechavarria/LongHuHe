@@ -17,7 +17,7 @@ def profe_requerido(view_func):
             request.user_obj = request.user
             return view_func(request, *args, **kwargs)
         messages.error(request, "Acceso restringido solo para profesores.")
-        return redirect('inicio')
+        return redirect('splash')
     return _wrapped_view
 
 def alumno_requerido(view_func):

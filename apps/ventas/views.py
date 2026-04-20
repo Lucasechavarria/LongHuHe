@@ -100,7 +100,11 @@ def checkout(request):
         # Bloqueamos el producto y la variante para que nadie más los mueva durante la transacción
         prod = get_object_or_404(Producto.objects.select_for_update(), id=doc['id'])
         var = None
-        qty = int(doc['qty'])
+        qty_raw = doc.get('qty', 1)
+        try:
+            qty = int(qty_raw)
+        except (ValueError, TypeError):
+            qty = 1
         
         if doc.get('variant_id'):
             var = get_object_or_404(ProductoVariante.objects.select_for_update(), id=doc['variant_id'])
@@ -119,7 +123,8 @@ def checkout(request):
             else:
                 tiene_backorder = True
         
-        item_total = prod.precio * qty
+        precio_unitario = prod.precio if prod.precio else Decimal('0.00')
+        item_total = precio_unitario * qty
         total_gral += item_total
         
         PedidoItem.objects.create(
@@ -211,7 +216,7 @@ def gestion_tesoreria(request):
     """ Panel administrativo para el tesorero de la asociacion con Dashboard de Métricas. """
     if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
         messages.error(request, "No tienes permisos para acceder a Tesorería.")
-        return redirect('inicio')
+        return redirect('splash')
     
     from datetime import timedelta
     

@@ -57,13 +57,15 @@ class MercadoPagoService:
         }
 
         preference_response = self.sdk.preference().create(preference_data)
-        preference = preference_response["response"]
+        if "response" in preference_response and "id" in preference_response["response"]:
+            preference = preference_response["response"]
+            # Guardamos el ID de la preferencia para rastreo
+            pago.mercado_pago_id = preference["id"]
+            pago.save()
+            return preference.get("init_point")
         
-        # Guardamos el ID de la preferencia para rastreo
-        pago.mercado_pago_id = preference["id"]
-        pago.save()
-
-        return preference["init_point"]
+        print(f"ERROR MP: Respuesta inesperada al crear preferencia: {preference_response}")
+        return None
 
     def obtener_pago(self, payment_id):
         """
@@ -100,5 +102,8 @@ class MercadoPagoService:
         }
 
         preference_response = self.sdk.preference().create(preference_data)
-        preference = preference_response["response"]
-        return preference["init_point"]
+        if "response" in preference_response:
+            return preference_response["response"].get("init_point")
+        
+        print(f"ERROR MP Tienda: {preference_response}")
+        return None

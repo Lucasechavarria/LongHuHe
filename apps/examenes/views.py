@@ -30,7 +30,7 @@ def dashboard_institucional(request):
 
     # Datos para Graficos (Chart.js Task 7.5)
     grados_data = list(Grado.objects.annotate(
-        alumnos_count=Count('usuario')
+        alumnos_count=Count('alumnos')
     ).values('nombre', 'alumnos_count').order_by('orden'))
     
     distribucion_grados_json = json.dumps(grados_data, cls=DjangoJSONEncoder)
