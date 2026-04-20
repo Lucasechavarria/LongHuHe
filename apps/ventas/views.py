@@ -21,7 +21,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 
 @alumno_requerido
 def gracias(request):
@@ -441,19 +441,6 @@ def cerrar_caja_mensual(request):
     
     messages.success(request, f"Cierre de caja de {hoy.strftime('%B %Y')} guardado con éxito en el historial.")
     return redirect('gestion_tesoreria')
-
-def generar_pdf_tesoreria(mes, anio):
-    """ Lógica interna para construir el PDF (reutilizable). """
-    pagos = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__month=mes,
-        fecha_registro__year=anio
-    ).select_related('alumno')
-    
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-    hoy = timezone.now()
 def gestionar_pago_accion(request, pago_id):
     """ Procesa la aprobacion o rechazo de un pago manual. """
     pago = get_object_or_404(Pago.objects.select_for_update(), id=pago_id)
