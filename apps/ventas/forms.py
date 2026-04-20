@@ -19,7 +19,8 @@ class PagoTipoForm(forms.Form):
         alumno = kwargs.pop('alumno', None)
         super().__init__(*args, **kwargs)
         if alumno:
-            self.fields['actividad'].queryset = alumno.actividades.all()
+            # Mostramos todas las actividades para que el alumno pueda abonar incluso si aún no tiene asignadas
+            self.fields['actividad'].queryset = Actividad.objects.all()
     cantidad_clases = forms.IntegerField(
         required=False,
         min_value=1,

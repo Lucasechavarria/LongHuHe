@@ -4,9 +4,11 @@
 
 {% block content %}
 <div class="mb-10 text-center animate-fade-in pt-6">
-    <a href="{% url 'perfil' %}" class="bg-white/10 px-8 py-4 rounded-full text-white/60 hover:text-white hover:bg-white/20 transition-all border border-white/10 inline-flex items-center gap-3 font-black uppercase tracking-widest text-xs">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
-        VOLVER AL PANEL PRINCIPAL
+    <a href="{% url 'perfil' %}" class="btn-liquid bg-white/10 px-8 py-4 rounded-full text-white/80 hover:text-white transition-all border border-white/10 inline-flex items-center gap-3 font-black uppercase tracking-widest text-[10px]">
+        <span class="relative z-10 flex items-center gap-3">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+            VOLVER AL PANEL PRINCIPAL
+        </span>
     </a>
     <h1 class="text-6xl font-black uppercase text-white mt-12 tracking-tighter leading-none">¿Qué vas a <br><span class="text-orange-500">abonar?</span></h1>
 </div>
