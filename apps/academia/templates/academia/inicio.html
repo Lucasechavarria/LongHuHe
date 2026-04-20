@@ -8,13 +8,13 @@
     <!-- Hero Section -->
     <header class="text-center py-10">
         {% if alumno.es_profe %}
-            <div class="mb-4 flex flex-col sm:flex-row justify-center gap-4">
-                <a href="{% url 'abrir_scanner' %}" class="btn-liquid inline-flex items-center gap-3 bg-white/5 border-2 border-orange-500/50 text-orange-400 px-8 py-3 rounded-full font-black uppercase tracking-widest text-sm hover:bg-orange-500 hover:text-white transition-all shadow-[0_0_20px_rgba(255,140,0,0.2)]">
-                    <svg class="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm2 2v2h2V6zM4 14h6v6H4zm2 2v2h2v-2zM14 4h6v6h-6zm2 2v2h2V6zM14 15h2v-1h2v-2h-2v1h-2v2zm2 5h-2v-4h1v1h1v1h2v-1h1v3h-3v-1h-1v1H16z"/></svg>
+            <div class="mb-8 flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
+                <a href="{% url 'abrir_scanner' %}" class="btn-liquid w-full sm:w-auto min-w-[240px] inline-flex items-center justify-center gap-3 bg-white/5 border-2 border-orange-500/50 text-orange-400 px-6 py-4 rounded-full font-black uppercase tracking-widest text-xs hover:bg-orange-500 hover:text-white transition-all shadow-[0_0_20px_rgba(255,140,0,0.2)]">
+                    <svg class="w-6 h-6 relative z-10 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm2 2v2h2V6zM4 14h6v6H4zm2 2v2h2v-2zM14 4h6v6h-6zm2 2v2h2V6zM14 15h2v-1h2v-2h-2v1h-2v2zm2 5h-2v-4h1v1h1v1h2v-1h1v3h-3v-1h-1v1H16z"/></svg>
                     <span class="relative z-10">Escanear Carnet</span>
                 </a>
-                <a href="/admin/core/pedido/" class="btn-liquid inline-flex items-center gap-3 bg-white/5 border-2 border-green-500/50 text-green-400 px-8 py-3 rounded-full font-black uppercase tracking-widest text-sm hover:bg-green-500 hover:text-white transition-all shadow-[0_0_20px_rgba(34,197,94,0.2)]">
-                    <svg class="w-6 h-6 relative z-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <a href="/admin/core/pedido/" class="btn-liquid w-full sm:w-auto min-w-[240px] inline-flex items-center justify-center gap-3 bg-white/5 border-2 border-green-500/50 text-green-400 px-6 py-4 rounded-full font-black uppercase tracking-widest text-xs hover:bg-green-500 hover:text-white transition-all shadow-[0_0_20px_rgba(34,197,94,0.2)]">
+                    <svg class="w-6 h-6 relative z-10 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                     <span class="relative z-10">Mi Liquidación (ERP)</span>
                 </a>
             </div>
