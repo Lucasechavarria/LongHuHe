@@ -9,7 +9,7 @@ from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
 from apps.academia.models import Actividad
 from django.http import JsonResponse
-from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante
+from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante, CierreCaja
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
 from django.db import transaction
@@ -20,7 +20,6 @@ import csv
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
 from reportlab.lib.units import cm
 from django.http import HttpResponse, JsonResponse
 
@@ -226,7 +225,6 @@ def gestion_tesoreria(request):
     from datetime import timedelta
     
     hoy = timezone.now().date()
-    hace_30_dias = hoy - timedelta(days=30)
     
     # 1. KPIs Principales
     pagos_aprobados_mes = Pago.objects.filter(
@@ -290,8 +288,8 @@ def exportar_tesoreria_csv(request):
     hoy = timezone.now().date()
     pagos = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__date__month=hoy.month,
-        fecha_registro__date__year=hoy.year
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
     ).select_related('alumno', 'actividad')
 
     response = HttpResponse(content_type='text/csv')
@@ -313,21 +311,18 @@ def exportar_tesoreria_csv(request):
     return response
 
 @profe_requerido
-def exportar_tesoreria_pdf(request):
-    """ Genera un reporte PDF profesional del cierre de caja (Sprint 12). """
-    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
-        return HttpResponse("No autorizado", status=403)
-
-    hoy = timezone.now()
+def generar_pdf_tesoreria(mes, anio):
+    """ Lógica interna para construir el PDF (reutilizable). """
     pagos = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__month=hoy.month,
-        fecha_registro__year=hoy.year
+        fecha_registro__month=mes,
+        fecha_registro__year=anio
     ).select_related('alumno')
 
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
+    hoy = timezone.now()
 
     # Marca de Agua (Watermark institutional)
     try:
