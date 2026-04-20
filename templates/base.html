@@ -67,7 +67,7 @@
             height: 200%;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 42% 38% 44% 40% / 45% 42% 43% 40%;
-            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: all 1.2s cubic-bezier(0.23, 1, 0.32, 1);
             z-index: -1;
             pointer-events: none;
             transform: translateZ(0); /* Hardware acceleration */
@@ -209,10 +209,12 @@
                     </div>
                 </div>
 
-                <a href="{% url 'escaner' %}" class="p-4 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all transform hover:scale-110" title="Escáner QR">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1l-3 3h2v5H7l3 3-3 3h2v5h2v-5h2l-3-3 3-3h-2V8h2l-3-3zM4 4h3v3H4zM17 4h3v3h-3zM4 17h3v3H4z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v4m0 8v4M4 12h4m8 0h4"></path>
+                <a href="{% url 'escaner' %}" class="btn-liquid p-4 rounded-2xl bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all transform hover:scale-110 active:scale-95" title="Escáner QR">
+                    <!-- Scan QR Icon (Heroicon base) -->
+                    <svg class="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m-3 3h2v5H7l3 3-3 3h2v5h2v-5h2l-3-3 3-3h-2V8h2l-3-3z" class="hidden"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 9h2m0 0h2m-2 0v2m0-2V7m6 2h2m0 0h2m-2 0v2m0-2V7M7 15h2m0 0h2m-2 0v2m0-2v-2m6 2h2m0 0h2m-2 0v2m0-2v-2"></path>
                     </svg>
                 </a>
                 {% endif %}

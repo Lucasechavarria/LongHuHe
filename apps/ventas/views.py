@@ -25,7 +25,7 @@ def gracias(request):
     pedido_id = request.GET.get('pedido_id')
     
     pedido = None
-    if pedido_id:
+    if pedido_id and pedido_id.isdigit():
         pedido = Pedido.objects.filter(pk=pedido_id, alumno=request.user_obj).first()
     
     return render(request, 'ventas/gracias.html', {
@@ -152,6 +152,7 @@ def checkout(request):
         except Exception as e:
             print(f"Error MP Tienda: {e}")
             messages.warning(request, "Error al conectar con Mercado Pago. Tu pedido quedó registrado, coordina el pago con tu profesor.")
+            return redirect(reverse('gracias') + f"?pedido_id={pedido.id}")
     
     return redirect(reverse('gracias') + f"?pedido_id={pedido.id}")
 

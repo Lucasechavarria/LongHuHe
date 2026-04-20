@@ -19,10 +19,10 @@
             </div>
         </div>
         
-        <div class="text-center md:text-left space-y-2 max-w-full overflow-hidden" x-data="{ nameLen: {{ alumno.nombre_completo|length }} }">
-            <h1 class="font-black tracking-tighter uppercase leading-none text-white whitespace-nowrap transition-all"
-                :style="{ fontSize: nameLen > 25 ? '7vw' : (nameLen > 15 ? '9vw' : '11vw'), maxFontSize: '5rem' }"
-                style="font-size: clamp(2rem, 10vw, 4.5rem);">
+        <div class="text-center md:text-left space-y-2 max-w-full" x-data="{ nameLen: {{ alumno.nombre_completo|length }} }">
+            <h1 class="font-black tracking-tighter uppercase leading-[0.9] text-white transition-all break-words"
+                :style="{ fontSize: nameLen > 25 ? '5vw' : (nameLen > 15 ? '7vw' : '9vw') }"
+                style="font-size: clamp(2.5rem, 9vw, 4.5rem);">
                 {{ alumno.nombre }} <span class="text-orange-500">{{ alumno.apellido }}</span>
             </h1>
             <div class="flex flex-wrap items-center justify-center md:justify-start gap-4">

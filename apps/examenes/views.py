@@ -20,6 +20,7 @@ def dashboard_institucional(request):
     total_alumnos = Usuario.objects.filter(es_profe=False).count()
     ingresos_mensuales = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO, 
+        fecha_registro__year=hoy.year,
         fecha_registro__month=hoy.month
     ).aggregate(Sum('monto'))['monto__sum'] or 0
     
@@ -34,7 +35,10 @@ def dashboard_institucional(request):
     
     distribucion_grados_json = json.dumps(grados_data, cls=DjangoJSONEncoder)
 
-    alumnos_nuevos_mes = Usuario.objects.filter(date_joined__month=hoy.month).count()
+    alumnos_nuevos_mes = Usuario.objects.filter(
+        date_joined__year=hoy.year, 
+        date_joined__month=hoy.month
+    ).count()
     
     # Exámenes mas recientes
     mesas_abiertas = MesaExamen.objects.filter(esta_abierta=True).annotate(
