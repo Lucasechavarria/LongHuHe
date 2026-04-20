@@ -97,9 +97,10 @@
                                     <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                     <span class="text-xs font-bold truncate">{{ clase.sede.nombre }}</span>
                                 </div>
-                                <div class="flex items-center gap-2 text-white/60">
-                                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                    <span class="text-xs font-bold truncate">Prof. {{ clase.profesor.nombre_completo }}</span>
+                                <div class="flex items-center gap-2 text-white/60 overflow-hidden" x-data="{ profLen: {{ clase.profesor.nombre_completo|length }} }">
+                                    <svg class="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    <span class="font-bold whitespace-nowrap transition-all"
+                                          :style="{ fontSize: profLen > 18 ? '9px' : '12px' }">Prof. {{ clase.profesor.nombre_completo }}</span>
                                 </div>
                             </div>
                             
