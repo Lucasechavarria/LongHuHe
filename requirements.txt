@@ -10,3 +10,4 @@ qrcode==7.4.2
 bleach==6.1.0
 django-storages[s3]==1.14.4
 boto3==1.36.0
+reportlab==4.2.5
