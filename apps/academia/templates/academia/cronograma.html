@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="space-y-8" x-data="{ 
-    {% with hoy=clases_por_dia.keys|first|default:'LU' %}
+    {% with hoy=dias_semana.0.0|default:'LU' %}
     diaActivo: '{{ hoy }}',
     {% endwith %}
     showFiltros: false 
