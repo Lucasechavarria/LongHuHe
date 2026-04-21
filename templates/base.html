@@ -103,32 +103,68 @@
     <div class="shaolin-watermark"></div>
     <div class="max-w-xl md:max-w-2xl lg:max-w-5xl mx-auto min-h-screen flex flex-col px-4 py-8 relative">
         
+        <!-- Sistema de Notificaciones Premium -->
         {% if messages %}
-            <div class="fixed top-4 left-0 right-0 z-50 px-4 flex flex-col gap-3 items-center pointer-events-none">
+            <div class="fixed top-6 left-0 right-0 z-[100] px-4 flex flex-col gap-3 items-center pointer-events-none">
                 {% for message in messages %}
-                    <div x-data="{ show: true }" 
+                    <div x-data="{ show: false, progress: 100 }" 
+                         x-init="
+                            $nextTick(() => show = true);
+                            let interval = setInterval(() => {
+                                progress -= 0.5;
+                                if (progress <= 0) {
+                                    clearInterval(interval);
+                                    show = false;
+                                }
+                            }, 20);
+                         "
                          x-show="show" 
-                         x-init="setTimeout(() => show = false, 5000)"
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
-                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                         x-transition:leave="transition ease-in duration-200"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95"
-                         class="pointer-events-auto max-w-md w-full bg-orange-600/90 backdrop-blur-md text-white rounded-2xl p-4 shadow-2xl border border-white/20 flex items-center justify-between gap-4 group">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-white/20 p-2 rounded-xl">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <p class="font-bold text-sm md:text-base leading-tight">{{ message }}</p>
+                         x-transition:enter="transition ease-out duration-500"
+                         x-transition:enter-start="opacity-0 -translate-y-10 scale-90 blur-xl"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100 blur-0"
+                         x-transition:leave="transition ease-in duration-300"
+                         x-transition:leave-start="opacity-100 scale-100 blur-0"
+                         x-transition:leave-end="opacity-0 scale-95 blur-md"
+                         class="pointer-events-auto max-w-sm w-full relative overflow-hidden rounded-[2rem] p-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 group">
+                        
+                        <!-- Fondo dinámico según el tag del mensaje -->
+                        <div class="absolute inset-0 opacity-90 backdrop-blur-2xl 
+                            {% if message.tags == 'success' %}bg-emerald-600
+                            {% elif message.tags == 'warning' %}bg-amber-600
+                            {% elif message.tags == 'error' %}bg-rose-600
+                            {% else %}bg-orange-600{% endif %}">
                         </div>
-                        <button @click="show = false" class="p-1 hover:bg-white/20 rounded-lg transition-colors" title="Cerrar">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
+                        
+                        <div class="relative flex items-center justify-between gap-4 p-4">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white/20 p-3 rounded-2xl shadow-inner group-hover:rotate-12 transition-transform duration-500">
+                                    {% if message.tags == 'success' %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    {% elif message.tags == 'warning' %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    {% elif message.tags == 'error' %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] uppercase font-black text-white/50 tracking-widest leading-none mb-1">
+                                        {% if message.tags == 'success' %}¡Éxito!
+                                        {% elif message.tags == 'warning' %}Atención
+                                        {% elif message.tags == 'error' %}Error
+                                        {% else %}Info{% endif %}
+                                    </span>
+                                    <p class="font-black text-white text-sm leading-tight tracking-tight">{{ message }}</p>
+                                </div>
+                            </div>
+                            <button @click="show = false" class="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                                <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Barra de progreso decorativa -->
+                        <div class="absolute bottom-0 left-0 h-1 bg-white/30 transition-all duration-100 ease-linear" :style="{ width: progress + '%' }"></div>
                     </div>
                 {% endfor %}
             </div>

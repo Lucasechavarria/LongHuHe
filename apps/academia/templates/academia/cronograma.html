@@ -122,11 +122,20 @@
                                         <span class="relative z-10">Bajarme</span>
                                     </a>
                                 {% else %}
-                                    <form action="{% url 'inscribir_clase' clase.id %}" method="post" class="shrink-0">
+                                    <form action="{% url 'inscribir_clase' clase.id %}" method="post" class="shrink-0" x-data="{ loading: false }" @submit="loading = true">
                                         {% csrf_token %}
                                         <button type="submit" 
-                                                class="btn-liquid bg-orange-600 text-white text-[10px] font-black uppercase px-6 py-3 rounded-2xl hover:bg-orange-500 transition-all shadow-lg active:scale-95 whitespace-nowrap">
-                                            <span class="relative z-10">Anotarme</span>
+                                                :disabled="loading"
+                                                class="btn-liquid bg-orange-600 text-white text-[10px] font-black uppercase px-6 py-3 rounded-2xl hover:bg-orange-500 transition-all shadow-lg active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span class="relative z-10 flex items-center gap-2">
+                                                <template x-if="loading">
+                                                    <svg class="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </template>
+                                                <span x-text="loading ? 'Procesando...' : 'Anotarme'"></span>
+                                            </span>
                                         </button>
                                     </form>
                                 {% endif %}

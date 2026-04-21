@@ -64,7 +64,7 @@ def inscribir_clase(request, clase_id):
     
     # 1. Verificar si ya está inscrito
     if InscripcionClase.objects.filter(alumno_id=alumno_id, clase=clase).exclude(estado='baja').exists():
-        messages.info(request, "Ya estás anotado en este horario.")
+        messages.warning(request, "⚠️ Ya estás anotado en este horario.")
         return redirect('lista_clases')
 
     # 2. Contar inscriptos regulares
@@ -111,5 +111,5 @@ def desanotarse_clase(request, clase_id):
 
     inscripcion.estado = 'baja'
     inscripcion.save()
-    messages.info(request, "Te has dado de baja de la clase.")
+    messages.success(request, "✅ Te has dado de baja de la clase correctamente.")
     return redirect('lista_clases')
