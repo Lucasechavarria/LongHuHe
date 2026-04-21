@@ -15,8 +15,8 @@
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
         <div class="space-y-2">
             <p class="text-[10px] md:text-xs font-black uppercase text-orange-500 tracking-[0.4em]">Administración Central</p>
-            <h1 class="text-5xl md:text-7xl font-black uppercase text-white tracking-tighter leading-none">Tesorería <span class="text-orange-600">&</span> Métricas</h1>
-            <p class="text-white/40 font-bold max-w-md">Control financiero en tiempo real, análisis de ingresos y gestión de cobros pendientes.</p>
+            <h1 class="text-4xl md:text-6xl xl:text-7xl font-black uppercase text-white tracking-tighter leading-none">Tesorería <span class="text-orange-600">&</span> Métricas</h1>
+            <p class="text-white/40 font-bold max-w-md text-sm md:text-base">Control financiero en tiempo real, análisis de ingresos y gestión de cobros pendientes.</p>
         </div>
         
         <div class="hidden md:flex bg-black/40 backdrop-blur-3xl p-1.5 rounded-3xl border border-white/5 self-start shadow-2xl">
@@ -30,9 +30,9 @@
     </div>
 
     <!-- KPI CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <!-- Ingresos Mes (Desglosado) -->
-        <div class="premium-card md:col-span-2 rounded-[2.5rem] p-8 border border-white/10 bg-black/40 backdrop-blur-3xl relative overflow-hidden group">
+        <div class="premium-card md:col-span-2 rounded-[2.5rem] p-8 border border-white/10 bg-black/40 backdrop-blur-3xl relative overflow-hidden group hover:shadow-orange-500/10 transition-all duration-500">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-[50px]"></div>
             <div class="flex justify-between items-start mb-6">
                 <div>
@@ -81,7 +81,7 @@
         </div>
 
         <!-- Cobros Pendientes -->
-        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden group">
+        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden group hover:shadow-rose-500/10 transition-all duration-500">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-rose-600/10 rounded-full blur-[50px] group-hover:bg-rose-600/20 transition-all"></div>
             <p class="text-[10px] font-black uppercase text-rose-500 tracking-widest mb-4">Pendientes</p>
             <div class="flex items-end gap-2">
@@ -104,8 +104,8 @@
     </div>
 
         <!-- Acciones Rápidas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a href="{% url 'exportar_tesoreria_pdf' %}" class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-orange-600 flex flex-col justify-center gap-4 group cursor-pointer transition-all hover:scale-[1.02]">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+            <a href="{% url 'exportar_tesoreria_pdf' %}" class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-orange-600 flex flex-col justify-center gap-4 group cursor-pointer transition-all hover:scale-[1.02] hover:shadow-orange-600/20">
                 <h4 class="text-xl font-black text-white uppercase leading-none">Descargar PDF</h4>
                 <p class="text-xs text-white/60 font-medium">Borrador del cierre de caja actual.</p>
                 <div class="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">

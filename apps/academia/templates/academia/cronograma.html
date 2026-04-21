@@ -71,7 +71,7 @@
     <!-- Grilla Semanal Global -->
     <div class="w-full">
         <!-- Escritorio: Grid de Columnas | Móvil: Vista por Día Activo -->
-        <div class="flex flex-col lg:flex-row gap-5 lg:items-start">
+        <div class="flex flex-col lg:flex-row gap-4 xl:gap-6 lg:items-start transition-all duration-500">
             {% for dia_cod, dia_nom in dias_semana %}
             <div x-show="window.innerWidth >= 1024 || diaActivo === '{{ dia_cod }}'" 
                  class="flex-1 space-y-4 animate-fade-in">
@@ -83,7 +83,7 @@
                 
                 <div class="space-y-4">
                     {% for clase in clases_por_dia|get_item:dia_cod %}
-                    <div class="premium-card rounded-[2rem] p-6 lg:p-5 shadow-xl border border-white/5 transition-all hover:border-white/20 group relative overflow-hidden" 
+                    <div class="premium-card rounded-[2rem] p-6 lg:p-4 xl:p-5 shadow-xl border border-white/5 transition-all hover:border-white/20 hover:scale-[1.02] group relative overflow-hidden" 
                          :style="{ borderLeft: '4px solid {{ clase.actividad.color_etiqueta }}' }">
                         <div class="flex flex-col h-full">
                             <div class="flex justify-between items-start mb-3">
