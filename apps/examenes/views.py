@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 from apps.usuarios.views import profe_requerido, alumno_requerido
 from apps.usuarios.models import Usuario, Grado
+from decimal import Decimal
 from apps.asistencia.models import RegistroAsistencia
 from apps.ventas.models import Pago
 from .models import MesaExamen, InscripcionExamen
@@ -22,7 +23,7 @@ def dashboard_institucional(request):
         estado=Pago.EstadoPago.APROBADO, 
         fecha_registro__year=hoy.year,
         fecha_registro__month=hoy.month
-    ).aggregate(Sum('monto'))['monto__sum'] or 0
+    ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
     
     # Asistencia Ultimos 15 Dias
     fecha_limite = hoy - timedelta(days=15)
@@ -115,7 +116,7 @@ def inscribir_examen(request, mesa_id):
         alumno=alumno,
         grado_a_aspirar=siguiente_grado,
         grado_actual=alumno.grado,
-        costo_inscripcion=siguiente_grado.costo_examen
+        costo_inscripcion=siguiente_grado.costo_examen + mesa.precio_inscripcion
     )
     
     messages.success(request, f"Inscripción exitosa para el grado: {siguiente_grado.nombre}. Ahora procede al pago.")

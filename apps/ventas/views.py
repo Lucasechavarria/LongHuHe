@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from datetime import timedelta
+from django.core.files.base import ContentFile
 from decimal import Decimal
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido
@@ -222,8 +224,6 @@ def gestion_tesoreria(request):
         messages.error(request, "No tienes permisos para acceder a Tesorería.")
         return redirect('splash')
     
-    from datetime import timedelta
-    
     hoy = timezone.now().date()
     
     # --- AUTO-CIERRE PEREZOSO (Task 12.2 / Sprint Automático) ---
@@ -235,28 +235,31 @@ def gestion_tesoreria(request):
     anio_pasado = ultimo_dia_mes_pasado.year
     
     if not CierreCaja.objects.filter(mes=mes_pasado, anio=anio_pasado).exists():
-        # Ejecutar cierre automático
-        pagos_pasado = Pago.objects.filter(
-            estado=Pago.EstadoPago.APROBADO,
-            fecha_registro__month=mes_pasado,
-            fecha_registro__year=anio_pasado
-        )
-        total_pasado = pagos_pasado.aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
-        
-        # Solo cerramos si hubo movimiento o si queremos persistir el historial vacío
-        # Lo cerramos siempre para mantener la continuidad del historial
-        buffer = generar_pdf_tesoreria(mes_pasado, anio_pasado)
-        
-        cierre = CierreCaja.objects.create(
-            mes=mes_pasado,
-            anio=anio_pasado,
-            total_recaudado=total_pasado,
-            usuario_genero=request.user_obj # El que disparó el lazy-load
-        )
-        from django.core.files.base import ContentFile
-        filename = f"cierre_auto_{anio_pasado}_{mes_pasado}.pdf"
-        cierre.archivo_pdf.save(filename, ContentFile(buffer.getvalue()))
-        cierre.save()
+        try:
+            with transaction.atomic():
+                # Ejecutar cierre automático
+                pagos_pasado = Pago.objects.filter(
+                    estado=Pago.EstadoPago.APROBADO,
+                    fecha_registro__month=mes_pasado,
+                    fecha_registro__year=anio_pasado
+                )
+                total_pasado = pagos_pasado.aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
+                
+                # Generamos el buffer PDF del mes pasado
+                buffer = generar_pdf_tesoreria(mes_pasado, anio_pasado)
+                
+                cierre = CierreCaja(
+                    mes=mes_pasado,
+                    anio=anio_pasado,
+                    total_recaudado=total_pasado,
+                    usuario_genero=request.user_obj
+                )
+                filename = f"cierre_auto_{anio_pasado}_{mes_pasado}.pdf"
+                cierre.archivo_pdf.save(filename, ContentFile(buffer.getvalue()), save=True)
+                # Al usar save=True en .save(), ya se persiste el objeto completo.
+        except Exception as e:
+            # Si falla el auto-cierre, logueamos pero no mostramos error 500
+            print(f"Error en auto-cierre de tesorería: {e}")
     
     # 1. KPIs Principales
     pagos_aprobados_mes = Pago.objects.filter(
@@ -294,9 +297,11 @@ def gestion_tesoreria(request):
     metodos_values = [d['count'] for d in metodos_data]
     
     pagos_pendientes = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).order_by('-fecha_registro')
+    pedidos_pendientes = Pedido.objects.filter(estado=Pedido.Estado.PENDIENTE).order_by('-fecha_registro').prefetch_related('items__producto')
     
     return render(request, 'ventas/gestion_tesoreria.html', {
         'pagos_pendientes': pagos_pendientes,
+        'pedidos_pendientes': pedidos_pendientes,
         'kpis': {
             'ingresos_mes': ingresos_totales_mes,
             'pendientes_count': pendientes_count,
@@ -370,10 +375,15 @@ def generar_pdf_tesoreria(mes, anio):
         print(f"Error marcas de agua: {e}")
 
     # Cabecera
+    # Determinar nombre del mes para el título
+    nombres_meses = {1: 'Enero', 2: 'Febrero', 3: 'Mazo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 
+                     7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
+    mes_nombre = nombres_meses.get(mes, str(mes))
+    
     p.setFont("Helvetica-Bold", 16)
     p.drawString(2*cm, height - 2*cm, "Cierre de Caja Mensual - Long Hu He")
     p.setFont("Helvetica", 10)
-    p.drawString(2*cm, height - 2.5*cm, f"Período: {hoy.strftime('%B %Y')} | Generado el: {hoy.strftime('%d/%m/%Y')}")
+    p.drawString(2*cm, height - 2.5*cm, f"Período: {mes_nombre} {anio} | Generado el: {hoy.strftime('%d/%m/%Y')}")
     
     # Tabla simple
     y = height - 4*cm
@@ -489,6 +499,30 @@ def gestionar_pago_accion(request, pago_id):
             pago.motivo_rechazo = motivo
             pago.save()
             messages.warning(request, "Pago rechazado.")
+            
+    return redirect('gestion_tesoreria')
+
+@profe_requerido
+def gestionar_pedido_accion(request, pedido_id):
+    """ Procesa el pago o cancelación de un pedido de la tienda. """
+    pedido = get_object_or_404(Pedido.objects.select_for_update(), id=pedido_id)
+    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
+        return HttpResponse("No autorizado", status=403)
+        
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        if accion == 'pagar':
+            pedido.estado = Pedido.Estado.PAGADO
+            pedido.save()
+            messages.success(request, f"Pedido #{pedido.id} marcado como PAGADO.")
+        elif accion == 'entregar':
+            pedido.estado = Pedido.Estado.ENTREGADO
+            pedido.save()
+            messages.success(request, f"Pedido #{pedido.id} marcado como ENTREGADO.")
+        elif accion == 'cancelar':
+            pedido.estado = Pedido.Estado.CANCELADO
+            pedido.save()
+            messages.warning(request, f"Pedido #{pedido.id} cancelado.")
             
     return redirect('gestion_tesoreria')
 

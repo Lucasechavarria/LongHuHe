@@ -209,7 +209,68 @@
         </div>
     </div>
 
-</div>
+    <!-- COLA DE PEDIDOS TIENDA PENDIENTES -->
+    <div class="space-y-8">
+        <div class="flex items-center justify-between border-b border-white/5 pb-4">
+            <h3 class="text-2xl font-black uppercase text-white tracking-tight">Pedidos de <span class="text-blue-500">Tienda</span></h3>
+            <span class="bg-blue-500/10 text-blue-500 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">{{ pedidos_pendientes.count }} pedidos</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            {% for pedido in pedidos_pendientes %}
+            <div x-data="{ cancel: false }" class="premium-card rounded-[2.5rem] p-8 border border-white/5 transition-all hover:border-blue-500/30 group">
+                <div class="flex flex-col lg:flex-row justify-between gap-8">
+                    <!-- Producto / Usuario Info -->
+                    <div class="flex items-center gap-6">
+                        <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-black uppercase text-blue-400 tracking-widest">PEDIDO #{{ pedido.id }} - {{ pedido.get_metodo_pago_display }}</p>
+                            <h4 class="text-xl font-black text-white group-hover:text-blue-500 transition-colors">{{ pedido.alumno.nombre_completo }}</h4>
+                            <div class="flex gap-2 mt-1">
+                                {% for item in pedido.items.all %}
+                                <span class="bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold text-white/40">{{ item.producto.nombre }} x{{ item.cantidad }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos y Acciones -->
+                    <div class="flex items-center gap-8 lg:justify-end">
+                        <div class="text-right">
+                             <p class="text-3xl font-black text-white tracking-tighter">${{ pedido.total }}</p>
+                             <p class="text-[9px] font-bold text-white/30 uppercase tracking-widest">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <form action="{% url 'gestionar_pedido_accion' pedido.id %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="pagar">
+                                <button type="submit" class="bg-blue-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95">
+                                    Pagado
+                                </button>
+                            </form>
+                            <button @click="cancel = !cancel" class="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all active:scale-95">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Cancelar -->
+                <div x-show="cancel" x-transition class="mt-8 pt-8 border-t border-white/5 animate-slide-up">
+                    <form action="{% url 'gestionar_pedido_accion' pedido.id %}" method="POST" class="flex items-center justify-between bg-rose-500/5 p-6 rounded-3xl border border-rose-500/10">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="cancelar">
+                        <p class="text-sm font-bold text-rose-500/70">¿Confirmas la cancelación de este pedido?</p>
+                        <button type="submit" class="bg-rose-500 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs">Confirmar Cancelación</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
 <!-- CHART SCRIPTS -->
 {% if chart_data.labels %}

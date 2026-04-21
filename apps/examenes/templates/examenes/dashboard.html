@@ -78,6 +78,7 @@
             <div class="relative w-full flex-grow flex items-center justify-center">
                  <canvas id="gradosChart" class="max-h-[300px]"></canvas>
             </div>
+            {{ distribucion_grados_json|json_script:"grados-data" }}
         </div>
 
         <!-- Mesas y Candidatos -->
@@ -121,7 +122,8 @@
         return {
             init() {
                 const ctx = document.getElementById('gradosChart').getContext('2d');
-                const data = JSON.parse('{{ distribucion_grados_json|safe }}');
+                const dataRaw = JSON.parse(document.getElementById('grados-data').textContent);
+                const data = JSON.parse(dataRaw);
                 
                 new Chart(ctx, {
                     type: 'doughnut',

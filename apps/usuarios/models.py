@@ -46,12 +46,14 @@ class Grado(models.Model):
         """ 
         Retorna el nombre del grado formateado (ej: Negro 1 -> I Tuan).
         """
+        if not self.nombre:
+            return "Sin Grado"
+            
         import re
         # Buscar patrón "Negro [numero]"
         match = re.search(r'Negro\s*(\d+)', self.nombre, re.IGNORECASE)
         if match:
             nivel = int(match.group(1))
-            # Usar la función estática de conversión (definida en Usuario o moverla aquí)
             romano = self.int_to_roman(nivel)
             return f"{romano} Thuan"
         
