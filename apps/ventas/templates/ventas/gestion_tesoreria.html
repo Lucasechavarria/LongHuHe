@@ -30,28 +30,78 @@
     </div>
 
     <!-- KPI CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Ingresos Mes -->
-        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden group">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-[50px] group-hover:bg-orange-600/20 transition-all"></div>
-            <p class="text-[10px] font-black uppercase text-orange-500 tracking-widest mb-4">Ingresos del Mes</p>
-            <div class="flex items-end gap-2">
-                <span class="text-5xl font-black text-white tracking-tighter">${{ kpis.ingresos_mes|default:"0" }}</span>
-                <span class="text-xs font-bold text-white/30 mb-2 uppercase italic leading-none">Neto Apr.</span>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Ingresos Mes (Desglosado) -->
+        <div class="premium-card md:col-span-2 rounded-[2.5rem] p-8 border border-white/10 bg-black/40 backdrop-blur-3xl relative overflow-hidden group">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-[50px]"></div>
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <p class="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none mb-1">Recaudación Total</p>
+                    <p class="text-4xl font-black text-white tracking-tighter leading-none">${{ kpis.ingresos_mes|default:"0" }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 font-black italic underline underline-offset-4 decoration-orange-500">Composición del Mes</p>
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-end gap-2">
+                             <span class="text-[10px] font-bold text-white/40 uppercase">Academia (Total):</span>
+                             <span class="text-xs font-black text-white">${{ kpis.ingresos_pagos }}</span>
+                        </div>
+                        <!-- Sub-desglose Academia -->
+                        <div class="flex flex-col items-end border-r-2 border-white/5 pr-2 mr-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-medium text-white/20 uppercase">Cuotas:</span>
+                                <span class="text-[10px] font-bold text-emerald-500/80">${{ stats_tipos.mes }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-medium text-white/20 uppercase">Clases/Paq:</span>
+                                <span class="text-[10px] font-bold text-amber-500/80">${{ stats_tipos.clase_suelta|add:stats_tipos.paquete }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 pt-1">
+                             <span class="text-[10px] font-bold text-white/40 uppercase">Tienda:</span>
+                             <span class="text-xs font-black text-blue-400">${{ kpis.ingresos_tienda }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <p class="text-[10px] font-bold text-white/20 mt-4 uppercase tracking-widest">Actualizado hasta hoy</p>
+            
+            <!-- Desglose por Actividad -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 border-t border-white/5 pt-6">
+                {% for act in ingresos_por_actividad %}
+                <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <p class="text-[8px] font-black text-white/20 uppercase truncate">{{ act.nombre }}</p>
+                    <p class="text-sm font-black text-white">${{ act.total }}</p>
+                </div>
+                {% empty %}
+                <div class="col-span-full py-2">
+                    <p class="text-[8px] font-black text-white/10 uppercase tracking-widest text-center italic">Sin actividad registrada este mes</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Cobros Pendientes -->
         <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden group">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-rose-600/10 rounded-full blur-[50px] group-hover:bg-rose-600/20 transition-all"></div>
-            <p class="text-[10px] font-black uppercase text-rose-500 tracking-widest mb-4">Montos Pendientes</p>
+            <p class="text-[10px] font-black uppercase text-rose-500 tracking-widest mb-4">Pendientes</p>
             <div class="flex items-end gap-2">
-                <span class="text-5xl font-black text-white tracking-tighter">${{ kpis.pendientes_monto|default:"0" }}</span>
-                <span class="text-xs font-bold text-white/30 mb-2 uppercase italic leading-none">{{ kpis.pendientes_count }} Casos</span>
+                <span class="text-4xl font-black text-white tracking-tighter">${{ kpis.pendientes_monto|default:"0" }}</span>
+                <span class="text-xs font-bold text-white/30 mb-2 uppercase italic leading-none">{{ kpis.pendientes_count }}</span>
             </div>
-            <p class="text-[10px] font-bold text-white/20 mt-4 uppercase tracking-widest">En espera de verificación</p>
+            <p class="text-[9px] font-bold text-white/20 mt-4 uppercase tracking-widest">En espera de verificación manual</p>
         </div>
+
+        <!-- Pagos Rechazados -->
+        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-white/5 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <p class="text-[10px] font-black uppercase text-white/40 tracking-widest mb-4">Rechazados</p>
+            <div class="flex items-end gap-2">
+                <span class="text-4xl font-black text-white tracking-tighter opacity-40">${{ kpis.rechazados_monto|default:"0" }}</span>
+                <span class="text-xs font-bold text-white/20 mb-2 uppercase italic leading-none">{{ kpis.rechazados_count }}</span>
+            </div>
+            <p class="text-[9px] font-bold text-white/10 mt-4 uppercase tracking-widest italic">Abonados pero no acreditados</p>
+        </div>
+    </div>
 
         <!-- Acciones Rápidas -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -95,6 +145,64 @@
                 <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white/10">No hay cierres archivados aún</p>
             </div>
             {% endfor %}
+        </div>
+    </section>
+
+    <!-- TABLA DE PAGOS RECHAZADOS (Auditoría Solicitada) -->
+    <section class="px-4 space-y-6 pt-12">
+        <div class="flex items-center justify-between px-4">
+            <h3 class="text-xl font-black uppercase tracking-tight text-white/50">Auditoría: Pagos Rechazados</h3>
+            <span class="bg-red-500/10 text-red-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-red-500/20">Últimos 10 casos</span>
+        </div>
+        
+        <div class="premium-card rounded-[3rem] overflow-hidden border border-white/5 bg-black/20">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-white/5 bg-white/[0.02]">
+                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Fecha</th>
+                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Alumno</th>
+                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Actividad/Motivo</th>
+                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Monto</th>
+                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {% for pago in pagos_rechazados_recientes %}
+                        <tr class="group hover:bg-white/[0.02] transition-colors">
+                            <td class="px-8 py-6 text-xs font-bold text-white/40">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
+                            <td class="px-8 py-6">
+                                <p class="text-white font-black text-sm uppercase">{{ pago.alumno.nombre_completo }}</p>
+                                <p class="text-[9px] text-white/20 font-bold uppercase">{{ pago.alumno.dni }}</p>
+                            </td>
+                            <td class="px-8 py-6">
+                                <span class="text-xs font-bold text-white/60">
+                                    {{ pago.actividad.nombre|default:"Examen / Otros" }}
+                                    {% if pago.mercado_pago_id %}
+                                    <br><span class="text-[9px] text-orange-500/50">MP ID: {{ pago.mercado_pago_id }}</span>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-8 py-6">
+                                <p class="text-lg font-black text-white/60 tracking-tighter">${{ pago.monto }}</p>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                                    <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">No Acreditado</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-8 py-20 text-center">
+                                <p class="text-[10px] font-black uppercase text-white/10 tracking-[0.4em]">Sin registros de pagos rechazados este mes</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 

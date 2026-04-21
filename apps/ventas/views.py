@@ -298,16 +298,63 @@ def gestion_tesoreria(request):
     metodos_labels = [dict(Pago.MetodoPago.choices).get(d['metodo'], d['metodo']) for d in metodos_data]
     metodos_values = [d['count'] for d in metodos_data]
     
+    # 4. Desglose por Actividad (KPIs Solicitados)
+    # Obtenemos el total aprobado por cada actividad
+    ingresos_por_actividad_qs = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
+    ).values('actividad__nombre').annotate(total=Sum('monto'))
+    
+    # Desglose por Tipo de Pago (Cuotas vs Clases)
+    ingresos_por_tipo = Pago.objects.filter(
+        estado=Pago.EstadoPago.APROBADO,
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
+    ).values('tipo').annotate(total=Sum('monto'))
+    
+    # Clasificamos para el template
+    stats_tipos = {
+        'mes': Decimal('0.00'),
+        'clase_suelta': Decimal('0.00'),
+        'paquete': Decimal('0.00'),
+        'examen': Decimal('0.00'),
+    }
+    for item in ingresos_por_tipo:
+        stats_tipos[item['tipo']] = item['total']
+
+    # Limpiamos para el template (agregando 'Sin Actividad' para Exámenes u otros si corresponde)
+    ingresos_por_actividad = []
+    for item in ingresos_por_actividad_qs:
+        nombre = item['actividad__nombre'] or "Otros (Exámenes/Varios)"
+        ingresos_por_actividad.append({'nombre': nombre, 'total': item['total']})
+
+    # 5. Pagos Rechazados (Registro y Auditoría)
+    pagos_rechazados_mes = Pago.objects.filter(
+        estado=Pago.EstadoPago.RECHAZADO,
+        fecha_registro__month=hoy.month,
+        fecha_registro__year=hoy.year
+    )
+    total_rechazados_monto = pagos_rechazados_mes.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+    pagos_rechazados_recientes = pagos_rechazados_mes.order_by('-fecha_registro')[:10]
+
     pagos_pendientes = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).order_by('-fecha_registro')
     pedidos_pendientes = Pedido.objects.filter(estado=Pedido.Estado.PENDIENTE).order_by('-fecha_registro').prefetch_related('items__producto')
     
     return render(request, 'ventas/gestion_tesoreria.html', {
         'pagos_pendientes': pagos_pendientes,
         'pedidos_pendientes': pedidos_pendientes,
+        'pagos_rechazados_recientes': pagos_rechazados_recientes,
+        'ingresos_por_actividad': ingresos_por_actividad,
+        'stats_tipos': stats_tipos,
         'kpis': {
             'ingresos_mes': ingresos_totales_mes,
+            'ingresos_tienda': ingresos_pedidos,
+            'ingresos_pagos': ingresos_pagos,
             'pendientes_count': pendientes_count,
             'pendientes_monto': pendientes_monto,
+            'rechazados_monto': total_rechazados_monto,
+            'rechazados_count': pagos_rechazados_mes.count(),
         },
         'chart_data': {
             'labels': chart_labels,
