@@ -56,8 +56,8 @@
             </div>
         </div>
 
-        <!-- Selector de Días (Chips) - Solo Móvil/Tablet -->
-        <div class="flex lg:hidden gap-2 overflow-x-auto py-4 no-scrollbar">
+        <!-- Selector de Días (Chips) - Visible en todas las resoluciones -->
+        <div class="flex gap-2 overflow-x-auto py-4 no-scrollbar">
             {% for dia_cod, dia_nom in dias_semana %}
             <button @click="diaActivo = '{{ dia_cod }}'" 
                     :class="diaActivo === '{{ dia_cod }}' ? 'bg-orange-600 text-white shadow-lg' : 'bg-white/5 text-white/40 border border-white/5'"
@@ -73,7 +73,7 @@
         <!-- Escritorio: Grid de Columnas | Móvil: Vista por Día Activo -->
         <div class="flex flex-col lg:flex-row gap-4 xl:gap-6 lg:items-start transition-all duration-500">
             {% for dia_cod, dia_nom in dias_semana %}
-            <div x-show="window.innerWidth >= 1024 || diaActivo === '{{ dia_cod }}'" 
+            <div x-show="diaActivo === '{{ dia_cod }}'" 
                  class="flex-1 space-y-4 animate-fade-in">
                 
                 <!-- Encabezado Día (Desktop) -->
