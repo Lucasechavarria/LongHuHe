@@ -19,11 +19,22 @@ def dashboard_institucional(request):
     hoy = timezone.now().date()
     # Estadisticas basicas
     total_alumnos = Usuario.objects.filter(es_profe=False).count()
-    ingresos_mensuales = Pago.objects.filter(
+    from apps.ventas.models import Pedido
+    
+    # Ingresos mensuales globales (Pagos + Pedidos)
+    ingresos_pagos = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO, 
         fecha_registro__year=hoy.year,
         fecha_registro__month=hoy.month
     ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+
+    ingresos_pedidos = Pedido.objects.filter(
+        estado__in=[Pedido.Estado.PAGADO, Pedido.Estado.ENTREGADO],
+        fecha_registro__year=hoy.year,
+        fecha_registro__month=hoy.month
+    ).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+
+    ingresos_mensuales = ingresos_pagos + ingresos_pedidos
     
     # Asistencia Ultimos 15 Dias
     fecha_limite = hoy - timedelta(days=15)

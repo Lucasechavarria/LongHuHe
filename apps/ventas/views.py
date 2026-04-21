@@ -259,9 +259,11 @@ def gestion_tesoreria(request):
                 # Al usar save=True en .save(), ya se persiste el objeto completo.
         except Exception as e:
             # Si falla el auto-cierre, logueamos pero no mostramos error 500
-            print(f"Error en auto-cierre de tesorería: {e}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error en auto-cierre de tesorería: {e}", exc_info=True)
     
-    # 1. KPIs Principales
+    # 1. KPIs Principales (Métricas Globales del Mes)
     pagos_aprobados_mes = Pago.objects.filter(
         estado=Pago.EstadoPago.APROBADO, 
         fecha_registro__month=hoy.month,
@@ -376,7 +378,7 @@ def generar_pdf_tesoreria(mes, anio):
 
     # Cabecera
     # Determinar nombre del mes para el título
-    nombres_meses = {1: 'Enero', 2: 'Febrero', 3: 'Mazo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 
+    nombres_meses = {1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril', 5: 'Mayo', 6: 'Junio', 
                      7: 'Julio', 8: 'Agosto', 9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'}
     mes_nombre = nombres_meses.get(mes, str(mes))
     
