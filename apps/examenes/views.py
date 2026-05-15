@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 from django.utils import timezone
 from apps.usuarios.views import profe_requerido, alumno_requerido
+from apps.usuarios.models import Usuario
 from apps.ventas.models import Pago
 from .models import MesaExamen, InscripcionExamen
 from django.contrib import messages
@@ -19,11 +20,30 @@ def dashboard_institucional(request):
     return render(request, 'examenes/dashboard.html', metricas)
 
 @profe_requerido
+def crear_mesa_examen(request):
+    """ Permite a un profesor/maestro programar una nueva mesa de examen. """
+    from .forms import MesaExamenForm
+    if request.method == 'POST':
+        form = MesaExamenForm(request.POST)
+        if form.is_valid():
+            mesa = form.save()
+            messages.success(request, f"Mesa de examen programada con éxito para el {mesa.fecha.strftime('%d/%m/%Y')}.")
+            return redirect('dashboard_institucional')
+    else:
+        form = MesaExamenForm()
+    
+    return render(request, 'examenes/crear_mesa.html', {'form': form})
+
+@profe_requerido
 def evaluar_mesa(request, mesa_id):
-    """ Task 7.2: Panel de evaluación """
+    """ Task 7.2: Panel de evaluación + Task 7.5: Inscripción Manual """
     mesa = get_object_or_404(MesaExamen, id=mesa_id)
     candidatos = mesa.candidatos.all().select_related('alumno', 'grado_a_aspirar')
     
+    # Obtener alumnos que NO están en la mesa para inscripción manual
+    candidatos_ids = candidatos.values_list('alumno_id', flat=True)
+    alumnos_disponibles = Usuario.objects.filter(es_profe=False, is_active=True).exclude(id__in=candidatos_ids).only('id', 'nombre', 'apellido')
+
     if request.method == 'POST':
         from apps.examenes.services import ExamenService
         evaluaciones_procesadas = ExamenService.procesar_evaluaciones(mesa, request.POST)
@@ -34,8 +54,33 @@ def evaluar_mesa(request, mesa_id):
     return render(request, 'examenes/evaluar_mesa.html', {
         'mesa': mesa,
         'candidatos': candidatos,
+        'alumnos_disponibles': alumnos_disponibles,
         'resultados_opciones': InscripcionExamen.EstadoResultado.choices
     })
+
+@profe_requerido
+def inscribir_alumno_mesa_manual(request, mesa_id):
+    """ Inscribe a un alumno de forma manual desde el panel de gestión. """
+    mesa = get_object_or_404(MesaExamen, id=mesa_id)
+    alumno_id = request.POST.get('alumno_id')
+    
+    if not alumno_id:
+        messages.error(request, "Debes seleccionar un alumno.")
+        return redirect('evaluar_mesa', mesa_id=mesa.id)
+    
+    alumno = get_object_or_404(Usuario, id=alumno_id)
+    from apps.examenes.services import ExamenService
+    inscripcion, error_msg = ExamenService.inscribir_alumno(mesa, alumno)
+    
+    if error_msg:
+        messages.warning(request, error_msg)
+    else:
+        # Al ser manual por un profe, marcamos como pagado automáticamente (cortesía institucional)
+        inscripcion.pago = None # O podrías crear un pago simbólico si fuera necesario
+        inscripcion.save()
+        messages.success(request, f"{alumno.nombre_completo} ha sido añadido a la mesa.")
+    
+    return redirect('evaluar_mesa', mesa_id=mesa.id)
 
 
 

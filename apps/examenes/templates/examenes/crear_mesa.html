@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Programar Mesa de Examen - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto pt-10 pb-20 px-4 animate-fade-in">
+    
+    <!-- Header -->
+    <div class="mb-12 space-y-4">
+        <a href="{% url 'dashboard_institucional' %}" class="inline-flex items-center gap-2 text-white/40 hover:text-orange-500 transition-colors font-bold uppercase tracking-[0.2em] text-[10px]">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Volver al Dashboard
+        </a>
+        <h1 class="text-6xl font-black italic tracking-tighter uppercase leading-none">
+            Programar <span class="text-orange-500">Mesa</span>
+        </h1>
+        <p class="text-white/30 font-bold uppercase tracking-[0.3em] text-xs">Convocatoria oficial a exámenes de grado</p>
+    </div>
+
+    <!-- Form Panel -->
+    <div class="glass-panel rounded-[3.5rem] p-10 md:p-16 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+            <svg class="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2v-4h2v4zm0-6h-2V7h2v4z"/></svg>
+        </div>
+
+        <form method="post" class="relative z-10 space-y-10">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- Fecha -->
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-black uppercase tracking-[0.3em] text-orange-500/70 ml-2">Fecha y Hora</label>
+                    {{ form.fecha }}
+                    {% if form.fecha.errors %}<p class="text-rose-500 text-[10px] font-bold mt-2 ml-2">{{ form.fecha.errors.0 }}</p>{% endif %}
+                </div>
+
+                <!-- Lugar -->
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-black uppercase tracking-[0.3em] text-orange-500/70 ml-2">Lugar / Sede</label>
+                    {{ form.lugar }}
+                    {% if form.lugar.errors %}<p class="text-rose-500 text-[10px] font-bold mt-2 ml-2">{{ form.lugar.errors.0 }}</p>{% endif %}
+                </div>
+
+                <!-- Maestro Invitado -->
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-black uppercase tracking-[0.3em] text-orange-500/70 ml-2">Maestro Invitado</label>
+                    {{ form.maestro_invitado }}
+                    <p class="text-white/20 text-[9px] italic ml-2">Opcional. Para maestros externos a la asociación.</p>
+                </div>
+
+                <!-- Precio Inscripción -->
+                <div class="space-y-3">
+                    <label class="block text-[10px] font-black uppercase tracking-[0.3em] text-orange-500/70 ml-2">Precio Base ($)</label>
+                    {{ form.precio_inscripcion }}
+                    {% if form.precio_inscripcion.errors %}<p class="text-rose-500 text-[10px] font-bold mt-2 ml-2">{{ form.precio_inscripcion.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <!-- Examinadores -->
+            <div class="space-y-3">
+                <label class="block text-[10px] font-black uppercase tracking-[0.3em] text-orange-500/70 ml-2">Mesa Examinadora</label>
+                {{ form.examinadores }}
+                <p class="text-white/20 text-[9px] italic ml-2">Mantén presionado Ctrl (o Cmd) para seleccionar múltiples profesores.</p>
+                {% if form.examinadores.errors %}<p class="text-rose-500 text-[10px] font-bold mt-2 ml-2">{{ form.examinadores.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-6 flex flex-col md:flex-row items-center gap-6">
+                <button type="submit" class="w-full md:w-auto px-12 py-6 bg-orange-600 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-[10px] hover:bg-orange-500 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-orange-600/20">
+                    Confirmar Programación ⛩️
+                </button>
+                <a href="{% url 'dashboard_institucional' %}" class="w-full md:w-auto px-12 py-6 rounded-[2rem] border border-white/10 text-center font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white/5 transition-all">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<style>
+    .glass-input {
+        @apply w-full bg-white/5 border border-white/10 rounded-[1.5rem] px-6 py-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all placeholder:text-white/10;
+    }
+    select[multiple].glass-input {
+        @apply py-2;
+    }
+    /* Estilos para el input datetime-local */
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

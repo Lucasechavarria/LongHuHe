@@ -366,7 +366,7 @@ class Examen(models.Model):
     """
     alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="examenes")
     grado = models.ForeignKey(Grado, on_delete=models.PROTECT, related_name="examenes_obtenidos")
-    fecha = models.DateField("Fecha del Examen")
+    fecha = models.DateField("Fecha del Examen", null=True, blank=True)
     examinador = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="examenes_tomados")
     examinador_externo = models.CharField("Maestro Invitado (si no está en la app)", max_length=150, blank=True, default="")
     observaciones = models.TextField("Observaciones / Detalles", blank=True)

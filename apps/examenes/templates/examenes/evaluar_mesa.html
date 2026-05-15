@@ -26,7 +26,7 @@
     </header>
 
     <!-- FORM EVALUADOR -->
-    <form method="POST" class="space-y-6">
+    <form method="POST" id="eval-form" class="space-y-6">
         {% csrf_token %}
         
         <div class="space-y-4">
@@ -92,14 +92,41 @@
             {% endfor %}
         </div>
 
-        <!-- Submission Section -->
-        <div class="sticky bottom-10 z-50 flex items-center justify-center pt-10">
-            <button type="submit" class="bg-white text-black px-16 py-6 rounded-[2.5rem] font-black uppercase tracking-widest shadow-[0_30px_60px_rgba(255,255,255,0.2)] hover:bg-orange-500 hover:text-white transition-all transform hover:scale-105 active:scale-95 group">
-                FINALIZAR Y <span class="text-orange-500 group-hover:text-white transition-all italic">PROCESAR ASCENSOS</span>
-            </button>
-        </div>
-
     </form>
+
+    <!-- Submission Section -->
+    <div class="sticky bottom-10 z-50 flex items-center justify-center pt-10">
+        <button type="submit" form="eval-form" class="bg-white text-black px-16 py-6 rounded-[2.5rem] font-black uppercase tracking-widest shadow-[0_30px_60px_rgba(255,255,255,0.2)] hover:bg-orange-500 hover:text-white transition-all transform hover:scale-105 active:scale-95 group">
+            FINALIZAR Y <span class="text-orange-500 group-hover:text-white transition-all italic">PROCESAR ASCENSOS</span>
+        </button>
+    </div>
+
+    <!-- MANUAL ENROLLMENT SECTION (Task 7.5) -->
+    <div class="glass-panel rounded-[3rem] p-10 mt-12 border border-white/5 relative overflow-hidden group">
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-all duration-700"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="space-y-2">
+                <h3 class="text-2xl font-black italic uppercase tracking-tighter">¿Falta algún <span class="text-blue-500">Alumno</span>?</h3>
+                <p class="text-white/20 text-[10px] font-bold uppercase tracking-widest">Inscribe candidatos manualmente a esta mesa</p>
+            </div>
+
+            <form action="{% url 'inscribir_alumno_mesa_manual' mesa.id %}" method="POST" class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+                {% csrf_token %}
+                <div class="w-full sm:w-72">
+                    <select name="alumno_id" class="w-full bg-black border border-white/10 rounded-2xl p-4 text-xs font-bold text-white/70 focus:border-blue-500 outline-none transition-all">
+                        <option value="">-- SELECCIONAR ALUMNO --</option>
+                        {% for alumno in alumnos_disponibles %}
+                        <option value="{{ alumno.id }}">{{ alumno.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95">
+                    AÑADIR A LA MESA +
+                </button>
+            </form>
+        </div>
+    </div>
 
 </div>
 {% endblock %}

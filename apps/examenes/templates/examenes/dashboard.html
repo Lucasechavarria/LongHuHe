@@ -37,6 +37,13 @@
                     <p class="text-5xl font-black tracking-tighter italic leading-none">{{ ingresos_mensuales|stringformat:".2f" }}</p>
                 </div>
              </div>
+
+             <a href="{% url 'crear_mesa_examen' %}" class="glass-panel p-8 rounded-[3rem] border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-orange-500 hover:scale-105 transition-all duration-500 group shadow-2xl">
+                <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                    <svg class="w-6 h-6 text-orange-500 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                </div>
+                <span class="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-white">Programar Mesa</span>
+             </a>
         </div>
     </header>
 
@@ -166,8 +173,8 @@
                 {% endfor %}
             </div>
             
-            <a href="{% url 'dashboard_institucional' %}" class="block w-full py-6 rounded-[2rem] border border-white/10 text-center text-[10px] font-black uppercase tracking-[0.4em] hover:bg-white hover:text-black transition-all">
-                Ver Calendario Completo 📅
+            <a href="/admin/examenes/mesaexamen/" target="_blank" class="block w-full py-6 rounded-[2rem] border border-white/10 text-center text-[10px] font-black uppercase tracking-[0.4em] hover:bg-white hover:text-black transition-all">
+                Gestionar Historial (Admin) 📂
             </a>
         </div>
 
