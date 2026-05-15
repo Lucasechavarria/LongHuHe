@@ -27,8 +27,8 @@ class AcademiaService:
             )
             return None, mensaje, False
 
-        # 2. Verificar Saldo si es Paquete
-        if clase.actividad.tipo_cobro == Pago.TipoPago.PAQUETE:
+        # 2. Verificar Saldo si es Paquete (excepto becados)
+        if clase.actividad.tipo_cobro == Pago.TipoPago.PAQUETE and not alumno.es_becado:
             if alumno.clases_disponibles <= 0:
                 mensaje = (
                     "No tienes clases disponibles. "

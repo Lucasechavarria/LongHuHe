@@ -23,7 +23,7 @@ class ScannerService:
         descuenta_paquete = False
         
         # 1. Validar Morosidad o Paquete
-        if estado_pago in ["al_dia", "atrasado"]:
+        if estado_pago in ["al_dia", "atrasado", "becado"]:
             es_valido = True
         elif alumno.fecha_prorroga and alumno.fecha_prorroga >= hoy:
             es_valido = True
@@ -65,19 +65,24 @@ class ScannerService:
         actividad_detectada = None
         if clase_actual:
             actividad_detectada = clase_actual.actividad
-        elif descuenta_paquete:
+        elif descuenta_paquete or alumno.es_becado:
+            # Para becados o paquetes en horario no registrado, buscamos su actividad principal
             inscripcion_activa = alumno.inscripciones_academia.filter(estado='regular').first()
             if inscripcion_activa:
                 actividad_detectada = inscripcion_activa.clase.actividad
             else:
-                actividad_detectada = "Clase Libre"
-            mensaje = f"Bloqueado: No tienes clase programada ahora ({ahora.strftime('%H:%M')})."
-            return {
-                'success': False,
-                'message': mensaje,
-                'color': 'red',
-                'alertas': ["HORARIO NO CORRESPONDIENTE"]
-            }
+                actividad_detectada = None # Se registrará como "General"
+            
+            # Los becados PUEDEN asistir a cualquier clase (clase libre)
+            # Los de paquete solo si tienen saldo (que ya validamos arriba)
+            if not alumno.es_becado and not descuenta_paquete:
+                mensaje = f"Bloqueado: No tienes clase programada ahora ({ahora.strftime('%H:%M')})."
+                return {
+                    'success': False,
+                    'message': mensaje,
+                    'color': 'red',
+                    'alertas': ["HORARIO NO CORRESPONDIENTE"]
+                }
 
         # 3. Cooldown
         limite_cooldown = ahora - timezone.timedelta(hours=3)
