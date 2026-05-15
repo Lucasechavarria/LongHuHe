@@ -27,14 +27,43 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
+        
+        /* Smooth Page Transitions */
+        .page-enter { opacity: 0; transform: scale(1.05) blur(10px); }
+        .page-enter-active { opacity: 1; transform: scale(1) blur(0); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
+    
+    <script>
+        function globalApp() {
+            return {
+                darkMode: localStorage.getItem('zen-theme') !== 'light',
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('zen-theme', this.darkMode ? 'dark' : 'light');
+                },
+                init() {
+                    // Pre-render logic if needed
+                },
+                syncCart(count) {
+                    this.$el.setAttribute('data-cart-count', count);
+                }
+            }
+        }
+    </script>
 
 </head>
 <body x-data="globalApp()" 
+      x-init="init()"
+      :class="darkMode ? 'dark bg-black' : 'light bg-cream-50'"
       @cart-update.window="syncCart($event.detail)" 
       data-cart-count="{{ request.session.carrito_count|default:0 }}"
-      class="font-sans antialiased text-[#E8E5DA] selection:bg-orange-500 selection:text-white">
+      class="font-sans antialiased text-[#E8E5DA] selection:bg-orange-500 selection:text-white min-h-screen overflow-x-hidden">
     
+    <!-- ZEN TRANSITION VEIL -->
+    <div x-init="$nextTick(() => $el.classList.add('opacity-0', 'pointer-events-none'))" 
+         class="fixed inset-0 bg-black z-[9999] transition-opacity duration-1000 flex items-center justify-center">
+        <div class="w-32 h-32 border-4 border-orange-600/20 border-t-orange-600 rounded-full animate-spin"></div>
+    </div>
     <!-- FONDO DINÁMICO ZEN-TECH -->
     <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
         <div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-orange-600/10 rounded-full blur-[150px] animate-pulse"></div>

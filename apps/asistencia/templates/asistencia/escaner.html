@@ -6,44 +6,48 @@
 <div x-data="scannerApp()" class="min-h-[70vh] flex flex-col items-center justify-center py-6">
     
     <!-- Encabezado -->
-    <div class="text-center mb-10">
-        <h2 class="text-4xl font-black uppercase text-white tracking-widest">Escáner de Asistencia</h2>
-        <p class="text-orange-500 font-bold uppercase tracking-widest text-xs mt-2">Profesor: {{ request.user_obj.nombre }}</p>
+    <div class="text-center mb-10 space-y-2">
+        <h2 class="text-6xl font-black uppercase text-white tracking-tighter italic">Lector <span class="text-orange-500">Zen</span></h2>
+        <p class="text-white/20 font-black uppercase tracking-[0.6em] text-[10px]">Profesor: {{ request.user_obj.nombre_completo }}</p>
     </div>
 
     <!-- Contenedor del Escáner -->
     <div class="w-full max-w-md relative">
         <!-- Overlay de Feedback Visual -->
         <div x-show="feedback.active" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-[3rem] p-8 text-center"
+             x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-1000"
+             x-transition:enter-start="opacity-0 scale-150 blur-3xl"
+             x-transition:enter-end="opacity-100 scale-100 blur-0"
+             class="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-[3.5rem] p-8 text-center grainy-glass"
              :class="feedback.bgColor">
             
-            <div class="bg-white/10 backdrop-blur-md rounded-full p-6 mb-6">
+            <div class="bg-white/10 backdrop-blur-xl rounded-[2rem] p-8 mb-8 shadow-2xl border border-white/20 relative group">
+                <div class="absolute inset-0 bg-white/20 rounded-[2rem] animate-ping opacity-20"></div>
                 <template x-if="feedback.success">
-                    <svg class="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    <svg class="w-24 h-24 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
                 </template>
                 <template x-if="!feedback.success">
-                    <svg class="w-20 h-20 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg class="w-24 h-24 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </template>
             </div>
 
-            <h3 class="text-3xl font-black text-white uppercase tracking-tight" x-text="feedback.title"></h3>
-            <p class="text-white/80 font-bold mt-2" x-text="feedback.message"></p>
+            <h3 class="text-5xl font-black text-white uppercase tracking-tighter leading-tight" x-text="feedback.title"></h3>
+            <p class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] mt-4" x-text="feedback.message"></p>
             
             <!-- Info del Alumno (si tuvo éxito) -->
             <template x-if="feedback.alumno">
-                <div class="mt-8 bg-black/20 rounded-3xl p-6 border border-white/10 w-full">
-                    <p class="text-[10px] uppercase font-black text-white/40 tracking-widest mb-1">Alumno Escaneado</p>
-                    <p class="text-lg font-black text-white" x-text="feedback.alumno.nombre"></p>
-                    <p class="text-xs font-bold text-white/60 uppercase" x-text="feedback.alumno.grado"></p>
+                <div class="mt-10 glass-card rounded-[2.5rem] p-8 border-white/20 w-full relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+                    <p class="text-[9px] uppercase font-black text-white/40 tracking-[0.5em] mb-3">Identidad Validada</p>
+                    <p class="text-3xl font-black text-white tracking-tighter uppercase" x-text="feedback.alumno.nombre"></p>
+                    <div class="inline-block mt-4 px-6 py-2 bg-black/40 rounded-full border border-white/5">
+                        <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest" x-text="feedback.alumno.grado"></p>
+                    </div>
                 </div>
             </template>
 
-            <button @click="resetFeedback" class="mt-10 bg-white text-black px-12 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl transform active:scale-95 transition-all">
-                Siguiente
+            <button @click="resetFeedback" class="mt-12 bg-white text-black px-16 py-5 rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-[0_20px_50px_rgba(255,255,255,0.3)] transform hover:scale-105 active:scale-95 transition-all duration-500 liquid-border">
+                Continuar
             </button>
         </div>
 
