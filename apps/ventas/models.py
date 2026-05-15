@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from apps.usuarios.models import Usuario
 from apps.academia.models import Actividad, Cronograma
 

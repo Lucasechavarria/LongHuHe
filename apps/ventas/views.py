@@ -11,12 +11,11 @@ from apps.usuarios.models import Usuario
 from apps.usuarios.views import alumno_requerido, profe_requerido, requiere_rol
 from apps.academia.models import Actividad
 from django.http import JsonResponse
-from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante, CierreCaja
+from .models import Pago, Pedido, Producto, CategoriaProducto, ProductoVariante, CierreCaja
 from .forms import PagoTipoForm, PagoMetodoForm, PagoComprobanteForm
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncDate
+from django.db.models import Sum
 from .services.payments.factory import PaymentGatewayFactory
 import csv
 from io import BytesIO

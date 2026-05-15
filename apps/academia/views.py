@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from apps.usuarios.views import alumno_requerido
 from .models import Cronograma, InscripcionClase, Sede, Actividad
 from apps.usuarios.models import Usuario
-from django.db import transaction
+
 
 @alumno_requerido
 def lista_clases(request):

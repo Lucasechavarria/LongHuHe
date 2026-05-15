@@ -1,11 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import profe_requerido
-from apps.academia.models import Cronograma
-from .models import RegistroAsistencia
-from django.utils import timezone
+
 import json
 from .services import ScannerService
 
@@ -22,8 +20,7 @@ def registrar_asistencia_qr(request):
         try:
             data = json.loads(request.body)
             uuid_carnet = data.get('uuid')
-            
-            alumno = get_object_or_404(Usuario, uuid_carnet=uuid_carnet)
+
             # Validaciones y Procesamiento vía Service Layer
             resultado = ScannerService.procesar_escaneo(uuid_carnet)
             return JsonResponse(resultado)

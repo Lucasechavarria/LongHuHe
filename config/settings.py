@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 import dj_database_url
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
@@ -143,7 +144,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Configuración de Base de Datos: PRIORIDAD REMOTA si existe el URL
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-import sys
+
 if 'test' in sys.argv:
     # Fuerza SQLite para los tests para evitar errores de permisos en DBs remotas
     DATABASES = {

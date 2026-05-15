@@ -1,6 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 from django.db import transaction, models
-from apps.ventas.models import PedidoItem
+
 
 class PedidoService:
     """

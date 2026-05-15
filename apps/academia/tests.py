@@ -2,7 +2,6 @@ from django.test import TestCase
 from apps.usuarios.models import Usuario
 from apps.academia.models import Actividad, Cronograma, InscripcionClase, Sede
 from apps.academia.services import AcademiaService
-from apps.ventas.models import Pago
 from datetime import date, timedelta
 
 class AcademiaServiceTest(TestCase):

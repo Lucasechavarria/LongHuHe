@@ -1,17 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Count, Sum
+
 from django.utils import timezone
-from datetime import timedelta
 from apps.usuarios.views import profe_requerido, alumno_requerido
-from apps.usuarios.models import Usuario, Grado
-from decimal import Decimal
-from apps.asistencia.models import RegistroAsistencia
 from apps.ventas.models import Pago
 from .models import MesaExamen, InscripcionExamen
 from django.contrib import messages
 
-import json
-from django.core.serializers.json import DjangoJSONEncoder
+
 
 @profe_requerido
 def dashboard_institucional(request):

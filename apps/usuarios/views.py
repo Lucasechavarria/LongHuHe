@@ -133,7 +133,7 @@ def identificacion(request):
                 if alumno.fecha_nacimiento and str(alumno.fecha_nacimiento.year) == nacimiento:
                     request.session['alumno_id'] = alumno.id
                     request.session['es_profe'] = alumno.es_profe
-                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_EXITOSO, f"Login exitoso via DNI/Nacimiento", usuario=alumno)
+                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_EXITOSO, "Login exitoso via DNI/Nacimiento", usuario=alumno)
                     cache.delete(key) # Limpiar intentos
                     messages.success(request, f"¡Bienvenido, {alumno.nombre}!")
                     return redirect('perfil')

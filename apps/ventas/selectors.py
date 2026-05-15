@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
 from decimal import Decimal
-from apps.ventas.models import Pago, Pedido, CierreCaja
+from apps.ventas.models import Pago, Pedido
 
 class TesoreriaSelector:
     @staticmethod

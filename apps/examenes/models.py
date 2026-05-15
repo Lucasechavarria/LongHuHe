@@ -1,5 +1,5 @@
 from django.db import models, transaction
-from apps.usuarios.models import Usuario, Grado, Examen
+from apps.usuarios.models import Usuario, Grado
 
 class MesaExamen(models.Model):
     """ Convocatoria formal a examen (RF7.1) """

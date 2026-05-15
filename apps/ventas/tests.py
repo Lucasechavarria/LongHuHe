@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.utils import timezone
 from apps.usuarios.models import Usuario
 from apps.academia.models import Actividad, Sede, Cronograma
-from .models import Pago, Pedido, Producto, CategoriaProducto
+from .models import Pago, Producto, CategoriaProducto
 from .services.pago_service import PagoService
 from .services.tienda_service import TiendaService
 from .services.pedido_service import PedidoService

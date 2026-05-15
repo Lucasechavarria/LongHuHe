@@ -110,7 +110,8 @@ class Usuario(AbstractUser):
     
     @property
     def dni_mask(self):
-        if not self.dni: return ""
+        if not self.dni:
+            return ""
         return f"{'*' * (len(self.dni)-4)}{self.dni[-4:]}"
 
     fecha_nacimiento = models.DateField("Fecha de Nacimiento", null=True, blank=True)
