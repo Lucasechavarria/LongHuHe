@@ -1,65 +1,78 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Identificación - Long Hu He{% endblock %}
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
 
 {% block content %}
-<div class="flex flex-col items-center justify-center min-h-[60vh] space-y-12">
-    <div class="text-center space-y-4">
-        <h2 class="text-6xl font-black tracking-tighter uppercase text-white leading-tight">
-            Ingresa a la App
+<div class="flex flex-col items-center justify-center min-h-screen space-y-16 animate-fade-in px-6">
+    
+    <!-- BRANDING FOCUS -->
+    <div class="text-center space-y-6 relative">
+        <div class="absolute -inset-10 bg-orange-600/10 blur-[100px] rounded-full opacity-50"></div>
+        <h2 class="text-7xl md:text-9xl font-black tracking-tighter uppercase text-white leading-[0.8] relative z-10">
+            Ingresa a <br><span class="text-orange-500 drop-shadow-[0_0_50px_rgba(249,115,22,0.4)]">la App</span>
         </h2>
-        <p class="text-white/40 text-xl font-bold uppercase tracking-widest">
-            Usa tu DNI o Celular
+        <p class="text-white/30 text-xs font-black uppercase tracking-[0.8em] relative z-10 pl-[0.8em]">
+            Identificación de Alumno
         </p>
     </div>
 
-    <div class="premium-card w-full rounded-[3rem] p-10 shadow-2xl">
-        <form method="post" class="space-y-8">
+    <!-- LOGIN PANEL -->
+    <div class="glass-panel w-full max-w-xl rounded-[4rem] p-12 shadow-[0_50px_100px_rgba(0,0,0,0.6)] border border-white/10 relative overflow-hidden group">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-orange-600/5 rounded-full blur-[100px]"></div>
+        
+        <form method="post" class="space-y-10 relative z-10">
             {% csrf_token %}
             
-            <div class="relative group">
-                <input type="text" 
-                       name="identificador" 
-                       required
-                       placeholder="DNI O CELULAR"
-                       class="w-full bg-white/5 border-4 border-white/5 rounded-t-3xl border-b-0 py-8 px-10 text-4xl font-black text-center text-white placeholder-white/20 focus:border-orange-500 focus:bg-white/10 transition-all outline-none uppercase tracking-tighter shadow-inner">
+            <div class="space-y-4">
+                <div class="relative">
+                    <input type="text" 
+                           name="identificador" 
+                           required
+                           placeholder="DNI O CELULAR"
+                           class="w-full bg-black/40 border-2 border-white/5 rounded-[2.5rem] py-10 px-10 text-4xl font-black text-center text-white placeholder-white/10 focus:border-orange-500 focus:bg-black/60 transition-all duration-500 outline-none uppercase tracking-tighter shadow-2xl">
+                </div>
                 
-                <input type="number" 
-                       name="nacimiento" 
-                       required
-                       placeholder="Año de Nacto."
-                       class="w-full bg-white/5 border-4 border-white/5 rounded-b-3xl border-t-white/10 py-8 px-10 text-3xl font-bold text-center text-orange-400 placeholder-orange-500/30 focus:border-orange-500 focus:bg-white/10 transition-all outline-none tracking-[0.2em] shadow-inner">
+                <div class="relative">
+                    <input type="number" 
+                           name="nacimiento" 
+                           required
+                           placeholder="Año de Nacimiento (Ej: 1985)"
+                           class="w-full bg-black/40 border-2 border-white/5 rounded-[2.5rem] py-8 px-10 text-2xl font-bold text-center text-orange-400 placeholder-orange-500/20 focus:border-orange-500 focus:bg-black/60 transition-all duration-500 outline-none tracking-[0.3em] shadow-2xl">
+                </div>
 
-                <p class="text-white/20 text-center font-bold uppercase tracking-widest pt-4 text-sm">Ingresa tu DNI (o celular) y tu Año de Nacimiento (Ej: 1956)</p>
+                <p class="text-white/20 text-center font-bold uppercase tracking-[0.2em] pt-4 text-[10px] leading-relaxed">
+                    Tu contraseña es tu año de nacimiento <br> registrado en la ficha médica.
+                </p>
             </div>
 
-            <div class="pt-8 flex flex-col gap-6">
+            <div class="pt-6 flex flex-col gap-8">
                 <button type="submit" 
-                        class="w-full bg-orange-500 text-white rounded-[2.5rem] py-8 text-3xl font-black uppercase shadow-[0_20px_50px_rgba(255,140,0,0.3)] hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 tracking-widest">
-                    INGRESAR
+                        class="btn-liquid w-full bg-orange-600 text-white rounded-[2.5rem] py-10 text-3xl font-black uppercase shadow-[0_20px_50px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all duration-500 tracking-[0.2em] relative overflow-hidden group/btn">
+                    <span class="relative z-10">INGRESAR</span>
                 </button>
                 
-                <div class="relative flex items-center py-4">
-                    <div class="flex-grow border-t border-white/5"></div>
-                    <span class="flex-shrink mx-4 text-white/10 uppercase font-black text-xs tracking-widest">O</span>
-                    <div class="flex-grow border-t border-white/5"></div>
+                <div class="flex items-center gap-4 py-2">
+                    <div class="h-px flex-1 bg-white/5"></div>
+                    <span class="text-white/10 font-black uppercase text-[10px] tracking-[0.5em]">Nuevos Alumnos</span>
+                    <div class="h-px flex-1 bg-white/5"></div>
                 </div>
 
                 <a href="{% url 'onboarding' %}" 
-                   class="w-full text-center py-6 border-4 border-dashed border-white/10 rounded-[2.5rem] text-white/40 font-black uppercase text-lg tracking-[0.2em] hover:border-orange-500/30 hover:text-white transition-all">
+                   class="w-full text-center py-6 border-2 border-dashed border-white/5 rounded-[2.5rem] text-white/30 font-black uppercase text-xs tracking-[0.4em] hover:border-orange-500/30 hover:text-white transition-all duration-500">
                     No soy alumno · INSCRIBIRME
                 </a>
             </div>
         </form>
     </div>
 
-    <!-- Decoration subtle -->
-    <div class="opacity-20 flex gap-12 pt-10">
-        <div class="w-2 h-2 rounded-full bg-white animate-ping"></div>
-        <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
-        <div class="w-2 h-2 rounded-full bg-white animate-ping"></div>
+    <!-- SECURITY TAG -->
+    <div class="flex items-center gap-3 text-white/10 font-black uppercase text-[9px] tracking-[0.5em]">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        Conexión Segura SSL Long Hu He
     </div>
+
 </div>
 {% endblock %}

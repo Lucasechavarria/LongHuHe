@@ -4,82 +4,90 @@
 {% block title %}Historial de Pagos - Long Hu He{% endblock %}
 
 {% block content %}
-<div class="animate-fade-in space-y-10" x-data="{ tab: 'pagos' }">
+<div class="animate-fade-in space-y-16 pb-32 px-4 max-w-5xl mx-auto" x-data="{ tab: 'pagos' }">
     
-    <!-- HEADER -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
-        <div class="space-y-2">
-            <p class="text-[10px] md:text-xs font-black uppercase text-orange-500 tracking-[0.4em]">Finanzas Personales</p>
-            <h1 class="text-5xl md:text-7xl font-black uppercase text-white tracking-tighter leading-none">Mi <span class="text-orange-600">Historial</span></h1>
-            <p class="text-white/40 font-bold max-w-md">Control total de tus pagos de cuotas, clases y compras en la tienda oficial.</p>
+    <!-- HEADER PREMIUM -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-10 border-b border-white/5 pb-16 pt-10">
+        <div class="space-y-6">
+            <div class="flex items-center gap-4">
+                <span class="w-12 h-px bg-orange-500"></span>
+                <p class="text-[10px] font-black uppercase text-orange-500 tracking-[0.5em]">Finanzas Personales</p>
+            </div>
+            <h1 class="text-6xl md:text-8xl font-black uppercase text-white tracking-tighter leading-[0.8]">
+                Mi <span class="text-orange-500 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]">Historial</span>
+            </h1>
+            <p class="text-white/40 font-bold max-w-md text-sm leading-loose uppercase tracking-widest">Control total de tus transacciones institucionales y compras.</p>
         </div>
         
-        <div class="flex bg-black/40 backdrop-blur-3xl p-1.5 rounded-3xl border border-white/5 self-start">
+        <div class="flex bg-black/40 backdrop-blur-3xl p-2 rounded-[2rem] border border-white/10 self-start shadow-2xl">
             <button @click="tab = 'pagos'" 
-                    :class="tab === 'pagos' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'"
-                    class="px-8 py-4 rounded-2.5xl text-xs font-black uppercase tracking-widest transition-all">
+                    :class="tab === 'pagos' ? 'bg-orange-600 text-white shadow-[0_10px_30px_rgba(234,88,12,0.4)]' : 'text-white/40 hover:text-white'"
+                    class="px-10 py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500">
                 Actividades
             </button>
             <button @click="tab = 'pedidos'" 
-                    :class="tab === 'pedidos' ? 'bg-shaolin-red text-white shadow-xl' : 'text-white/40 hover:text-white'"
-                    class="px-8 py-4 rounded-2.5xl text-xs font-black uppercase tracking-widest transition-all">
+                    :class="tab === 'pedidos' ? 'bg-white text-black shadow-xl' : 'text-white/40 hover:text-white'"
+                    class="px-10 py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500">
                 Tienda
             </button>
         </div>
     </div>
 
     <!-- SECCIÓN PAGOS (ACTIVIDADES/CUOTAS) -->
-    <div x-show="tab === 'pagos'" x-transition class="space-y-6">
+    <div x-show="tab === 'pagos'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-10" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-8">
         {% if pagos %}
-            <div class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 gap-6">
                 {% for pago in pagos %}
-                <div class="premium-card rounded-[2.5rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-white/5 group hover:border-orange-500/30 transition-all">
+                <div class="glass-panel rounded-[3.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-10 border border-white/5 group hover:border-orange-500/30 transition-all duration-700 relative overflow-hidden">
+                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px]"></div>
                     
-                    <div class="flex items-center gap-6 w-full md:w-auto">
-                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all">
+                    <div class="flex items-center gap-10 w-full md:w-auto relative z-10">
+                        <div class="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10 group-hover:bg-orange-600 group-hover:border-transparent group-hover:scale-110 transition-all duration-700 text-white">
                             {% if pago.tipo == 'examen' %}
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             {% elif pago.metodo == 'mercadopago' %}
-                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
                             {% else %}
-                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                             {% endif %}
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase text-orange-500 tracking-widest">{{ pago.get_tipo_display }}</p>
-                            <h3 class="text-xl md:text-2xl font-black text-white group-hover:text-orange-500 transition-colors">
+                        <div class="space-y-1">
+                            <p class="text-[9px] font-black uppercase text-orange-500 tracking-[0.4em] italic">{{ pago.get_tipo_display }}</p>
+                            <h3 class="text-2xl md:text-3xl font-black text-white group-hover:text-orange-500 transition-colors tracking-tighter">
                                 {% if pago.tipo == 'examen' %}
                                     {% with insc=pago.inscripcion_examen.first %}
-                                        Derecho de Examen para {{ insc.grado_a_aspirar.nombre_formateado|default:"el siguiente nivel" }}
+                                        Derecho de Examen: {{ insc.grado_a_aspirar.nombre_formateado|default:"Próximo Nivel" }}
                                     {% endwith %}
                                 {% else %}
                                     {{ pago.actividad.nombre }}
                                 {% endif %}
                             </h3>
-                            <p class="text-white/40 text-xs font-bold">{{ pago.fecha_registro|date:"d M Y, H:i" }}</p>
+                            <p class="text-white/20 text-[10px] font-black uppercase tracking-widest">{{ pago.fecha_registro|date:"d M Y · H:i" }} HS</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between md:justify-end gap-8 w-full md:w-auto border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
-                        <div class="text-right">
+                    <div class="flex items-center justify-between md:justify-end gap-12 w-full md:w-auto border-t md:border-t-0 border-white/5 pt-8 md:pt-0 relative z-10">
+                        <div class="text-right space-y-1">
                             {% if pago.monto_descuento > 0 %}
                                 <p class="text-white/20 text-xs line-through font-bold">${{ pago.monto_original }}</p>
                             {% endif %}
-                            <p class="text-3xl font-black text-white tracking-tighter">${{ pago.monto }}</p>
-                            <p class="text-[10px] font-bold text-white/30 uppercase">{{ pago.get_metodo_display }}</p>
+                            <p class="text-5xl font-black text-white tracking-tighter italic">${{ pago.monto }}</p>
+                            <p class="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">{{ pago.get_metodo_display }}</p>
                         </div>
 
-                        <div class="flex flex-col items-end gap-2">
+                        <div class="flex flex-col items-end gap-3">
                             {% if pago.estado == 'approved' %}
-                                <span class="bg-green-500/10 text-green-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-500/20">Aprobado</span>
+                                <span class="bg-green-500/10 text-green-500 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-green-500/20">Aprobado</span>
                             {% elif pago.estado == 'pendiente' %}
-                                <span class="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-500/20">Pendiente</span>
+                                <span class="bg-orange-500/10 text-orange-500 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-orange-500/20 animate-pulse">Pendiente</span>
                             {% else %}
-                                <span class="bg-red-500/10 text-red-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-500/20">Rechazado</span>
+                                <span class="bg-rose-500/10 text-rose-500 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-rose-500/20">Rechazado</span>
                             {% endif %}
                             
                             {% if pago.comprobante %}
-                                <a href="{{ pago.comprobante.url }}" target="_blank" class="text-[10px] font-black uppercase text-white/40 hover:text-white transition-colors underline underline-offset-4">Ver Ticket</a>
+                                <a href="{{ pago.comprobante.url }}" target="_blank" class="btn-liquid px-6 py-2 rounded-full bg-white/5 text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white border border-white/10">
+                                    Ver Ticket
+                                </a>
                             {% endif %}
                         </div>
                     </div>
@@ -87,54 +95,57 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="py-20 text-center space-y-4">
-                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-12 h-12 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div class="py-40 text-center glass-panel rounded-[4rem] border-2 border-dashed border-white/5 flex flex-col items-center gap-10">
+                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-white/10">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <h3 class="text-2xl font-black text-white/40 uppercase">Aún no registras pagos</h3>
-                <p class="text-white/20 max-w-xs mx-auto">Cuando realices el pago de tu cuota o clase, aparecerá en esta sección.</p>
-                <div class="pt-6">
-                    <a href="{% url 'pago_tipo' %}" class="inline-block bg-orange-600 text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform">Realizar Primer Pago</a>
+                <div class="space-y-4">
+                    <h3 class="text-3xl font-black text-white/20 uppercase tracking-tighter">Sin actividad financiera</h3>
+                    <p class="text-white/10 text-xs font-bold uppercase tracking-widest max-w-xs mx-auto">Tus registros de cuotas y clases aparecerán aquí una vez procesados.</p>
                 </div>
+                <a href="{% url 'pago_tipo' %}" class="btn-liquid bg-orange-600 text-white px-12 py-6 rounded-[2rem] font-black uppercase text-xs tracking-[0.4em] shadow-2xl hover:bg-orange-500 transition-all">
+                    Realizar Pago
+                </a>
             </div>
         {% endif %}
     </div>
 
     <!-- SECCIÓN PEDIDOS (TIENDA) -->
-    <div x-show="tab === 'pedidos'" x-transition class="space-y-6">
+    <div x-show="tab === 'pedidos'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-10" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-8">
         {% if pedidos %}
-             <div class="grid grid-cols-1 gap-4">
+             <div class="grid grid-cols-1 gap-6">
                 {% for pedido in pedidos %}
-                <div class="premium-card rounded-[2.5rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-white/5 group hover:border-shaolin-red/30 transition-all">
+                <div class="glass-panel rounded-[3.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-10 border border-white/5 group hover:border-white/30 transition-all duration-700 relative overflow-hidden">
+                    <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-white/5 rounded-full blur-[80px]"></div>
                     
-                    <div class="flex items-center gap-6 w-full md:w-auto">
-                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10 group-hover:bg-shaolin-red group-hover:text-white transition-all">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    <div class="flex items-center gap-10 w-full md:w-auto relative z-10">
+                        <div class="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10 group-hover:bg-white group-hover:text-black group-hover:scale-110 transition-all duration-700">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase text-shaolin-red tracking-widest">Pedido #{{ pedido.id }}</p>
-                            <h3 class="text-xl md:text-2xl font-black text-white group-hover:text-shaolin-red transition-colors">
+                        <div class="space-y-1">
+                            <p class="text-[9px] font-black uppercase text-white/40 tracking-[0.4em]">Orden #{{ pedido.id }}</p>
+                            <h3 class="text-2xl md:text-3xl font-black text-white group-hover:text-orange-500 transition-colors tracking-tighter">
                                 {% for item in pedido.items.all %}
                                     {{ item.producto.nombre }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             </h3>
-                            <p class="text-white/40 text-xs font-bold">{{ pedido.fecha_creacion|date:"d M Y, H:i" }}</p>
+                            <p class="text-white/20 text-[10px] font-black uppercase tracking-widest">{{ pedido.fecha_creacion|date:"d M Y · H:i" }} HS</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between md:justify-end gap-8 w-full md:w-auto border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
-                        <div class="text-right">
-                            <p class="text-3xl font-black text-white tracking-tighter">${{ pedido.total }}</p>
-                            <p class="text-[10px] font-bold text-white/30 uppercase">{{ pedido.get_metodo_pago_display }}</p>
+                    <div class="flex items-center justify-between md:justify-end gap-12 w-full md:w-auto border-t md:border-t-0 border-white/5 pt-8 md:pt-0 relative z-10">
+                        <div class="text-right space-y-1">
+                            <p class="text-5xl font-black text-white tracking-tighter italic">${{ pedido.total }}</p>
+                            <p class="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">{{ pedido.get_metodo_pago_display }}</p>
                         </div>
 
-                        <div class="flex flex-col items-end gap-2">
+                        <div class="flex flex-col items-end gap-3">
                             {% if pedido.estado == 'pagado' or pedido.estado == 'entregado' %}
-                                <span class="bg-green-500/10 text-green-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-green-500/20">Completado</span>
+                                <span class="bg-green-500/10 text-green-500 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-green-500/20">Completado</span>
                             {% elif pedido.estado == 'pendiente' %}
-                                <span class="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-500/20">Pendiente</span>
+                                <span class="bg-orange-500/10 text-orange-500 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-orange-500/20 animate-pulse">Pendiente</span>
                             {% else %}
-                                <span class="bg-white/5 text-white/40 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 text-center">{{ pedido.get_estado_display }}</span>
+                                <span class="bg-white/5 text-white/40 px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-white/10">{{ pedido.get_estado_display }}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -142,23 +153,24 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="py-20 text-center space-y-4">
-                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-12 h-12 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            <div class="py-40 text-center glass-panel rounded-[4rem] border-2 border-dashed border-white/5 flex flex-col items-center gap-10">
+                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-white/10">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 </div>
-                <h3 class="text-2xl font-black text-white/40 uppercase">Tu carrito está esperando</h3>
-                <p class="text-white/20 max-w-xs mx-auto">Descubre equipos, uniformes y accesorios exclusivos en nuestra tienda física y online.</p>
-                <div class="pt-6">
-                    <a href="{% url 'tienda_inicio' %}" class="inline-block bg-shaolin-red text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform">Visitar Tienda</a>
+                <div class="space-y-4">
+                    <h3 class="text-3xl font-black text-white/20 uppercase tracking-tighter">La tienda te espera</h3>
+                    <p class="text-white/10 text-xs font-bold uppercase tracking-widest max-w-xs mx-auto">Equipamiento oficial, uniformes y accesorios de la escuela.</p>
                 </div>
+                <a href="{% url 'tienda_inicio' %}" class="btn-liquid bg-white text-black px-12 py-6 rounded-[2rem] font-black uppercase text-xs tracking-[0.4em] shadow-2xl hover:bg-orange-500 hover:text-white transition-all">
+                    Visitar Tienda
+                </a>
             </div>
         {% endif %}
     </div>
 
     <!-- BOTÓN VOLVER -->
-    <div class="pt-10 flex justify-center">
-        <a href="{% url 'perfil' %}" class="flex items-center gap-4 text-white/40 hover:text-white transition-all uppercase text-[10px] font-black tracking-widest">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    <div class="pt-20 flex justify-center">
+        <a href="{% url 'perfil' %}" class="glass-card px-10 py-5 rounded-full text-[10px] font-black uppercase text-white/40 tracking-[0.5em] hover:text-orange-500 hover:border-orange-500/30 transition-all duration-500">
             Volver a Mi Perfil
         </a>
     </div>

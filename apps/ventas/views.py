@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.core.files.base import ContentFile
 from decimal import Decimal
 from apps.usuarios.models import Usuario
-from apps.usuarios.views import alumno_requerido, profe_requerido
+from apps.usuarios.views import alumno_requerido, profe_requerido, requiere_rol
 from apps.academia.models import Actividad
 from django.http import JsonResponse
 from .models import Pago, Pedido, PedidoItem, Producto, CategoriaProducto, ProductoVariante, CierreCaja
@@ -17,7 +17,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
-from .services.mercadopago_service import MercadoPagoService
+from .services.payments.factory import PaymentGatewayFactory
 import csv
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -92,58 +92,13 @@ def checkout(request):
     alumno = request.user_obj
     metodo = request.POST.get('metodo', 'transferencia')
     
-    # 1. Crear el Pedido (Pendiente)
-    pedido = Pedido.objects.create(
-        alumno=alumno,
-        estado=Pedido.Estado.PENDIENTE,
-        metodo_pago=metodo
-    )
-    
-    total_gral = Decimal('0.0')
-    tiene_backorder = False
-
-    for doc in carrito_data:
-        # Bloqueamos el producto y la variante para que nadie más los mueva durante la transacción
-        prod = get_object_or_404(Producto.objects.select_for_update(), id=doc['id'])
-        var = None
-        qty_raw = doc.get('qty', 1)
-        try:
-            qty = int(qty_raw)
-        except (ValueError, TypeError):
-            qty = 1
-        
-        if doc.get('variant_id'):
-            var = get_object_or_404(ProductoVariante.objects.select_for_update(), id=doc['variant_id'])
-            if var.stock < qty:
-                if not prod.permite_backorder:
-                    transaction.set_rollback(True)
-                    messages.warning(request, f"¡Error! Por milisegundos alguien más se llevó lo último de {prod.nombre} ({var.talle}).")
-                    return redirect('carrito_ver')
-                else:
-                    tiene_backorder = True
-        elif prod.stock < qty:
-            if not prod.permite_backorder:
-                transaction.set_rollback(True)
-                messages.warning(request, f"¡Error! Por milisegundos alguien más se llevó lo último de {prod.nombre}.")
-                return redirect('carrito_ver')
-            else:
-                tiene_backorder = True
-        
-        precio_unitario = prod.precio if prod.precio else Decimal('0.00')
-        item_total = precio_unitario * qty
-        total_gral += item_total
-        
-        PedidoItem.objects.create(
-            pedido=pedido,
-            producto=prod,
-            variante=var,
-            cantidad=qty,
-            precio_unitario=prod.precio
-        )
-    
-    pedido.total = total_gral
-    pedido.backorder = tiene_backorder
-    pedido.save() # Calcula comisiones (ahora sin recursión)
+    # 1. Crear el Pedido (Pendiente) y Procesar Carrito vía Service Layer
+    from .services.tienda_service import TiendaService
+    try:
+        pedido = TiendaService.crear_pedido_desde_carrito(alumno, carrito_data, metodo)
+    except ValueError as e:
+        messages.warning(request, str(e))
+        return redirect('carrito_ver')
     
     # Limpiar carrito de la sesión (el localStorage se limpia en la vista 'gracias')
     request.session['carrito'] = []
@@ -152,8 +107,8 @@ def checkout(request):
     
     if metodo == 'mercadopago':
         try:
-            mp = MercadoPagoService()
-            init_point = mp.crear_preferencia_tienda(
+            gateway = PaymentGatewayFactory.get_gateway()
+            init_point = gateway.crear_preferencia_tienda(
                 titulo=f"Pedido #{pedido.id} - Academia LHH",
                 precio=float(pedido.total),
                 url_retorno=request.build_absolute_uri(reverse('gracias') + f"?pedido_id={pedido.id}"),
@@ -218,11 +173,9 @@ def validar_signature_mp(request):
     return hmac.compare_digest(expected, v1)
 
 @profe_requerido
+@requiere_rol('rol_gestion_tesoreria')
 def gestion_tesoreria(request):
     """ Panel administrativo para el tesorero de la asociacion con Dashboard de Métricas. """
-    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
-        messages.error(request, "No tienes permisos para acceder a Tesorería.")
-        return redirect('splash')
     
     hoy = timezone.now().date()
     
@@ -264,70 +217,28 @@ def gestion_tesoreria(request):
             logger.error(f"Error en auto-cierre de tesorería: {e}", exc_info=True)
     
     # 1. KPIs Principales (Métricas Globales del Mes)
-    pagos_aprobados_mes = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO, 
-        fecha_registro__month=hoy.month,
-        fecha_registro__year=hoy.year
-    )
-    pedidos_pagados_mes = Pedido.objects.filter(
-        estado__in=[Pedido.Estado.PAGADO, Pedido.Estado.ENTREGADO],
-        fecha_registro__month=hoy.month,
-        fecha_registro__year=hoy.year
-    )
-    
-    ingresos_pagos = pagos_aprobados_mes.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
-    ingresos_pedidos = pedidos_pagados_mes.aggregate(total=Sum('total'))['total'] or Decimal('0.00')
-    ingresos_totales_mes = ingresos_pagos + ingresos_pedidos
+    from .selectors import TesoreriaSelector
+    kpis_mes = TesoreriaSelector.obtener_kpis_mes(hoy.month, hoy.year)
+    ingresos_totales_mes = kpis_mes['ingresos_totales']
+    ingresos_pagos = kpis_mes['ingresos_pagos']
+    ingresos_pedidos = kpis_mes['ingresos_pedidos']
     
     pendientes_count = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).count()
     pendientes_monto = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
     
     # 2. Tendencia Diaria (Últimos 30 días)
-    tendencia_data = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__gte=timezone.now() - timedelta(days=30)
-    ).annotate(date=TruncDate('fecha_registro')).values('date').annotate(
-        total=Sum('monto')
-    ).order_by('date')
-    
-    chart_labels = [d['date'].strftime("%d/%m") for d in tendencia_data]
-    chart_values = [float(d['total']) for d in tendencia_data]
+    tendencia = TesoreriaSelector.obtener_tendencia_diaria()
+    chart_labels = tendencia['labels']
+    chart_values = tendencia['values']
     
     # 3. Métodos de Pago
-    metodos_data = Pago.objects.filter(estado=Pago.EstadoPago.APROBADO).values('metodo').annotate(count=Count('id'))
-    metodos_labels = [dict(Pago.MetodoPago.choices).get(d['metodo'], d['metodo']) for d in metodos_data]
-    metodos_values = [d['count'] for d in metodos_data]
+    dist_metodos = TesoreriaSelector.obtener_distribucion_metodos()
+    metodos_labels = dist_metodos['labels']
+    metodos_values = dist_metodos['values']
     
     # 4. Desglose por Actividad (KPIs Solicitados)
-    # Obtenemos el total aprobado por cada actividad
-    ingresos_por_actividad_qs = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__month=hoy.month,
-        fecha_registro__year=hoy.year
-    ).values('actividad__nombre').annotate(total=Sum('monto'))
-    
-    # Desglose por Tipo de Pago (Cuotas vs Clases)
-    ingresos_por_tipo = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__month=hoy.month,
-        fecha_registro__year=hoy.year
-    ).values('tipo').annotate(total=Sum('monto'))
-    
-    # Clasificamos para el template
-    stats_tipos = {
-        'mes': Decimal('0.00'),
-        'clase_suelta': Decimal('0.00'),
-        'paquete': Decimal('0.00'),
-        'examen': Decimal('0.00'),
-    }
-    for item in ingresos_por_tipo:
-        stats_tipos[item['tipo']] = item['total']
-
-    # Limpiamos para el template (agregando 'Sin Actividad' para Exámenes u otros si corresponde)
-    ingresos_por_actividad = []
-    for item in ingresos_por_actividad_qs:
-        nombre = item['actividad__nombre'] or "Otros (Exámenes/Varios)"
-        ingresos_por_actividad.append({'nombre': nombre, 'total': item['total']})
+    ingresos_por_actividad = TesoreriaSelector.obtener_ingresos_por_actividad(hoy.month, hoy.year)
+    stats_tipos = TesoreriaSelector.obtener_ingresos_por_tipo(hoy.month, hoy.year)
 
     # 5. Pagos Rechazados (Registro y Auditoría)
     pagos_rechazados_mes = Pago.objects.filter(
@@ -487,62 +398,41 @@ def exportar_tesoreria_pdf(request):
     if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
         return HttpResponse("No autorizado", status=403)
     
+    from .services.tesoreria_service import TesoreriaService
     hoy = timezone.now()
-    buffer = generar_pdf_tesoreria(hoy.month, hoy.year)
+    buffer = TesoreriaService.generar_pdf_tesoreria(hoy.month, hoy.year)
     
     response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="cierre_caja_{hoy.strftime("%Y_%m")}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="reporte_tesoreria_{hoy.strftime("%Y_%m")}.pdf"'
     return response
 
 @profe_requerido
+@requiere_rol('rol_gestion_tesoreria')
 def cerrar_caja_mensual(request):
-    """ Task 12.2: Genera el PDF, lo guarda en el historial y 'cierra' el mes. """
-    if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
-        return HttpResponse("No autorizado", status=403)
-    
-    hoy = timezone.now()
-    # Evitar duplicados para el mismo mes/año (simplificado)
-    if CierreCaja.objects.filter(mes=hoy.month, anio=hoy.year).exists():
-        messages.warning(request, f"Ya existe un cierre guardado para {hoy.strftime('%B %Y')}.")
-        return redirect('gestion_tesoreria')
-    
-    # 1. Obtener total
-    pagos = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO,
-        fecha_registro__month=hoy.month,
-        fecha_registro__year=hoy.year
-    )
-    total = pagos.aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
-    
-    # 2. Generar PDF
-    buffer = generar_pdf_tesoreria(hoy.month, hoy.year)
-    
-    # 3. Guardar en Modelo
-    cierre = CierreCaja.objects.create(
-        mes=hoy.month,
-        anio=hoy.year,
-        total_recaudado=total,
-        usuario_genero=request.user_obj
-    )
-    
-    from django.core.files.base import ContentFile
-    filename = f"cierre_{hoy.year}_{hoy.month}.pdf"
-    cierre.archivo_pdf.save(filename, ContentFile(buffer.getvalue()))
-    cierre.save()
-    
-    messages.success(request, f"Cierre de caja de {hoy.strftime('%B %Y')} guardado con éxito en el historial.")
+    """ Genera el PDF, lo guarda en el historial y 'cierra' el mes usando TesoreriaService. """
+    from .services.tesoreria_service import TesoreriaService
+    from apps.usuarios.models import BitacoraSeguridad
+    try:
+        cierre = TesoreriaService.cerrar_mes(request.user_obj)
+        BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.CIERRE_CAJA, f"Cierre de caja manual mes {cierre.mes}/{cierre.anio} por ${cierre.total_recaudado}")
+        messages.success(request, "Cierre de caja guardado con éxito.")
+    except ValueError as e:
+        messages.warning(request, str(e))
+        
     return redirect('gestion_tesoreria')
+
+@profe_requerido
 def gestionar_pago_accion(request, pago_id):
-    """ Procesa la aprobacion o rechazo de un pago manual. """
+    """ Procesa la aprobacion o rechazo de un pago manual usando PagoService. """
     pago = get_object_or_404(Pago.objects.select_for_update(), id=pago_id)
     if request.method == 'POST':
         accion = request.POST.get('accion')
         motivo = request.POST.get('motivo', '')
         
+        from .services.pago_service import PagoService
         if accion == 'aprobar':
-            pago.estado = Pago.EstadoPago.APROBADO
-            pago.save() # Al grabar se calculan comisiones
-            messages.success(request, f"Pago de {pago.alumno.nombre} aprobado.")
+            PagoService.transicionar_a_aprobado(pago)
+            messages.success(request, f"Pago de {pago.alumno.nombre} aprobado y procesado.")
         elif accion == 'rechazar':
             pago.estado = Pago.EstadoPago.RECHAZADO
             pago.motivo_rechazo = motivo
@@ -553,25 +443,23 @@ def gestionar_pago_accion(request, pago_id):
 
 @profe_requerido
 def gestionar_pedido_accion(request, pedido_id):
-    """ Procesa el pago o cancelación de un pedido de la tienda. """
+    """ Procesa el pago o cancelación de un pedido usando PedidoService. """
     pedido = get_object_or_404(Pedido.objects.select_for_update(), id=pedido_id)
     if not request.user_obj.rol_gestion_tesoreria and not request.user_obj.rol_acceso_total:
         return HttpResponse("No autorizado", status=403)
         
     if request.method == 'POST':
         accion = request.POST.get('accion')
+        from .services.pedido_service import PedidoService
         if accion == 'pagar':
-            pedido.estado = Pedido.Estado.PAGADO
-            pedido.save()
-            messages.success(request, f"Pedido #{pedido.id} marcado como PAGADO.")
+            PedidoService.transicionar_a_pagado(pedido)
+            messages.success(request, f"Pedido #{pedido.id} pagado y stock actualizado.")
         elif accion == 'entregar':
-            pedido.estado = Pedido.Estado.ENTREGADO
-            pedido.save()
-            messages.success(request, f"Pedido #{pedido.id} marcado como ENTREGADO.")
+            PedidoService.transicionar_a_entregado(pedido)
+            messages.success(request, f"Pedido #{pedido.id} entregado.")
         elif accion == 'cancelar':
-            pedido.estado = Pedido.Estado.CANCELADO
-            pedido.save()
-            messages.warning(request, f"Pedido #{pedido.id} cancelado.")
+            PedidoService.transicionar_a_cancelado(pedido)
+            messages.warning(request, f"Pedido #{pedido.id} cancelado y stock restaurado.")
             
     return redirect('gestion_tesoreria')
 
@@ -631,16 +519,18 @@ def pago_comprobante(request):
         if form.is_valid():
             alumno = Usuario.objects.get(id=request.session['alumno_id'])
             pago_data = request.session['pago_data']
-            actividad_id = pago_data['actividad']
-            activity_obj = get_object_or_404(Actividad, id=actividad_id)
-            pago = Pago.objects.create(
+            activity_obj = get_object_or_404(Actividad, id=pago_data['actividad'])
+            
+            from .services.pago_service import PagoService
+            pago = PagoService.registrar_pago(
                 alumno=alumno,
                 actividad=activity_obj,
                 tipo=pago_data['tipo'],
-                cantidad_clases=pago_data.get('cantidad_clases'),
                 metodo=pago_data.get('metodo') or pago_data.get('método'),
-                comprobante=request.FILES.get('comprobante')
+                comprobante=request.FILES.get('comprobante'),
+                cantidad_clases=pago_data.get('cantidad_clases')
             )
+            
             if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
                 return redirect('pago_mercadopago_checkout', pago_id=pago.id)
             del request.session['pago_data']
@@ -726,13 +616,14 @@ def pago_confirmacion(request):
 
         # B. CONFIRMAR PAGO
         elif accion == 'confirmar':
-            pago = Pago.objects.create(
+            from .services.pago_service import PagoService
+            pago = PagoService.registrar_pago(
                 alumno=alumno,
-                actividad=actividad,
+                actividad_id=actividad.id,
                 tipo=pago_data['tipo'],
-                cantidad_clases=pago_data.get('cantidad_clases'),
                 metodo=pago_data.get('metodo') or pago_data.get('método'),
-                descuento_id=pago_data.get('descuento_id')
+                descuento_id=pago_data.get('descuento_id'),
+                cantidad_clases=pago_data.get('cantidad_clases')
             )
             
             if pago.metodo == Pago.MetodoPago.MERCADOPAGO:
@@ -741,6 +632,7 @@ def pago_confirmacion(request):
             del request.session['pago_data']
             messages.success(request, "Pago registrado. Por favor informa el comprobante si fue transferencia.")
             return redirect('gracias')
+
 
     monto_total = (monto_base - monto_desc).quantize(Decimal('0.01'))
     return render(request, 'ventas/pago_confirmacion.html', {
@@ -756,9 +648,12 @@ def pago_mercadopago_checkout(request, pago_id):
     access_token = None
     if pago.clase_programada and getattr(pago.clase_programada.profesor, 'mp_access_token', None):
         access_token = pago.clase_programada.profesor.mp_access_token
-    mp_service = MercadoPagoService(access_token)
+    gateway = PaymentGatewayFactory.get_gateway(custom_access_token=access_token)
     try:
-        init_point = mp_service.crear_preferencia(pago)
+        init_point, preference_id = gateway.crear_preferencia(pago)
+        if preference_id:
+            pago.mercado_pago_id = preference_id
+            pago.save(update_fields=['mercado_pago_id'])
         return redirect(init_point)
     except Exception:
         messages.error(request, "Error al conectar con Mercado Pago.")
@@ -787,8 +682,8 @@ def mercadopago_webhook(request):
                     if pago_original and pago_original.clase_programada and getattr(pago_original.clase_programada.profesor, 'mp_access_token', None):
                         access_token = pago_original.clase_programada.profesor.mp_access_token
                 
-                mp_service = MercadoPagoService(access_token)
-                payment_info = mp_service.obtener_pago(resource_id)
+                gateway = PaymentGatewayFactory.get_gateway(custom_access_token=access_token)
+                payment_info = gateway.obtener_pago(resource_id)
                 external_ref = payment_info.get("external_reference")
                 status = payment_info.get("status")
                 
@@ -801,8 +696,10 @@ def mercadopago_webhook(request):
                             pedido.mercado_pago_status = status
                             pedido.mercado_pago_id = resource_id
                             if status in ("accredited", "approved"):
-                                pedido.estado = Pedido.Estado.PAGADO
-                            pedido.save()
+                                from apps.ventas.services.pedido_service import PedidoService
+                                PedidoService.transicionar_a_pagado(pedido)
+                            else:
+                                pedido.save()
                     else:
                         # LOCK del Pago para procesar secuencialmente
                         pago = Pago.objects.select_for_update().filter(id=external_ref).first()
@@ -810,8 +707,10 @@ def mercadopago_webhook(request):
                             pago.mercado_pago_status = status
                             pago.mercado_pago_id = resource_id
                             if status in ("accredited", "approved"):
-                                pago.estado = Pago.EstadoPago.APROBADO
-                            pago.save()
+                                from apps.ventas.services.pago_service import PagoService
+                                PagoService.transicionar_a_aprobado(pago)
+                            else:
+                                pago.save()
         return JsonResponse({'status': 'ok'}, status=200)
     except Exception as e:
         return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
@@ -833,29 +732,22 @@ def tienda_comprar(request, producto_id):
     if request.method == 'POST':
         metodo_pago = request.POST.get('metodo_pago')
         cantidad = int(request.POST.get('cantidad', 1))
-        es_backorder = False
-        if not producto.hay_stock and not producto.permite_backorder:
-             messages.error(request, "Stock insuficiente.")
-             return redirect('tienda_inicio')
-        precio_total = producto.precio * cantidad
-        profesor_venta = None
-        primera_clase = Pago.objects.filter(alumno=alumno, clase_programada__isnull=False).order_by('-fecha_registro').first()
-        if primera_clase and primera_clase.clase_programada:
-            profesor_venta = primera_clase.clase_programada.profesor
-        porcentaje_comision = producto.porcentaje_comision if profesor_venta else Decimal('0.0')
-        monto_comision = (precio_total * porcentaje_comision) / Decimal('100.0')
-        pedido = Pedido.objects.create(
-            alumno=alumno, total=precio_total, metodo_pago=metodo_pago,
-            estado=Pedido.Estado.PENDIENTE, profesor_venta=profesor_venta,
-            porcentaje_comision=porcentaje_comision, monto_comision=monto_comision,
-            backorder=es_backorder
+        from apps.ventas.services.tienda_service import TiendaService
+        
+        pedido, error_msg = TiendaService.crear_pedido_directo(
+            alumno=alumno, producto=producto, cantidad=cantidad, metodo_pago=metodo_pago
         )
-        PedidoItem.objects.create(pedido=pedido, producto=producto, cantidad=cantidad, precio_unitario=producto.precio)
+        
+        if error_msg:
+            messages.error(request, error_msg)
+            return redirect('tienda_inicio')
+
         if metodo_pago == Pago.MetodoPago.MERCADOPAGO:
-            mp_service = MercadoPagoService()
-            pref_url = mp_service.crear_preferencia_tienda(
+            from apps.ventas.services.payments.factory import PaymentGatewayFactory
+            mp_strategy = PaymentGatewayFactory.get_gateway('mercadopago')
+            pref_url = mp_strategy.crear_preferencia(
                 titulo=f"Tienda LongHuHe: {producto.nombre} x{cantidad}",
-                precio=float(precio_total),
+                precio=float(pedido.total),
                 url_retorno=request.build_absolute_uri(reverse('gracias')),
                 externo_id=f"TIENDA_{pedido.id}"
             )

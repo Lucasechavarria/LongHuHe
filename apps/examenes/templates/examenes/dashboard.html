@@ -1,121 +1,181 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard Institucional - Long Hu He{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto pt-10 space-y-12 mb-20 text-white">
+<div class="max-w-[1400px] mx-auto pt-10 space-y-12 mb-20 text-white animate-fade-in">
 
     <!-- Hero Header Dashboard -->
-    <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 px-6">
-        <div class="space-y-2">
-            <div class="inline-block px-4 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black uppercase tracking-[0.4em] mb-2 animate-pulse">
-                Control Central <span class="mx-2">🦅</span> Long Hu He
+    <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-8 px-6">
+        <div class="space-y-4">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                </span>
+                Control Central Institucional
             </div>
-            <h1 class="text-6xl font-black italic tracking-tighter uppercase leading-none">
-                Métricas <span class="text-orange-500 font-black tracking-normal">Globales</span>
+            <h1 class="text-7xl font-black italic tracking-tighter uppercase leading-[0.8] mb-2">
+                Métricas <span class="text-orange-500 font-black tracking-normal block md:inline">Globales</span>
             </h1>
-            <p class="text-white/30 font-bold uppercase tracking-widest text-xs">Administración · Visión · Crecimiento</p>
+            <p class="text-white/30 font-bold uppercase tracking-[0.3em] text-xs flex items-center gap-4">
+                <span>Administración</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-white/10"></span>
+                <span>Visión</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-white/10"></span>
+                <span>Crecimiento</span>
+            </p>
         </div>
-        <div class="flex gap-4">
-             <div class="premium-card p-6 rounded-[2.5rem] bg-orange-500 text-white min-w-[200px] shadow-[0_20px_50px_rgba(249,115,22,0.3)]">
-                <p class="text-[9px] font-black uppercase tracking-widest mb-1 opacity-70">VALOR INSTITUCIONAL</p>
-                <p class="text-4xl font-black tracking-tighter italic leading-none">${{ ingresos_mensuales|stringformat:".2f" }}</p>
+        
+        <div class="flex items-center gap-6">
+             <div class="glass-panel p-8 rounded-[3rem] border-l-4 border-l-orange-500 min-w-[280px] relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-orange-500/10 rounded-full blur-3xl group-hover:bg-orange-500/20 transition-all duration-700"></div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-white/40">Ingresos Proyectados (Mes)</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-orange-500">$</span>
+                    <p class="text-5xl font-black tracking-tighter italic leading-none">{{ ingresos_mensuales|stringformat:".2f" }}</p>
+                </div>
              </div>
         </div>
     </header>
 
     <!-- KPI Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
         
-        <div class="premium-card rounded-[3rem] p-8 border border-white/5 bg-white/[0.02] space-y-4">
-            <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <!-- Card: Alumnos -->
+        <div class="glass-card rounded-[2.5rem] p-8 space-y-6 group">
+            <div class="flex justify-between items-start">
+                <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-500 shadow-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <span class="text-[10px] font-black text-blue-500/50 uppercase tracking-widest">Activos</span>
             </div>
             <div>
-                <p class="text-[10px] font-black text-white/20 uppercase tracking-widest">Alumnos Activos</p>
-                <p class="text-5xl font-black tracking-tighter">{{ total_alumnos }}</p>
+                <p class="text-6xl font-black tracking-tighter group-hover:scale-105 transition-transform origin-left">{{ total_alumnos }}</p>
+                <p class="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">Total de Alumnos Registrados</p>
             </div>
         </div>
 
-        <div class="premium-card rounded-[3rem] p-8 border border-white/5 bg-white/[0.02] space-y-4">
-            <div class="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a4 4 0 018 0v1M8 16a2 2 0 004 0M8 16H5a1 1 0 01-1-1v-5a1 1 0 011-1h14a1 1 0 011 1v5a1 1 0 01-1 1h-3M8 16a2 2 0 014 0m4 0a2 2 0 11-4 0m4 0v1a2 2 0 104 0v-1m-4 1a2 2 0 11-4 0"></path></svg>
+        <!-- Card: Nuevos -->
+        <div class="glass-card rounded-[2.5rem] p-8 space-y-6 group">
+            <div class="flex justify-between items-start">
+                <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-500 group-hover:bg-green-500 group-hover:text-white transition-all duration-500 shadow-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                </div>
+                <span class="text-[10px] font-black text-green-500/50 uppercase tracking-widest">Este Mes</span>
             </div>
             <div>
-                <p class="text-[10px] font-black text-white/20 uppercase tracking-widest">Nuevos (Mes)</p>
-                <p class="text-5xl font-black tracking-tighter">+{{ alumnos_nuevos_mes }}</p>
+                <p class="text-6xl font-black tracking-tighter text-green-400">+{{ alumnos_nuevos_mes }}</p>
+                <p class="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">Nuevas Inscripciones</p>
             </div>
         </div>
 
-        <div class="premium-card rounded-[3rem] p-8 border border-white/5 bg-white/[0.02] space-y-4">
-            <div class="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <!-- Card: Asistencia -->
+        <div class="glass-card rounded-[2.5rem] p-8 space-y-6 group">
+            <div class="flex justify-between items-start">
+                <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all duration-500 shadow-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span class="text-[10px] font-black text-purple-500/50 uppercase tracking-widest">15 Días</span>
             </div>
             <div>
-                <p class="text-[10px] font-black text-white/20 uppercase tracking-widest">Asistencia (/15d)</p>
-                <p class="text-5xl font-black tracking-tighter">{{ asistencias_recientes }}</p>
+                <p class="text-6xl font-black tracking-tighter">{{ asistencias_recientes }}</p>
+                <p class="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">Marcaciones de Asistencia</p>
             </div>
         </div>
 
-        <div class="premium-card rounded-[3rem] p-8 border border-white/5 bg-white/[0.02] space-y-4">
-            <div class="w-12 h-12 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-500">
-                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+        <!-- Card: Mesas -->
+        <div class="glass-card rounded-[2.5rem] p-8 space-y-6 group">
+            <div class="flex justify-between items-start">
+                <div class="w-14 h-14 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-500 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-500 shadow-lg">
+                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <span class="text-[10px] font-black text-yellow-500/50 uppercase tracking-widest">Exámenes</span>
             </div>
             <div>
-                <p class="text-[10px] font-black text-white/20 uppercase tracking-widest">Mesas Abiertas</p>
-                <p class="text-5xl font-black tracking-tighter">{{ mesas_abiertas.count }}</p>
+                <p class="text-6xl font-black tracking-tighter">{{ mesas_abiertas.count }}</p>
+                <p class="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">Mesas de Graduación Activas</p>
             </div>
         </div>
 
     </div>
 
-    <!-- Central Charts & Mesh -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4" x-data="chartManager()">
+    <!-- Central Charts & Lists -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 px-4" x-data="chartManager()">
         
-        <!-- Alumnos por Grado (Task 7.5) -->
-        <div class="premium-card rounded-[3.5rem] p-12 border border-white/5 bg-black/40 backdrop-blur-3xl space-y-8 min-h-[500px] flex flex-col items-center">
-            <h3 class="text-2xl font-black italic uppercase tracking-tighter text-center">Distribución de <span class="text-orange-500">Rangos</span></h3>
-            <div class="relative w-full flex-grow flex items-center justify-center">
-                 <canvas id="gradosChart" class="max-h-[300px]"></canvas>
+        <!-- Distribución de Grados (Left Panel - 3 cols) -->
+        <div class="lg:col-span-3 glass-panel rounded-[3.5rem] p-10 space-y-8 flex flex-col relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-8 opacity-5">
+                <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            </div>
+            
+            <div class="relative z-10">
+                <h3 class="text-3xl font-black italic uppercase tracking-tighter">Distribución de <span class="text-orange-500">Rangos</span></h3>
+                <p class="text-white/20 text-xs font-bold uppercase tracking-widest">Análisis por cinturones y jerarquías</p>
+            </div>
+
+            <div class="relative w-full flex-grow flex flex-col md:flex-row items-center justify-around gap-8">
+                 <div class="relative w-72 h-72">
+                    <canvas id="gradosChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <p class="text-4xl font-black tracking-tighter">{{ total_alumnos }}</p>
+                        <p class="text-[8px] font-black uppercase text-white/30 tracking-[0.2em]">Total</p>
+                    </div>
+                 </div>
+                 
+                 <!-- Custom Legend -->
+                 <div class="flex flex-col gap-3 min-w-[200px]" id="custom-legend">
+                    <!-- Dinámico vía JS -->
+                 </div>
             </div>
             {{ distribucion_grados_json|json_script:"grados-data" }}
         </div>
 
-        <!-- Mesas y Candidatos -->
-        <div class="premium-card rounded-[3.5rem] p-12 border border-white/5 bg-black/20 space-y-10 overflow-hidden relative">
-            <div class="relative z-10 space-y-8">
-                <h3 class="text-2xl font-black italic uppercase tracking-tighter">Mesas de <span class="text-orange-500">Examen</span> Activas</h3>
-                <div class="space-y-4">
-                    {% for mesa in mesas_abiertas %}
-                    <div class="flex items-center justify-between p-6 rounded-[2rem] bg-white/5 border border-white/5 transition-all hover:bg-white/10 group">
-                        <div class="flex items-center gap-6">
-                             <div class="text-center bg-black/40 px-4 py-2 rounded-2xl border border-white/10">
-                                <p class="text-[10px] font-black text-orange-500">{{ mesa.fecha|date:"M"|upper }}</p>
-                                <p class="text-2xl font-black">{{ mesa.fecha|date:"d" }}</p>
-                             </div>
-                             <div>
-                                <p class="font-black uppercase tracking-tight text-white/80">{{ mesa.lugar }}</p>
-                                <p class="text-[10px] font-bold text-white/20 uppercase tracking-widest">{{ mesa.candidatos_count }} CANDIDATOS REGISTRADOS</p>
-                             </div>
-                        </div>
-                        <a href="{% url 'evaluar_mesa' mesa.id %}" class="bg-white text-black w-12 h-12 rounded-xl flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all shadow-2xl scale-0 group-hover:scale-100 transform origin-right">
-                            <svg class="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        </a>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-20 border border-dashed border-white/10 rounded-[2.5rem]">
-                        <p class="font-black text-white/20 uppercase tracking-[0.2em] text-[10px]">No hay exámenes programados</p>
-                    </div>
-                    {% endfor %}
-                </div>
+        <!-- Mesas de Examen (Right Panel - 2 cols) -->
+        <div class="lg:col-span-2 glass-panel rounded-[3.5rem] p-10 space-y-10 overflow-hidden relative group">
+            <div class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent pointer-events-none"></div>
+            
+            <div class="relative z-10">
+                <h3 class="text-3xl font-black italic uppercase tracking-tighter">Próximos <span class="text-orange-500">Desafíos</span></h3>
+                <p class="text-white/20 text-xs font-bold uppercase tracking-widest">Cronograma de graduaciones</p>
             </div>
+
+            <div class="relative z-10 space-y-4">
+                {% for mesa in mesas_abiertas %}
+                <div class="flex items-center justify-between p-6 rounded-[2.5rem] bg-white/5 border border-white/5 transition-all hover:bg-white/10 hover:border-orange-500/30 group/item">
+                    <div class="flex items-center gap-5">
+                         <div class="text-center bg-black/60 px-4 py-3 rounded-3xl border border-white/10 group-hover/item:border-orange-500/50 transition-colors">
+                            <p class="text-[9px] font-black text-orange-500 uppercase">{{ mesa.fecha|date:"M" }}</p>
+                            <p class="text-3xl font-black tracking-tighter leading-none">{{ mesa.fecha|date:"d" }}</p>
+                         </div>
+                         <div>
+                            <p class="font-black uppercase tracking-tight text-white/80 group-hover/item:text-white transition-colors">{{ mesa.lugar }}</p>
+                            <p class="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em]">{{ mesa.candidatos_count }} Candidatos</p>
+                         </div>
+                    </div>
+                    <a href="{% url 'evaluar_mesa' mesa.id %}" class="bg-orange-500 text-white w-14 h-14 rounded-2xl flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl shadow-orange-500/20 translate-x-4 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transform duration-500">
+                        <svg class="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="flex flex-col items-center justify-center py-24 border-2 border-dashed border-white/5 rounded-[3rem] text-white/10">
+                    <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="font-black text-[10px] uppercase tracking-[0.3em]">No hay mesas programadas</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <a href="{% url 'dashboard_institucional' %}" class="block w-full py-6 rounded-[2rem] border border-white/10 text-center text-[10px] font-black uppercase tracking-[0.4em] hover:bg-white hover:text-black transition-all">
+                Ver Calendario Completo 📅
+            </a>
         </div>
 
     </div>
 
 </div>
 
-<!-- Chart.js and Alpine Logic -->
+<!-- Chart.js and Logic -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     function chartManager() {
@@ -125,50 +185,73 @@
                 const dataRaw = JSON.parse(document.getElementById('grados-data').textContent);
                 const data = JSON.parse(dataRaw);
                 
-                new Chart(ctx, {
+                const colors = [
+                    '#E8E5DA', // Blanco
+                    '#f97316', // Naranja
+                    '#3b82f6', // Azul
+                    '#a855f7', // Violeta
+                    '#22c55e', // Verde
+                    '#eab308', // Amarillo
+                    '#0a0a0a'  // Negro
+                ];
+
+                const chart = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: data.map(d => d.nombre),
                         datasets: [{
                             data: data.map(d => d.alumnos_count),
-                            backgroundColor: [
-                                'rgba(255, 255, 255, 0.4)',
-                                'rgba(249, 115, 22, 0.6)',
-                                'rgba(59, 130, 246, 0.6)',
-                                'rgba(168, 85, 247, 0.6)',
-                                'rgba(34, 197, 94, 0.6)',
-                                'rgba(234, 179, 8, 0.6)',
-                                'rgba(0, 0, 0, 1)'
-                            ],
-                            borderColor: 'rgba(0,0,0,0.5)',
-                            borderWidth: 2,
-                            hoverOffset: 20
+                            backgroundColor: colors,
+                            borderColor: 'rgba(0,0,0,0.8)',
+                            borderWidth: 4,
+                            hoverOffset: 30,
+                            borderRadius: 10
                         }]
                     },
                     options: {
                         plugins: {
                             legend: { display: false },
                             tooltip: {
-                                backgroundColor: '#111',
-                                titleFont: { family: 'Poppins', weight: 'bold' },
-                                bodyFont: { family: 'Poppins' },
+                                backgroundColor: 'rgba(0,0,0,0.9)',
+                                padding: 15,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                cornerRadius: 15,
+                                displayColors: true,
                                 callbacks: {
                                     label: (context) => ` ${context.label}: ${context.raw} Alumnos`
                                 }
                             }
                         },
-                        cutout: '80%',
+                        cutout: '75%',
                         responsive: true,
-                        maintainAspectRatio: false
+                        maintainAspectRatio: false,
+                        animation: {
+                            animateScale: true,
+                            animateRotate: true,
+                            duration: 2000,
+                            easing: 'easeOutQuart'
+                        }
                     }
+                });
+
+                // Generate Custom Legend
+                const legendEl = document.getElementById('custom-legend');
+                data.forEach((item, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between group/legend cursor-default p-2 rounded-xl hover:bg-white/5 transition-all';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]" style="background-color: ${colors[index % colors.length]}"></div>
+                            <span class="text-[10px] font-bold uppercase tracking-tight text-white/50 group-hover/legend:text-white transition-colors">${item.nombre}</span>
+                        </div>
+                        <span class="text-xs font-black">${item.alumnos_count}</span>
+                    `;
+                    legendEl.appendChild(row);
                 });
             }
         }
     }
 </script>
-
-<style>
-    .premium-card { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .premium-card:hover { transform: translateY(-5px); }
-</style>
 {% endblock %}
+

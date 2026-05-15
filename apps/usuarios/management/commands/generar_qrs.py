@@ -28,7 +28,7 @@ class Command(BaseCommand):
             img = qr.make_image(fill_color="black", back_color="white")
             
             buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
+            img.save(buffer)
             
             file_name = f"qr_{usuario.id}.png"
             usuario.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=True)

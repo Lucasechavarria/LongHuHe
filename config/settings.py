@@ -48,6 +48,24 @@ DEBUG = get_env("DEBUG", default="False") == "True"
 
 ALLOWED_HOSTS = get_env("ALLOWED_HOSTS", default="localhost,127.0.0.1,.onrender.com").split(",")
 
+# Security Headers (Production Settings)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_SSL_REDIRECT = get_env("SECURE_SSL_REDIRECT", default="True") == "True"
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000 # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    X_FRAME_OPTIONS = 'DENY'
+else:
+    # Cookies de sesión persistentes para facilitar desarrollo local
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+    SESSION_COOKIE_AGE = 1209600 # 2 semanas
+
+
 # CSRF Trusted Origins para producción
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
@@ -94,7 +112,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.usuarios.middleware.UsuarioSessionMiddleware',
 ]
+
 
 ROOT_URLCONF = 'config.urls'
 
@@ -123,7 +143,16 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Configuración de Base de Datos: PRIORIDAD REMOTA si existe el URL
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if DATABASE_URL:
+import sys
+if 'test' in sys.argv:
+    # Fuerza SQLite para los tests para evitar errores de permisos en DBs remotas
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+elif DATABASE_URL:
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -132,13 +161,14 @@ if DATABASE_URL:
         )
     }
 else:
-    # Fallback local para desarrollo (SQLite) sino hay DATABASE_URL
+    # Fallback local para desarrollo (SQLite)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
 
 
 # Password validation
@@ -270,3 +300,40 @@ else:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# --- LOGGING CONFIGURATION ---
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'error.log'), # Guardar en raíz para Render
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'apps': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+

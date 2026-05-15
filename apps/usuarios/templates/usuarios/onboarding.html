@@ -1,244 +1,246 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Bienvenidos - Long Hu He{% endblock %}
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
 
 {% block content %}
-<div class="text-center mb-10 pt-4">
-    <h2 class="text-6xl font-black tracking-tight uppercase text-white">Inscripción</h2>
-</div>
-
-<div class="premium-card rounded-[3rem] p-12 shadow-2xl relative" 
-     x-data="{ 
-        step: 1, 
-        totalSteps: 11,
-        nombre: '',
-        apellido: '',
-        celular: '',
-        dni: '',
-        fecha_nacimiento: '',
-        domicilio: '',
-        localidad: '',
-        sede: '',
-        actividad_inicial: '',
-        foto_perfil: '',
-        init() {
-            {% if form.nombre.errors %} this.step = 1;
-            {% elif form.apellido.errors %} this.step = 2;
-            {% elif form.celular.errors %} this.step = 3;
-            {% elif form.dni.errors %} this.step = 4;
-            {% elif form.fecha_nacimiento.errors %} this.step = 5;
-            {% elif form.domicilio.errors %} this.step = 6;
-            {% elif form.localidad.errors %} this.step = 7;
-            {% elif form.sede.errors %} this.step = 8;
-            {% elif form.actividad_inicial.errors %} this.step = 9;
-            {% elif form.foto_perfil.errors %} this.step = 10;
-            {% endif %}
-            
-            // Sync initial values
-            this.nombre = '{{ form.nombre.value|default:""|escapejs }}';
-            this.apellido = '{{ form.apellido.value|default:""|escapejs }}';
-            this.celular = '{{ form.celular.value|default:""|escapejs }}';
-            this.dni = '{{ form.dni.value|default:""|escapejs }}';
-            this.fecha_nacimiento = '{{ form.fecha_nacimiento.value|default:""|escapejs }}';
-            this.domicilio = '{{ form.domicilio.value|default:""|escapejs }}';
-            this.localidad = '{{ form.localidad.value|default:""|escapejs }}';
-            this.sede = '{{ form.sede.value|default:""|escapejs }}';
-            this.actividad_inicial = '{{ form.actividad_inicial.value|default:""|escapejs }}';
-        },
-        canGoNext() {
-            if (this.step === 1) return this.nombre.trim() !== '';
-            if (this.step === 2) return this.apellido.trim() !== '';
-            if (this.step === 3) return this.celular.trim() !== '';
-            if (this.step === 4) return this.dni.trim() !== '';
-            if (this.step === 5) return this.fecha_nacimiento.trim() !== '';
-            if (this.step === 6) return this.domicilio.trim() !== '';
-            if (this.step === 7) return this.localidad.trim() !== '';
-            if (this.step === 8) return this.sede !== '';
-            if (this.step === 9) return this.actividad_inicial !== '';
-            return true;
-        }
-     }">
-    <!-- Progress Indicator -->
-    <div class="mb-10 flex justify-between items-center bg-white/5 rounded-full p-2 border border-white/5">
-        <template x-for="i in totalSteps">
-            <div :class="{'bg-orange-500 w-full rounded-full h-4 transition-all duration-500': step >= i, 'bg-brown-700/10 w-full rounded-full h-4 mx-1': step < i}"></div>
-        </template>
+<div class="max-w-4xl mx-auto space-y-12 animate-fade-in px-6 pb-32">
+    
+    <!-- HEADER -->
+    <div class="text-center space-y-4 pt-10">
+        <h2 class="text-6xl md:text-8xl font-black tracking-tighter uppercase text-white leading-[0.8]">
+            Nueva <span class="text-orange-500 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]">Inscripción</span>
+        </h2>
+        <p class="text-white/30 text-[10px] font-black uppercase tracking-[0.5em]">Formulario Oficial Long Hu He</p>
     </div>
 
-    <form method="post" enctype="multipart/form-data" class="relative min-h-[400px]" novalidate>
-        {% csrf_token %}
+    <!-- STEPPER GLASS CONTAINER -->
+    <div class="glass-panel rounded-[4rem] p-10 md:p-16 shadow-[0_50px_100px_rgba(0,0,0,0.6)] border border-white/10 relative overflow-hidden group" 
+         x-data="{ 
+            step: 1, 
+            totalSteps: 11,
+            nombre: '',
+            apellido: '',
+            celular: '',
+            dni: '',
+            fecha_nacimiento: '',
+            domicilio: '',
+            localidad: '',
+            sede: '',
+            actividad_inicial: '',
+            foto_perfil: '',
+            init() {
+                {% if form.nombre.errors %} this.step = 1;
+                {% elif form.apellido.errors %} this.step = 2;
+                {% elif form.celular.errors %} this.step = 3;
+                {% elif form.dni.errors %} this.step = 4;
+                {% elif form.fecha_nacimiento.errors %} this.step = 5;
+                {% elif form.domicilio.errors %} this.step = 6;
+                {% elif form.localidad.errors %} this.step = 7;
+                {% elif form.sede.errors %} this.step = 8;
+                {% elif form.actividad_inicial.errors %} this.step = 9;
+                {% elif form.foto_perfil.errors %} this.step = 10;
+                {% endif %}
+                
+                this.nombre = '{{ form.nombre.value|default:""|escapejs }}';
+                this.apellido = '{{ form.apellido.value|default:""|escapejs }}';
+                this.celular = '{{ form.celular.value|default:""|escapejs }}';
+                this.dni = '{{ form.dni.value|default:""|escapejs }}';
+                this.fecha_nacimiento = '{{ form.fecha_nacimiento.value|default:""|escapejs }}';
+                this.domicilio = '{{ form.domicilio.value|default:""|escapejs }}';
+                this.localidad = '{{ form.localidad.value|default:""|escapejs }}';
+                this.sede = '{{ form.sede.value|default:""|escapejs }}';
+                this.actividad_inicial = '{{ form.actividad_inicial.value|default:""|escapejs }}';
+            },
+            canGoNext() {
+                if (this.step === 1) return this.nombre.trim() !== '';
+                if (this.step === 2) return this.apellido.trim() !== '';
+                if (this.step === 3) return this.celular.trim() !== '';
+                if (this.step === 4) return this.dni.trim() !== '';
+                if (this.step === 5) return this.fecha_nacimiento.trim() !== '';
+                if (this.step === 6) return this.domicilio.trim() !== '';
+                if (this.step === 7) return this.localidad.trim() !== '';
+                if (this.step === 8) return this.sede !== '';
+                if (this.step === 9) return this.actividad_inicial !== '';
+                return true;
+            }
+         }">
         
-        {% if form.errors %}
-            <div x-show="step === 1" class="bg-red-500/10 border border-red-500/20 rounded-3xl p-6 mb-8">
-                <p class="text-red-700 text-lg font-black uppercase text-center tracking-tight">
-                    Por favor revisa los datos ingresados
-                </p>
-            </div>
-        {% endif %}
-        
-        <!-- Field 1: Nombre -->
-        <div x-show="step === 1" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cómo te llamas?</label>
-            <div class="relative">
-                {{ form.nombre }}
-            </div>
-            {% if form.nombre.errors %}<p class="text-red-600 text-sm font-black uppercase mt-4 text-center tracking-widest">{{ form.nombre.errors.0 }}</p>{% endif %}
+        <div class="absolute -right-40 -top-40 w-96 h-96 bg-orange-600/5 rounded-full blur-[120px]"></div>
+
+        <!-- Progress Indicator -->
+        <div class="mb-16 flex items-center gap-2 px-2 relative z-10">
+            <template x-for="i in totalSteps">
+                <div class="flex-1 h-2 rounded-full transition-all duration-700"
+                     :class="step >= i ? 'bg-orange-500 shadow-[0_0_15px_#f97316]' : 'bg-white/5'"></div>
+            </template>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="relative min-h-[400px] z-10" novalidate>
+            {% csrf_token %}
             
-            <div class="text-center pt-10">
-                <a href="{% url 'identificacion' %}" class="text-white/20 font-black uppercase text-sm tracking-[0.2em] hover:text-orange-500 transition-all">
-                    ¿Ya eres alumno? Haz clic aquí
-                </a>
+            <!-- STEPS CONTENT -->
+            
+            <!-- Step 1: Nombre -->
+            <div x-show="step === 1" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+                <div class="space-y-4">
+                    <p class="text-orange-500 font-black uppercase text-[10px] tracking-[0.5em]">Comenzamos</p>
+                    <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">¿Cómo te llamas?</h3>
+                </div>
+                <div class="relative max-w-lg mx-auto">
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}<p class="text-rose-500 text-[10px] font-black uppercase mt-6 tracking-widest animate-pulse">{{ form.nombre.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="pt-10">
+                    <a href="{% url 'identificacion' %}" class="text-white/20 font-black uppercase text-[10px] tracking-[0.5em] hover:text-orange-500 transition-all duration-500">
+                        ¿Ya eres alumno? Haz clic aquí
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <!-- Field 2: Apellido -->
-        <div x-show="step === 2" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cuál es tu apellido?</label>
-            <div class="relative">
-                {{ form.apellido }}
+            <!-- Otros Pasos resumidos con el mismo estilo (Apellido, Celular, etc.) -->
+            <!-- Step 2: Apellido -->
+            <div x-show="step === 2" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">¿Y tu apellido?</h3>
+                <div class="relative max-w-lg mx-auto">
+                    {{ form.apellido }}
+                </div>
             </div>
-            {% if form.apellido.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.apellido.errors.0 }}</p>{% endif %}
-        </div>
 
-        <!-- Field 3: Celular -->
-        <div x-show="step === 3" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">Tu número de Celular</label>
-            <div class="relative font-mono text-center">
-                {{ form.celular }}
+            <!-- Step 3: Celular -->
+            <div x-show="step === 3" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Tu Celular</h3>
+                <div class="relative max-w-lg mx-auto">
+                    {{ form.celular }}
+                </div>
+                <p class="text-white/20 text-[10px] font-black uppercase tracking-widest italic">Será tu identificador en la plataforma</p>
             </div>
-            <p class="text-white text-xl font-bold text-center">Para que podamos contactarte</p>
-            {% if form.celular.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.celular.errors.0 }}</p>{% endif %}
-        </div>
 
-        <!-- Field 4: DNI -->
-        <div x-show="step === 4" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">Número de DNI</label>
-            <div class="relative">
-                {{ form.dni }}
+            <!-- Step 4: DNI -->
+            <div x-show="step === 4" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Documento DNI</h3>
+                <div class="relative max-w-lg mx-auto">
+                    {{ form.dni }}
+                </div>
             </div>
-            {% if form.dni.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.dni.errors.0 }}</p>{% endif %}
-        </div>
 
-        <!-- Field 5: Fecha de Nacimiento -->
-        <div x-show="step === 5" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Cuándo naciste?</label>
-            <div class="relative flex items-center gap-4">
-                <div class="relative flex-1" x-data="{ 
-                    mask(e) {
-                        let value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                        if (value.length >= 5) {
-                            value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4);
-                        } else if (value.length >= 3) {
-                            value = value.slice(0, 2) + '/' + value.slice(2);
-                        }
-                        e.target.value = value;
-                        this.fecha_nacimiento = value;
-                    }
-                }">
+            <!-- Step 5: Fecha Nacimiento -->
+            <div x-show="step === 5" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Fecha de Nacimiento</h3>
+                <div class="relative max-w-lg mx-auto">
                     {{ form.fecha_nacimiento }}
                 </div>
+                <p class="text-white/20 text-[10px] font-black uppercase tracking-widest">Formato: DD/MM/AAAA</p>
+            </div>
+
+            <!-- Pasos restantes (6-11) con el mismo patrón visual -->
+            <div x-show="step === 6" x-transition:enter="transition ease-out duration-700" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Tu Domicilio</h3>
+                <div class="relative max-w-lg mx-auto">{{ form.domicilio }}</div>
+            </div>
+
+            <div x-show="step === 7" x-transition:enter="transition ease-out duration-700" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Localidad</h3>
+                <div class="relative max-w-lg mx-auto">{{ form.localidad }}</div>
+            </div>
+
+            <div x-show="step === 8" x-transition:enter="transition ease-out duration-700" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Sede</h3>
+                <div class="relative max-w-lg mx-auto">{{ form.sede }}</div>
+            </div>
+
+            <div x-show="step === 9" x-transition:enter="transition ease-out duration-700" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Disciplina</h3>
+                <div class="relative max-w-lg mx-auto">{{ form.actividad_inicial }}</div>
+            </div>
+
+            <div x-show="step === 10" x-transition:enter="transition ease-out duration-700" class="space-y-10 text-center">
+                <h3 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">Foto (Opcional)</h3>
+                <div class="relative max-w-lg mx-auto p-10 border-2 border-dashed border-white/10 rounded-[3rem] bg-black/40">
+                    {{ form.foto_perfil }}
+                </div>
+            </div>
+
+            <!-- Step 11: FINAL -->
+            <div x-show="step === 11" x-transition:enter="transition ease-out duration-700" class="space-y-12 text-center py-10">
+                <div class="space-y-4">
+                    <div class="w-24 h-24 bg-orange-600/20 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <h2 class="text-5xl md:text-7xl font-black uppercase text-white tracking-tighter italic">¡Ficha Completa!</h2>
+                    <p class="text-white/30 text-xs font-black uppercase tracking-[0.5em]">Ya puedes generar tu carnet digital</p>
+                </div>
                 
-                <div class="relative" x-data="{ 
-                    openPicker() {
-                        const input = $refs.dateInput;
-                        input.showPicker();
-                    }
-                }">
-                    <input type="date" x-ref="dateInput" class="absolute inset-0 opacity-0 pointer-events-none" 
-                           @change="const dateVal = $el.value.split('-').reverse().join('/'); $el.closest('.space-y-6').querySelector('input[type=text]').value = dateVal; fecha_nacimiento = dateVal;">
-                    
-                    <button type="button" @click="openPicker()" 
-                            class="bg-white/10 hover:bg-white/20 text-white p-6 rounded-3xl border-4 border-white/10 transition-all">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
+                <div class="max-w-md mx-auto">
+                    <button type="submit" class="btn-liquid w-full bg-orange-600 text-white rounded-[2.5rem] py-10 text-3xl font-black shadow-[0_30px_70px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all duration-700 uppercase tracking-widest">
+                        Registrarme
                     </button>
                 </div>
             </div>
-            <p class="text-white text-center text-xl font-bold">Formato: DD/MM/AAAA</p>
-            {% if form.fecha_nacimiento.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.fecha_nacimiento.errors.0 }}</p>{% endif %}
-        </div>
 
-        <!-- Field 6: Domicilio -->
-        <div x-show="step === 6" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Dónde vives?</label>
-            <p class="text-sm font-black text-white text-center uppercase tracking-[0.2em] mb-4">Dirección (Calle y número)</p>
-            <div class="relative">
-                {{ form.domicilio }}
-            </div>
-            {% if form.domicilio.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.domicilio.errors.0 }}</p>{% endif %}
-        </div>
-
-        <!-- Field 7: Localidad -->
-        <div x-show="step === 7" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿En qué ciudad / localidad?</label>
-            <div class="relative">
-                {{ form.localidad }}
-            </div>
-            {% if form.localidad.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.localidad.errors.0 }}</p>{% endif %}
-        </div>
-
-        <!-- Field 8: Sede -->
-        <div x-show="step === 8" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué sede te inscribes?</label>
-            <div class="relative">
-                {{ form.sede }}
-            </div>
-            {% if form.sede.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.sede.errors.0 }}</p>{% endif %}
-        </div>
-
-        <!-- Field 9: Actividad Inicial -->
-        <div x-show="step === 9" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿A qué actividad quieres inscribirte?</label>
-            <div class="relative">
-                {{ form.actividad_inicial }}
-            </div>
-            {% if form.actividad_inicial.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.actividad_inicial.errors.0 }}</p>{% endif %}
-        </div>
-
-        <!-- NEW Field 10: Foto de Perfil -->
-        <div x-show="step === 10" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-x-12" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-6">
-            <label class="block text-3xl font-black uppercase text-white text-center mb-10 tracking-tight">¿Quieres subir una foto?</label>
-            <p class="text-white/40 text-center text-lg mb-6 tracking-wide">Es opcional, pero nos ayuda a reconocerte.</p>
-            <div class="relative bg-white/5 p-8 rounded-3xl border-4 border-dashed border-white/10 text-center">
-                {{ form.foto_perfil }}
-            </div>
-            {% if form.foto_perfil.errors %}<p class="text-red-500 text-xl font-black italic mt-4 text-center">🚫 {{ form.foto_perfil.errors.0 }}</p>{% endif %}
-        </div>
-
-        <!-- Step 11: Final Confirmation -->
-        <div x-show="step === 11" 
-             x-transition:enter="transition ease-out duration-500" 
-             x-transition:enter-start="opacity-0 translate-x-12" 
-             x-transition:enter-end="opacity-100 translate-x-0" 
-             class="space-y-10 text-center py-4 overflow-visible relative">
-            <h2 class="text-5xl font-black uppercase text-white leading-tight">¡Todo Listo!</h2>
-            <p class="text-xl font-bold text-white/40">Haz clic abajo para comenzar tu entrenamiento.</p>
-            
-            <div class="px-2 py-4 overflow-visible">
-                <button type="submit" class="w-full relative z-10 bg-orange-500 text-white rounded-[2rem] py-8 text-3xl font-black shadow-2xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 uppercase tracking-wide">
-                    INGRESAR AHORA
+            <!-- Navigation Buttons -->
+            <div class="mt-20 flex gap-6 relative z-20" x-show="step < 11">
+                <button type="button" 
+                        @click="if(step > 1) step--" 
+                        x-show="step > 1"
+                        class="flex-1 glass-card text-white/40 border-white/5 rounded-[2rem] py-6 text-xl font-black uppercase hover:text-white transition-all duration-500">
+                    Atrás
+                </button>
+                <button type="button" 
+                        @click="if(canGoNext()) step++" 
+                        class="flex-[2] bg-orange-600 text-white rounded-[2.5rem] py-8 text-2xl font-black uppercase shadow-2xl hover:bg-orange-500 transition-all duration-500 tracking-[0.2em] disabled:opacity-20 disabled:grayscale"
+                        :disabled="!canGoNext()">
+                    Siguiente
                 </button>
             </div>
-        </div>
+        </form>
+    </div>
 
-        <!-- Navigation Buttons -->
-        <div class="mt-16 flex gap-6" x-show="step < 11">
-            <button type="button" 
-                    @click="if(step > 1) step--" 
-                    x-show="step > 1"
-                    class="flex-1 bg-white/10 text-white rounded-[2rem] py-6 text-2xl font-black uppercase hover:bg-white/20 transition-all">
-                ATRÁS
-            </button>
-            <button type="button" 
-                    @click="if(canGoNext()) step++" 
-                    class="flex-[2] bg-orange-500 text-white rounded-[1.5rem] py-6 text-2xl font-black uppercase shadow-xl hover:bg-orange-600 transition-all transform hover:scale-105 active:scale-95 tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
-                    :disabled="!canGoNext()">
-                SIGUIENTE
-            </button>
-        </div>
-    </form>
+    <!-- SECURITY TAG -->
+    <div class="flex items-center justify-center gap-4 text-white/10 font-black uppercase text-[9px] tracking-[0.5em]">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        Datos protegidos por Ley de Protección de Datos
+    </div>
+
 </div>
+
+<style>
+    /* Styling for Django Form Inputs */
+    input[type="text"], input[type="tel"], input[type="number"], select {
+        width: 100% !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 3px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 3rem !important;
+        padding: 2.5rem 3rem !important;
+        color: white !important;
+        font-family: inherit !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        text-align: center !important;
+        outline: none !important;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        font-size: 2.5rem !important;
+        letter-spacing: -0.05em !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2) !important;
+    }
+    input:focus, select:focus {
+        border-color: #f97316 !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 0 40px rgba(249, 115, 22, 0.1) !important;
+        transform: scale(1.02);
+    }
+    input::placeholder {
+        color: rgba(255, 255, 255, 0.1) !important;
+    }
+    select {
+        appearance: none !important;
+        font-size: 1.5rem !important;
+    }
+    option {
+        background: #1a1a1a !important;
+        color: white !important;
+    }
+</style>
 {% endblock %}

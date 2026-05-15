@@ -53,63 +53,40 @@ def lista_clases(request):
 
 
 @alumno_requerido
-@transaction.atomic
 def inscribir_clase(request, clase_id):
     """
-    Lógica de inscripción: verifica cupo y gestiona lista de espera con bloqueo de BD.
+    Lógica de inscripción delegada al AcademiaService.
     """
-    # Bloqueamos la fila del cronograma para que nadie más chequee cupos al mismo tiempo
-    clase = Cronograma.objects.select_for_update().get(id=clase_id)
     alumno_id = request.session['alumno_id']
+    alumno = Usuario.objects.get(id=alumno_id)
     
-    # 1. Verificar si ya está inscrito
-    if InscripcionClase.objects.filter(alumno_id=alumno_id, clase=clase).exclude(estado='baja').exists():
-        messages.warning(request, "⚠️ Ya estás anotado en este horario.")
-        return redirect('lista_clases')
-
-    # 2. Contar inscriptos regulares
-    inscriptos_actuales = InscripcionClase.objects.filter(clase=clase, estado='regular').count()
+    from .services import AcademiaService
+    inscripcion, mensaje, exito = AcademiaService.inscribir_alumno(alumno, clase_id)
     
-    if inscriptos_actuales < clase.cupo:
-        estado = InscripcionClase.EstadoInscrito.REGULAR
-        messages.success(request, f"¡Excelente! Te has inscrito en {clase.actividad.nombre}.")
+    if exito:
+        if inscripcion.estado == 'regular':
+            messages.success(request, mensaje)
+        else:
+            messages.warning(request, mensaje)
     else:
-        estado = InscripcionClase.EstadoInscrito.ESPERA
-        messages.warning(request, "El cupo está completo. Has sido agregado a la lista de espera.")
+        messages.warning(request, f"⚠️ {mensaje}")
 
-    # 3. Crear inscripción
-    InscripcionClase.objects.update_or_create(
-        alumno_id=alumno_id,
-        clase=clase,
-        defaults={'estado': estado}
-    )
-    
     return redirect('lista_clases')
 
 @alumno_requerido
-@transaction.atomic
 def desanotarse_clase(request, clase_id):
     """
-    Permite al alumno bajarse de una clase y libera cupo para alguien en espera.
-    Blindado con select_for_update en el Cronograma para evitar condiciones de carrera.
+    Lógica de baja delegada al AcademiaService.
     """
-    # Bloqueamos el cronograma para evitar que otras inscripciones/bajas interfieran
-    clase = get_object_or_404(Cronograma.objects.select_for_update(), id=clase_id)
-    inscripcion = get_object_or_404(InscripcionClase.objects.select_for_update(), alumno_id=request.session['alumno_id'], clase=clase)
+    alumno_id = request.session['alumno_id']
+    alumno = Usuario.objects.get(id=alumno_id)
     
-    if inscripcion.estado == InscripcionClase.EstadoInscrito.REGULAR:
-        # Liberar cupo: buscar el primero en espera con bloqueo
-        proximo_en_espera = InscripcionClase.objects.filter(
-            clase=clase, 
-            estado=InscripcionClase.EstadoInscrito.ESPERA
-        ).select_for_update().order_by('fecha_inscripcion').first()
+    from .services import AcademiaService
+    exito, mensaje = AcademiaService.dar_de_baja(alumno, clase_id)
+    
+    if exito:
+        messages.success(request, f"✅ {mensaje}")
+    else:
+        messages.warning(request, mensaje)
         
-        if proximo_en_espera:
-            proximo_en_espera.estado = InscripcionClase.EstadoInscrito.REGULAR
-            proximo_en_espera.save()
-            # Opcional: Aquí se podría disparar una notificación al alumno promovido
-
-    inscripcion.estado = 'baja'
-    inscripcion.save()
-    messages.success(request, "✅ Te has dado de baja de la clase correctamente.")
     return redirect('lista_clases')

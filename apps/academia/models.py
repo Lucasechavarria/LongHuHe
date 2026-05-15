@@ -29,6 +29,12 @@ class Actividad(models.Model):
     descripcion = models.TextField(blank=True)
     precio_mes = models.DecimalField("Precio Mensual", max_digits=10, decimal_places=2, default=0)
     precio_clase = models.DecimalField("Precio Clase Suelta", max_digits=10, decimal_places=2, default=0)
+    tipo_cobro = models.CharField(
+        "Tipo de Cobro", max_length=20, 
+        choices=[("mes", "Mes Completo"), ("clase", "Clase Suelta"), ("paquete", "Paquete de Clases")],
+        default="mes"
+    )
+
     color_etiqueta = models.CharField(
         "Color Hex", max_length=7, default="#f97316",
         help_text="Color para diferenciar la actividad en el cronograma. (Ej: #3b82f6)"
@@ -126,20 +132,6 @@ class InscripcionClase(models.Model):
         verbose_name_plural = "01.4 - Inscripciones (Control de Cupo)"
         unique_together = ['alumno', 'clase'] # Un alumno no puede inscribirse 2 veces al mismo horario
         db_table = 'core_inscripcionclase'
-
-    def save(self, *args, **kwargs):
-        from django.db import transaction
-        # 🛡️ Blindaje: Validar cupo máximo con bloqueo de base de datos
-        if not self.pk: # Solo en nuevas inscripciones
-            with transaction.atomic():
-                # Bloqueamos la fila del cronograma para evitar race conditions
-                clase_bloqueada = type(self.clase).objects.select_for_update().get(pk=self.clase.pk)
-                Cupo = clase_bloqueada.alumnos_inscritos.filter(estado=self.EstadoInscrito.REGULAR).count()
-                if Cupo >= clase_bloqueada.cupo:
-                    raise ValidationError(f"No hay cupo disponible para esta clase ({clase_bloqueada.cupo} alumnos máximo).")
-                super().save(*args, **kwargs)
-        else:
-            super().save(*args, **kwargs)
 
     def __str__(self):
         try:

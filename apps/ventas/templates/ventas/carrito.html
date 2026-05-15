@@ -1,93 +1,115 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Mi Carrito - Long Hu He{% endblock %}
 
 {% block content %}
-<div x-data="cartManager()" class="max-w-xl mx-auto pt-8">
+<div x-data="cartManager()" class="max-w-3xl mx-auto space-y-16 pb-32 animate-fade-in px-4">
 
-    <div class="mb-14 text-center">
-        <h2 class="text-6xl font-black italic tracking-tighter uppercase text-white leading-tight">
-            Tu <span class="bg-gradient-to-r from-orange-500 to-amber-300 bg-clip-text text-transparent italic tracking-normal px-2">Carrito</span>
-        </h2>
-        <p class="text-[10px] font-black uppercase text-white/30 tracking-[0.4em] mt-4">Confirmación de Pedido Interno</p>
-    </div>
+    <!-- HEADER PREMIUM -->
+    <header class="text-center relative py-10">
+        <div class="absolute inset-0 bg-gradient-to-b from-orange-600/5 to-transparent blur-3xl rounded-full opacity-30"></div>
+        <h1 class="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter relative z-10 leading-[0.8]">
+            Tu <span class="text-orange-500 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]">Carrito</span>
+        </h1>
+        <p class="text-white/40 font-bold mt-6 text-xs uppercase tracking-[0.5em] max-w-md mx-auto leading-loose">Confirmación de Pedido Institucional</p>
+    </header>
 
-    <!-- Lista de Items -->
-    <div class="space-y-6">
+    <!-- LISTA DE ITEMS -->
+    <div class="space-y-6 relative z-10">
         <template x-for="(item, index) in localCart" :key="index">
-            <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 flex items-center gap-6 relative group overflow-hidden">
-                <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            <div class="glass-card rounded-[3.5rem] p-8 md:p-10 border border-white/5 flex flex-col md:flex-row items-center gap-10 relative group overflow-hidden transition-all duration-700 hover:border-orange-500/30">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/5 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 
-                <div class="w-20 h-20 bg-black/40 rounded-[1.5rem] flex items-center justify-center border border-white/10 p-2 shadow-2xl">
-                     <svg class="w-10 h-10 text-white/10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <div class="w-24 h-24 bg-black/40 rounded-[2rem] flex items-center justify-center border border-white/10 p-4 shadow-2xl relative z-10">
+                     <svg class="w-12 h-12 text-white/10 group-hover:text-orange-500/40 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 </div>
                 
-                <div class="flex-grow">
-                    <h4 x-text="item.name" class="text-xl font-black text-white uppercase leading-tight tracking-tight"></h4>
-                    <p class="text-[10px] font-black text-orange-500 uppercase mt-1 tracking-widest italic" x-text="'$' + item.price"></p>
+                <div class="flex-grow space-y-4 text-center md:text-left relative z-10">
+                    <div class="space-y-1">
+                        <h4 x-text="item.name" class="text-2xl md:text-3xl font-black text-white uppercase leading-none tracking-tighter"></h4>
+                        <p class="text-[10px] font-black text-orange-500 uppercase tracking-[0.3em] italic" x-text="'Unidad: $' + item.price"></p>
+                    </div>
                     
-                    <div class="mt-4 flex items-center gap-6">
-                        <div class="flex items-center bg-black/60 rounded-full border border-white/10 p-1">
-                            <button @click="changeQty(index, -1)" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">-</button>
-                            <span x-text="item.qty" class="w-10 text-center font-black text-white text-sm"></span>
-                            <button @click="changeQty(index, 1)" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors">+</button>
+                    <div class="flex items-center justify-center md:justify-start gap-8">
+                        <div class="flex items-center bg-black/60 rounded-full border border-white/10 p-1.5 shadow-inner">
+                            <button @click="changeQty(index, -1)" class="w-10 h-10 flex items-center justify-center text-white/20 hover:text-white transition-all text-xl font-black">-</button>
+                            <span x-text="item.qty" class="w-12 text-center font-black text-white text-lg"></span>
+                            <button @click="changeQty(index, 1)" class="w-10 h-10 flex items-center justify-center text-white/20 hover:text-white transition-all text-xl font-black">+</button>
                         </div>
-                        <button @click="removeItem(index)" class="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-400 transition-colors">Eliminar</button>
+                        <button @click="removeItem(index)" class="text-[10px] font-black text-rose-500/40 uppercase tracking-[0.4em] hover:text-rose-500 transition-all">Eliminar</button>
                     </div>
                 </div>
 
-                <div class="text-right">
-                    <p class="text-lg font-black text-white" x-text="'$' + (item.price * item.qty)"></p>
+                <div class="text-center md:text-right relative z-10 border-t md:border-t-0 md:border-l border-white/5 pt-6 md:pt-0 md:pl-10">
+                    <p class="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Subtotal</p>
+                    <p class="text-4xl font-black text-white tracking-tighter italic" x-text="'$' + (item.price * item.qty)"></p>
                 </div>
             </div>
         </template>
         
         <!-- Carrito Vacío -->
         <template x-if="localCart.length === 0">
-            <div class="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                <p class="font-black uppercase tracking-widest text-white/20">Tu carrito está vacío</p>
-                <a href="{% url 'tienda_inicio' %}" class="inline-block mt-8 bg-orange-500 text-white px-10 py-5 rounded-3xl font-black uppercase tracking-widest text-[11px] shadow-2xl">Ir a la tienda</a>
+            <div class="text-center py-40 glass-panel rounded-[4rem] border-2 border-dashed border-white/5 flex flex-col items-center gap-10">
+                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-white/10">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="text-3xl font-black text-white/20 uppercase tracking-tighter italic">Tu carrito está vacío</h3>
+                    <p class="text-white/10 text-[10px] font-black uppercase tracking-[0.4em]">Explora nuestra tienda oficial</p>
+                </div>
+                <a href="{% url 'tienda_inicio' %}" class="btn-liquid bg-orange-600 text-white px-12 py-6 rounded-[2rem] font-black uppercase text-xs tracking-[0.4em] shadow-2xl hover:bg-orange-500 transition-all">
+                    Volver a la Tienda
+                </a>
             </div>
         </template>
     </div>
 
-    <!-- Total -->
-    <div x-show="localCart.length > 0" x-cloak class="mt-14 pt-10 border-t-4 border-white/5">
-        <div class="flex justify-between items-center mb-10 px-4">
-            <h3 class="text-2xl font-black text-white uppercase tracking-tighter italic">Total <span class="text-white/20 font-bold tracking-normal italic text-sm">(Final)</span></h3>
-            <p class="text-5xl font-black text-orange-500 tracking-tighter" x-text="'$' + total"></p>
+    <!-- RESUMEN Y CHECKOUT -->
+    <div x-show="localCart.length > 0" x-cloak x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 translate-y-10" x-transition:enter-end="opacity-100 translate-y-0" class="mt-20 pt-16 border-t border-white/10 relative z-10">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center gap-10 mb-16 px-6">
+            <div class="text-center md:text-left space-y-2">
+                <h3 class="text-3xl font-black text-white uppercase tracking-tighter italic">Inversión <span class="text-orange-500">Total</span></h3>
+                <p class="text-white/20 text-[10px] font-bold uppercase tracking-[0.5em]">Incluye impuestos y gestión administrativa</p>
+            </div>
+            <p class="text-7xl md:text-9xl font-black text-white tracking-tighter drop-shadow-[0_0_50px_rgba(255,255,255,0.1)]" x-text="'$' + total"></p>
         </div>
 
-        <form action="{% url 'checkout' %}" method="POST" class="space-y-6">
+        <form action="{% url 'checkout' %}" method="POST" class="space-y-12">
             {% csrf_token %}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-orange-500 transition-all group">
-                    <input type="radio" name="metodo" value="transferencia" checked class="hidden peer">
-                    <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-orange-500 transition-colors mb-4 flex items-center justify-center">
-                        <div class="w-4 h-4 rounded-full bg-orange-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-                    </div>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest text-center">Transferencia</span>
-                </label>
-                
-                <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-blue-500 transition-all">
-                    <input type="radio" name="metodo" value="mercadopago" class="hidden peer">
-                    <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-blue-500 transition-colors mb-4 flex items-center justify-center">
-                        <div class="w-4 h-4 rounded-full bg-blue-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-                    </div>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest text-center">Mercado Pago</span>
-                </label>
+            
+            <div class="space-y-6 text-center">
+                <p class="text-[10px] font-black uppercase text-orange-500 tracking-[0.5em]">Método de Pago</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <label class="group relative cursor-pointer">
+                        <input type="radio" name="metodo" value="transferencia" checked class="peer hidden">
+                        <div class="glass-card rounded-[2.5rem] p-10 border-2 border-white/5 peer-checked:border-orange-500 peer-checked:bg-orange-600/10 transition-all duration-500 flex flex-col items-center gap-4">
+                            <svg class="w-8 h-8 text-white/20 peer-checked:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                            <span class="text-[10px] font-black uppercase text-white tracking-widest">Transferencia</span>
+                        </div>
+                    </label>
+                    
+                    <label class="group relative cursor-pointer">
+                        <input type="radio" name="metodo" value="mercadopago" class="peer hidden">
+                        <div class="glass-card rounded-[2.5rem] p-10 border-2 border-white/5 peer-checked:border-blue-500 peer-checked:bg-blue-600/10 transition-all duration-500 flex flex-col items-center gap-4">
+                            <svg class="w-8 h-8 text-white/20 peer-checked:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span class="text-[10px] font-black uppercase text-white tracking-widest">Mercado Pago</span>
+                        </div>
+                    </label>
 
-                <label class="premium-card rounded-3xl p-6 border border-white/10 flex flex-col items-center cursor-pointer hover:border-emerald-500 transition-all">
-                    <input type="radio" name="metodo" value="efectivo" class="hidden peer">
-                    <div class="w-10 h-10 rounded-full border-4 border-white/10 peer-checked:border-emerald-500 transition-colors mb-4 flex items-center justify-center">
-                        <div class="w-4 h-4 rounded-full bg-emerald-500 opacity-0 peer-checked:opacity-100 transition-opacity"></div>
-                    </div>
-                    <span class="text-[10px] font-black uppercase text-white tracking-widest text-center">Efectivo</span>
-                </label>
+                    <label class="group relative cursor-pointer">
+                        <input type="radio" name="metodo" value="efectivo" class="peer hidden">
+                        <div class="glass-card rounded-[2.5rem] p-10 border-2 border-white/5 peer-checked:border-emerald-500 peer-checked:bg-emerald-600/10 transition-all duration-500 flex flex-col items-center gap-4">
+                            <svg class="w-8 h-8 text-white/20 peer-checked:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <span class="text-[10px] font-black uppercase text-white tracking-widest">Efectivo</span>
+                        </div>
+                    </label>
+                </div>
             </div>
 
-            <button type="submit" class="w-full h-24 bg-white text-black rounded-[2rem] text-xl font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-orange-500 hover:text-white hover:-translate-y-2 transition-all active:translate-y-1">
-                Generar Pedido
+            <button type="submit" class="btn-liquid w-full h-32 bg-orange-600 text-white rounded-[3rem] text-3xl font-black uppercase tracking-[0.3em] shadow-[0_30px_70px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all duration-700 active:scale-95">
+                Confirmar Pedido ➔
             </button>
         </form>
     </div>
@@ -124,14 +146,16 @@
                 window.dispatchEvent(new CustomEvent('cart-update', { detail: { count } }));
 
                 // Sincronizar con backend
-                await fetch('{% url "carrito_sync" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ cart: this.localCart })
-                });
+                try {
+                    await fetch('{% url "carrito_sync" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ cart: this.localCart })
+                    });
+                } catch (e) { console.error("Error syncing cart", e); }
             }
         }
     }

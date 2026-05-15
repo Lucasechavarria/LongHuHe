@@ -107,6 +107,12 @@ class Usuario(AbstractUser):
 
     # Nuevos campos para adultos mayores
     dni = models.CharField("DNI", max_length=15, blank=True)
+    
+    @property
+    def dni_mask(self):
+        if not self.dni: return ""
+        return f"{'*' * (len(self.dni)-4)}{self.dni[-4:]}"
+
     fecha_nacimiento = models.DateField("Fecha de Nacimiento", null=True, blank=True)
     domicilio = models.CharField("Domicilio", max_length=255, blank=True)
     localidad = models.CharField("Localidad", max_length=150, blank=True)
@@ -223,61 +229,11 @@ class Usuario(AbstractUser):
             import re
             clean_username = re.sub(r'[^a-zA-Z0-9@\.\+\-_]', '', self.celular)
             if not clean_username:
+                import uuid
                 clean_username = f"u_{uuid.uuid4().hex[:8]}"
             self.username = clean_username[:150]
         
-        # 4. Generación de QR físico (Optimización Sprint 8 + Audit Sprint 9)
-        uuid_cambio = False
-        if self.pk:
-            old_inst = Usuario.objects.filter(pk=self.pk).values('uuid_carnet', 'qr_image').first()
-            if old_inst and old_inst['uuid_carnet'] != self.uuid_carnet:
-                uuid_cambio = True
-                if old_inst['qr_image']:
-                    self.qr_image.delete(save=False)
-
-        if (not self.qr_image or uuid_cambio) and self.uuid_carnet:
-            import qrcode
-            import io
-            from django.core.files.base import ContentFile
-            
-            qr = qrcode.QRCode(version=1, box_size=10, border=2)
-            qr.add_data(str(self.uuid_carnet))
-            qr.make(fit=True)
-            img = qr.make_image(fill_color="black", back_color="white")
-            
-            buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
-            
-            file_name = f"qr_{self.pk or uuid.uuid4().hex[:8]}.png"
-            # NO llamamos a .save() del campo aquí para evitar interferencias con el super().save()
-            # Simplemente asignamos el contenido
-            self.qr_image.save(file_name, ContentFile(buffer.getvalue()), save=False)
-
-        # 5. Optimización de Foto de Perfil (WebP) (Task - Visuals)
-        if not getattr(self, '_img_optimized', False):
-            if self.foto_perfil and not self.foto_perfil.name.endswith('.webp'):
-                from PIL import Image
-                import io
-                from django.core.files.base import ContentFile
-                try:
-                    img = Image.open(self.foto_perfil)
-                    if img.mode in ("RGBA", "P"):
-                        img = img.convert("RGB")
-                    thumb_io = io.BytesIO()
-                    img.save(thumb_io, 'WEBP', quality=85)
-                    new_name = self.foto_perfil.name.split('.')[0] + '.webp'
-                    
-                    # Marcamos como optimizado ANTES para evitar bucles si decidimos usar save=True
-                    self._img_optimized = True
-                    self.foto_perfil.save(new_name, ContentFile(thumb_io.getvalue()), save=False)
-                    print(f"ÉXITO: Imagen subida a S3 -> {self.foto_perfil.name}")
-                except Exception as e:
-                    print(f"ERROR CRITICO en subida a S3: {str(e)}")
-                    self._img_optimized = True 
-            else:
-                self._img_optimized = True
-        
-        # 6. Sincronización de Nivel de Acceso con Grado (Audit de Coherencia)
+        # 4. Sincronización de Nivel de Acceso con Grado (Audit de Coherencia)
         if self.grado and self.grado.nivel_desbloqueado:
             self.nivel_acceso = self.grado.nivel_desbloqueado
 
@@ -309,7 +265,7 @@ class Usuario(AbstractUser):
             qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
             buffer = io.BytesIO()
-            img.save(buffer, format="PNG")
+            img.save(buffer)
             encoded_string = base64.b64encode(buffer.getvalue()).decode('utf-8')
             return f"data:image/png;base64,{encoded_string}"
         
@@ -463,3 +419,44 @@ def sincronizar_nivel_acceso_con_grado(sender, instance, **kwargs):
         # Solo actualizamos si el nivel cambió o es una carga inicial
         if instance.nivel_acceso != instance.grado.nivel_desbloqueado:
             instance.nivel_acceso = instance.grado.nivel_desbloqueado
+
+
+class BitacoraSeguridad(models.Model):
+    """
+    Registro histórico de acciones sensibles para auditoría y seguridad.
+    """
+    class TipoEvento(models.TextChoices):
+        ACCESO_EXITOSO = "login_ok", "Acceso Exitoso"
+        ACCESO_FALLIDO = "login_fail", "Acceso Fallido"
+        CAMBIO_ESTADO = "cambio_estado", "Cambio de Estado Financiero"
+        CIERRE_CAJA = "cierre_caja", "Cierre de Caja"
+        EXPORTACION = "exportacion", "Exportación de Datos"
+        OTRO = "otro", "Otro"
+
+    fecha = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)
+    tipo = models.CharField(max_length=20, choices=TipoEvento.choices)
+    descripcion = models.TextField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Bitácora de Seguridad"
+        verbose_name_plural = "Bitácoras de Seguridad"
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"[{self.fecha.strftime('%Y-%m-%d %H:%M')}] {self.tipo} - {self.usuario}"
+
+    @staticmethod
+    def registrar(request, tipo, descripcion, usuario=None):
+        """ Helper para registrar eventos rápidamente """
+        from .utils import get_client_ip
+        BitacoraSeguridad.objects.create(
+            usuario=usuario or (getattr(request, 'user_obj', None) if request else None),
+            tipo=tipo,
+            descripcion=descripcion,
+            ip_address=get_client_ip(request) if request else None,
+            user_agent=request.META.get('HTTP_USER_AGENT') if request else None
+        )
+

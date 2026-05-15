@@ -56,27 +56,11 @@ class InscripcionExamen(models.Model):
 
     @transaction.atomic
     def aplicar_ascenso(self):
-        """ Task 7.3: Automatización de ascenso de grado y nivel de acceso """
+        """ Task 7.3: Automatización de ascenso usando Signals (Observer Pattern) """
         if self.resultado == self.EstadoResultado.APROBADO and not self.procesado:
-            alumno = self.alumno
-            
-            # 1. Actualización Atómica del Alumno
-            alumno.grado = self.grado_a_aspirar
-            # Desbloqueo de nivel según el nuevo grado
-            if self.grado_a_aspirar.nivel_desbloqueado:
-                alumno.nivel_acceso = self.grado_a_aspirar.nivel_desbloqueado
-            
-            alumno.save(update_fields=['grado', 'nivel_acceso'])
-            
-            # 2. Registro histórico
-            Examen.objects.create(
-                alumno=alumno,
-                grado=self.grado_a_aspirar,
-                fecha=self.mesa.fecha.date(),
-                examinador=self.mesa.examinadores.first(),
-                examinador_externo=self.mesa.maestro_invitado,
-                observaciones=f"Aprobado en Mesa {self.mesa.id}. Nota: {self.nota_tecnica or 'N/A'}. {self.observaciones}"
-            )
+            from .signals import ascenso_aprobado
+            # Disparar la señal para que usuarios/biblioteca escuchen y actúen
+            ascenso_aprobado.send(sender=self.__class__, inscripcion=self)
             
             self.procesado = True
             # No llamamos a self.save() aquí para evitar recursión.

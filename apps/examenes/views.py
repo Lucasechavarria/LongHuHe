@@ -17,56 +17,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 def dashboard_institucional(request):
     """ Task 7.4: Dashboards Globales """
     hoy = timezone.now().date()
-    # Estadisticas basicas
-    total_alumnos = Usuario.objects.filter(es_profe=False).count()
-    from apps.ventas.models import Pedido
+    from apps.examenes.services import ExamenService
     
-    # Ingresos mensuales globales (Pagos + Pedidos)
-    ingresos_pagos = Pago.objects.filter(
-        estado=Pago.EstadoPago.APROBADO, 
-        fecha_registro__year=hoy.year,
-        fecha_registro__month=hoy.month
-    ).aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
+    metricas = ExamenService.obtener_metricas_dashboard(hoy)
 
-    ingresos_pedidos = Pedido.objects.filter(
-        estado__in=[Pedido.Estado.PAGADO, Pedido.Estado.ENTREGADO],
-        fecha_registro__year=hoy.year,
-        fecha_registro__month=hoy.month
-    ).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
-
-    ingresos_mensuales = ingresos_pagos + ingresos_pedidos
-    
-    # Asistencia Ultimos 15 Dias
-    fecha_limite = hoy - timedelta(days=15)
-    asistencias_recientes = RegistroAsistencia.objects.filter(fecha_hora__date__gte=fecha_limite).count()
-
-    # Datos para Graficos (Chart.js Task 7.5)
-    grados_qs = Grado.objects.annotate(alumnos_count=Count('alumnos')).order_by('orden')
-    grados_data = [
-        {'nombre': g.nombre_formateado, 'alumnos_count': g.alumnos_count} 
-        for g in grados_qs
-    ]
-    
-    distribucion_grados_json = json.dumps(grados_data, cls=DjangoJSONEncoder)
-
-    alumnos_nuevos_mes = Usuario.objects.filter(
-        date_joined__year=hoy.year, 
-        date_joined__month=hoy.month
-    ).count()
-    
-    # Exámenes mas recientes
-    mesas_abiertas = MesaExamen.objects.filter(esta_abierta=True).annotate(
-        candidatos_count=Count('candidatos')
-    )
-
-    return render(request, 'examenes/dashboard.html', {
-        'total_alumnos': total_alumnos,
-        'ingresos_mensuales': ingresos_mensuales,
-        'asistencias_recientes': asistencias_recientes,
-        'alumnos_nuevos_mes': alumnos_nuevos_mes,
-        'distribucion_grados_json': distribucion_grados_json,
-        'mesas_abiertas': mesas_abiertas
-    })
+    return render(request, 'examenes/dashboard.html', metricas)
 
 @profe_requerido
 def evaluar_mesa(request, mesa_id):
@@ -75,25 +30,10 @@ def evaluar_mesa(request, mesa_id):
     candidatos = mesa.candidatos.all().select_related('alumno', 'grado_a_aspirar')
     
     if request.method == 'POST':
-        # Procesamiento masivo de resultados
-        for cand in candidatos:
-            resultado = request.POST.get(f'resultado_{cand.id}')
-            nota = request.POST.get(f'nota_{cand.id}')
-            obs = request.POST.get(f'obs_{cand.id}')
-            
-            if resultado:
-                cand.resultado = resultado
-                if nota:
-                    cand.nota_tecnica = int(nota)
-                if obs:
-                    cand.observaciones = obs
-                cand.save()
-                
-                # Ejecutar ascenso si aprobó (Task 7.3)
-                if resultado == InscripcionExamen.EstadoResultado.APROBADO:
-                    cand.aplicar_ascenso()
-                    
-        messages.success(request, f"Mesa {mesa.id} evaluada correctamente.")
+        from apps.examenes.services import ExamenService
+        evaluaciones_procesadas = ExamenService.procesar_evaluaciones(mesa, request.POST)
+        
+        messages.success(request, f"Mesa {mesa.id} evaluada. {evaluaciones_procesadas} candidatos procesados.")
         return redirect('dashboard_institucional')
 
     return render(request, 'examenes/evaluar_mesa.html', {
@@ -110,27 +50,14 @@ def inscribir_examen(request, mesa_id):
     mesa = get_object_or_404(MesaExamen, id=mesa_id, esta_abierta=True)
     alumno = request.user_obj
     
-    if InscripcionExamen.objects.filter(mesa=mesa, alumno=alumno).exists():
-        messages.warning(request, "Ya estás inscripto en esta mesa.")
+    from apps.examenes.services import ExamenService
+    inscripcion, error_msg = ExamenService.inscribir_alumno(mesa, alumno)
+    
+    if error_msg:
+        messages.warning(request, error_msg)
         return redirect('perfil')
     
-    # El grado a aspirar es el siguiente al actual
-    grado_actual_orden = alumno.grado.orden if alumno.grado else 0
-    siguiente_grado = Grado.objects.filter(orden__gt=grado_actual_orden).order_by('orden').first()
-    
-    if not siguiente_grado:
-        messages.info(request, "Ya has alcanzado el grado máximo disponible.")
-        return redirect('perfil')
-        
-    InscripcionExamen.objects.create(
-        mesa=mesa,
-        alumno=alumno,
-        grado_a_aspirar=siguiente_grado,
-        grado_actual=alumno.grado,
-        costo_inscripcion=siguiente_grado.costo_examen + mesa.precio_inscripcion
-    )
-    
-    messages.success(request, f"Inscripción exitosa para el grado: {siguiente_grado.nombre}. Ahora procede al pago.")
+    messages.success(request, f"Inscripción exitosa para el grado: {inscripcion.grado_a_aspirar.nombre}. Ahora procede al pago.")
     return redirect('pago_examen', mesa_id=mesa.id)
 
 @alumno_requerido

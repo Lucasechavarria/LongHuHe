@@ -231,111 +231,38 @@ class Pago(models.Model):
         except Exception:
             return f"Pago #{self.id}"
 
-    def recalcular_comisiones(self):
-        """ Calcula cuanto va para el profe y cuanto para la asociacion basado en la clase. """
-        if not self.monto:
-            return
-        
-        # 1. Determinar el porcentaje
-        from decimal import Decimal
-        pct = Decimal('50.00') # Default base: 50%
-        
-        if self.clase_programada:
-            pct = self.clase_programada.porcentaje_comision_profesor
-        elif self.actividad and hasattr(self.actividad, 'porcentaje_comision'):
-            # En caso de que se agregue comision a nivel actividad en el futuro
-            pct = self.actividad.porcentaje_comision
-        
-        # 2. Calcular montos
-        self.monto_comision_profesor = (self.monto * (pct / Decimal('100'))).quantize(Decimal('0.01'))
-        self.monto_utilidad_asociacion = self.monto - self.monto_comision_profesor
-
     def save(self, *args, **kwargs):
         from decimal import Decimal
-        from django.db import transaction
-        with transaction.atomic():
-            is_new = self.pk is None
-            old_estado = None
+        
+        # 1. Auto-asignar monto base desde la actividad (solo en creación)
+        if not self.monto and self.actividad:
+            if self.tipo == self.TipoPago.MES:
+                self.monto = self.actividad.precio_mes
+            elif self.tipo == self.TipoPago.CLASE_SUELTA:
+                self.monto = self.actividad.precio_clase
+            elif self.tipo == self.TipoPago.PAQUETE:
+                self.monto = self.actividad.precio_clase * (self.cantidad_clases or 1)
 
-            if not is_new:
-                try:
-                    old_pago = Pago.objects.get(pk=self.pk)
-                    old_estado = old_pago.estado
-                except Pago.DoesNotExist:
-                    pass
+        # 2. Guardar el monto original si todavía no está registrado
+        if not self.monto_original and self.monto:
+            self.monto_original = self.monto
 
-            # 1. Auto-asignar monto base desde la actividad (solo en creación)
-            if not self.monto and self.actividad:
-                if self.tipo == self.TipoPago.MES:
-                    self.monto = self.actividad.precio_mes
-                elif self.tipo == self.TipoPago.CLASE_SUELTA:
-                    self.monto = self.actividad.precio_clase
-                elif self.tipo == self.TipoPago.PAQUETE:
-                    self.monto = self.actividad.precio_clase * (self.cantidad_clases or 1)
+        # 3. Aplicar Descuento — SOLO para Cuota Mensual
+        if self.descuento_id and self.tipo == self.TipoPago.MES and self.monto_original:
+            descuento_obj = self.descuento
+            self.monto_descuento = descuento_obj.calcular_descuento(self.monto_original)
+            self.monto = self.monto_original - self.monto_descuento
+        else:
+            if self.tipo != self.TipoPago.MES:
+                self.descuento = None
+            self.monto_descuento = Decimal('0')
+            if self.monto_original:
+                self.monto = self.monto_original
 
-            # 2. Guardar el monto original si todavía no está registrado
-            if not self.monto_original and self.monto:
-                self.monto_original = self.monto
+        # NOTA: La lógica de side-effects (comisiones, stock, renovación de vencimiento)
+        # fue abstraida a PagoService.transicionar_a_aprobado() siguiendo el State Pattern.
 
-            # 3. Aplicar Descuento — SOLO para Cuota Mensual
-            if self.descuento_id and self.tipo == self.TipoPago.MES and self.monto_original:
-                descuento_obj = self.descuento
-                self.monto_descuento = descuento_obj.calcular_descuento(self.monto_original)
-                self.monto = self.monto_original - self.monto_descuento
-            else:
-                if self.tipo != self.TipoPago.MES:
-                    self.descuento = None
-                self.monto_descuento = Decimal('0')
-                if self.monto_original:
-                    self.monto = self.monto_original
-
-            # 4. Detectar si este save representa la primera aprobación
-            ha_sido_aprobado = (
-                (is_new and self.estado == self.EstadoPago.APROBADO) or
-                (old_estado != self.EstadoPago.APROBADO and self.estado == self.EstadoPago.APROBADO)
-            )
-
-            if ha_sido_aprobado:
-                # 4a. Calcular comisiones del profesor
-                if self.monto_comision_profesor == 0:
-                    self.recalcular_comisiones()
-
-                # 4b. Incrementar contador de usos del descuento (solo 1 vez al aprobar)
-                if self.descuento_id and self.tipo == self.TipoPago.MES:
-                    Descuento.objects.filter(pk=self.descuento_id).update(
-                        usos_actuales=models.F('usos_actuales') + 1
-                    )
-
-                # 4c. Lógica de Vencimiento Cíclico
-                from datetime import date
-                hoy = date.today()
-                alumno = self.alumno
-
-                if self.tipo == self.TipoPago.MES:
-                    if not alumno.dia_corte_cuota:
-                        alumno.dia_corte_cuota = hoy.day
-
-                    dia_corte = alumno.dia_corte_cuota
-                    base = alumno.fecha_vencimiento_cuota if (alumno.fecha_vencimiento_cuota and alumno.fecha_vencimiento_cuota >= hoy) else hoy
-                    mes_sig = base.month % 12 + 1
-                    anio_sig = base.year + (1 if base.month == 12 else 0)
-
-                    import calendar
-                    ultimo_dia_mes_sig = calendar.monthrange(anio_sig, mes_sig)[1]
-                    dia_real = min(dia_corte, ultimo_dia_mes_sig)
-
-                    nuevo_vencimiento = date(anio_sig, mes_sig, dia_real)
-
-                    alumno.fecha_vencimiento_cuota = nuevo_vencimiento
-                    alumno.fecha_prorroga = None
-                    alumno.save(update_fields=['fecha_vencimiento_cuota', 'fecha_prorroga', 'dia_corte_cuota'])
-
-                elif self.tipo in [self.TipoPago.PAQUETE, self.TipoPago.CLASE_SUELTA]:
-                    clases_a_sumar = self.cantidad_clases or (1 if self.tipo == self.TipoPago.CLASE_SUELTA else 0)
-                    alumno.clases_disponibles = models.F('clases_disponibles') + clases_a_sumar
-                    alumno.save(update_fields=['clases_disponibles'])
-
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def clean(self):
         errores = {}
@@ -494,89 +421,10 @@ class Pedido(models.Model):
         except Exception:
             return f"Pedido #{self.id}"
 
-    def descontar_stock(self, logic_only=False):
-        """ Reduce el inventario al entregar el producto """
-        if self.stock_descontado:
-            return
-        
-        from django.db.models import F
-        for item in self.items.all():
-            if item.variante:
-                item.variante.stock = F('stock') - item.cantidad
-                item.variante.save(update_fields=['stock'])
-            else:
-                item.producto.stock = F('stock') - item.cantidad
-                item.producto.save(update_fields=['stock'])
-        
-        self.stock_descontado = True
-        if not logic_only:
-            self.save(update_fields=['stock_descontado'])
-
-    def restaurar_stock(self, logic_only=False):
-        """ Devuelve el inventario si se cancela un pedido entregado """
-        if not self.stock_descontado:
-            return
-            
-        from django.db.models import F
-        for item in self.items.all():
-            if item.variante:
-                item.variante.stock = F('stock') + item.cantidad
-                item.variante.save(update_fields=['stock'])
-            else:
-                item.producto.stock = F('stock') + item.cantidad
-                item.producto.save(update_fields=['stock'])
-        
-        self.stock_descontado = False
-        if not logic_only:
-            self.save(update_fields=['stock_descontado'])
-
-    def recalcular_stats(self, logic_only=False):
-        """ Recalcula costos de reposición y utilidad basándose en los items actuales. """
-        if self.estado in [self.Estado.PAGADO, self.Estado.RESERVADO, self.Estado.ENTREGADO]:
-            total_costo = Decimal('0.00')
-            for item in self.items.all():
-                costo_item = (Decimal(str(item.producto.costo_reposicion)) * item.cantidad)
-                total_costo += costo_item
-            
-            self.monto_costo_reposicion = total_costo.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            
-            # Recalcular porcentajes
-            pct_comision = Decimal(str(self.porcentaje_comision)) / Decimal('100')
-            self.monto_comision = (self.total * pct_comision).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            
-            if self.clase_origen and self.clase_origen.profesor_asistente:
-                pct_asistente = Decimal(str(self.clase_origen.porcentaje_comision_asistente)) / Decimal('100')
-                self.monto_comision_asistente = (self.total * pct_asistente).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            else:
-                self.monto_comision_asistente = Decimal('0.00')
-            
-            self.utilidad_neta_asociacion = (
-                self.total - self.monto_costo_reposicion - 
-                self.monto_comision - self.monto_comision_asistente
-            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            
-            if not logic_only:
-                super().save(update_fields=[
-                    'monto_costo_reposicion', 'monto_comision', 
-                    'monto_comision_asistente', 'utilidad_neta_asociacion'
-                ])
-
     def save(self, *args, **kwargs):
-        # 1. Detectar cambios de estado críticos para stock
-        if self.pk:
-            # Descontamos stock si el pedido se paga o se entrega (y no se ha descontado ya)
-            if self.estado in [self.Estado.PAGADO, self.Estado.ENTREGADO] and not self.stock_descontado:
-                self.descontar_stock(logic_only=True)
-            # Restauramos stock si se cancela y estaba descontado
-            if self.estado == self.Estado.CANCELADO and self.stock_descontado:
-                self.restaurar_stock(logic_only=True)
-        
-        # 2. Guardado inicial / actualización de campos base
+        # NOTA: La lógica de side-effects (stock, stats, comisiones)
+        # fue abstraida a PedidoService siguiendo el State Pattern.
         super().save(*args, **kwargs)
-        
-        # 3. Disparar recalcular si ya tiene items (o llamarlo desde el signal post_save de los items)
-        if self.pk:
-            self.recalcular_stats(logic_only=False)
 
 
 
@@ -600,7 +448,8 @@ class PedidoItem(models.Model):
 def actualizar_pedido_on_item_change(sender, instance, **kwargs):
     """ Fuerza la recalculación del pedido cuando sus items cambian. """
     if instance.pedido:
-        instance.pedido.recalcular_stats()
+        from apps.ventas.services.pedido_service import PedidoService
+        PedidoService.recalcular_stats(instance.pedido)
 
 # ==========================================
 # SEÑALES DE LIMPIEZA DE ALMACENAMIENTO (S3)

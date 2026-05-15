@@ -4,8 +4,57 @@ from django.contrib import messages
 from functools import wraps
 from .models import Usuario
 from .forms import AlumnoOnboardingForm, UsuarioPerfilForm, UsuarioSaludForm
+from django.core.cache import cache
+from .utils import get_client_ip
+
+def rate_limit_login(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.method == 'POST':
+            ip = get_client_ip(request)
+            key = f"rate_limit_login_{ip}"
+            attempts = cache.get(key, 0)
+            if attempts >= 10:
+                messages.error(request, "⚠️ Demasiados intentos fallidos. Por favor, espera 15 minutos.")
+                return render(request, 'usuarios/identificacion.html')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+def requiere_rol(rol_nombre):
+    """
+    Decorador avanzado para RBAC (Role Based Access Control).
+    Verifica si el usuario tiene el campo booleano 'rol_nombre' activo.
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped_view(request, *args, **kwargs):
+            # 1. Asegurar objeto usuario en request
+            if not hasattr(request, 'user_obj'):
+                if 'alumno_id' in request.session:
+                    request.user_obj = Usuario.objects.filter(id=request.session['alumno_id']).first()
+                elif request.user.is_authenticated:
+                    request.user_obj = request.user
+            
+            if not getattr(request, 'user_obj', None):
+                messages.error(request, "Sesión requerida.")
+                return redirect('splash')
+
+            # 2. Verificar rol (o acceso total)
+            usuario = request.user_obj
+            if usuario.rol_acceso_total:
+                return view_func(request, *args, **kwargs)
+            
+            if getattr(usuario, rol_nombre, False):
+                return view_func(request, *args, **kwargs)
+            
+            messages.error(request, f"Acceso denegado: Se requiere el rol '{rol_nombre.replace('rol_', '').replace('_', ' ').title()}'.")
+            return redirect('splash')
+        return _wrapped_view
+    return decorator
 
 def profe_requerido(view_func):
+    """ Decorador base para asegurar que sea un profesor/staff. """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if 'alumno_id' in request.session:
@@ -66,6 +115,7 @@ def acceso_opciones(request):
         return redirect('perfil')
     return render(request, 'usuarios/acceso_opciones.html')
 
+@rate_limit_login
 def identificacion(request):
     if 'alumno_id' in request.session:
         return redirect('perfil')
@@ -73,23 +123,28 @@ def identificacion(request):
         identificador = request.POST.get('identificador', '').strip()
         nacimiento = request.POST.get('nacimiento', '').strip()
         
+        ip = get_client_ip(request)
+        key = f"rate_limit_login_{ip}"
+        
+        from .models import BitacoraSeguridad
         if identificador and nacimiento:
             alumno = Usuario.objects.filter(Q(celular__icontains=identificador) | Q(dni=identificador)).first()
             if alumno:
-                # Security Hook (REMOVIDO: Permitir que los Docentes y Staff usen la App móvil)
-                # if getattr(alumno, 'is_staff', False) or getattr(alumno, 'is_superuser', False) or getattr(alumno, 'es_profe', False):
-                #     messages.error(request, "🚫⛔ Acceso Denegado: Docentes y Staff deben iniciar sesión con Contraseña obligatoria.")
-                #     return redirect('acceso_opciones')
-                
-                # Validation Hook
                 if alumno.fecha_nacimiento and str(alumno.fecha_nacimiento.year) == nacimiento:
                     request.session['alumno_id'] = alumno.id
                     request.session['es_profe'] = alumno.es_profe
+                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_EXITOSO, f"Login exitoso via DNI/Nacimiento", usuario=alumno)
+                    cache.delete(key) # Limpiar intentos
                     messages.success(request, f"¡Bienvenido, {alumno.nombre}!")
                     return redirect('perfil')
                 else:
+                    # Incrementar intentos
+                    cache.set(key, cache.get(key, 0) + 1, 900) # 15 min
+                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento fallido para DNI {identificador}: Año nacimiento incorrecto")
                     messages.error(request, "⚠️ El Año de Nacimiento proveido es incorrecto.")
             else:
+                cache.set(key, cache.get(key, 0) + 1, 900)
+                BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento fallido: Identificador {identificador} no encontrado")
                 messages.info(request, "No encontramos tus datos. ¡Por favor, completa tu inscripción!")
                 return redirect('onboarding')
         else:
@@ -102,42 +157,14 @@ def onboarding(request):
     if request.method == 'POST':
         form = AlumnoOnboardingForm(request.POST, request.FILES)
         if form.is_valid():
-            celular = form.cleaned_data['celular']
-            dni = form.cleaned_data['dni']
-            # Asignar Grado "Blanco" por defecto (Orden 0)
-            from .models import Grado
-            default_grado = Grado.objects.filter(Q(nombre__iexact="Blanco") | Q(orden=0)).first()
-
-            usuario, created = Usuario.objects.get_or_create(
-                celular=celular,
-                defaults={
-                    'nombre': form.cleaned_data['nombre'],
-                    'apellido': form.cleaned_data['apellido'],
-                    'dni': dni,
-                    'fecha_nacimiento': form.cleaned_data['fecha_nacimiento'],
-                    'domicilio': form.cleaned_data['domicilio'],
-                    'localidad': form.cleaned_data['localidad'],
-                    'sede': form.cleaned_data['sede'],
-                    'foto_perfil': form.cleaned_data.get('foto_perfil'),
-                    'grado': default_grado,
-                }
+            from apps.usuarios.services import UsuarioService
+            
+            # Pasar los clean data al servicio
+            usuario = UsuarioService.crear_alumno_desde_onboarding(
+                datos=form.cleaned_data,
+                foto_perfil=form.cleaned_data.get('foto_perfil')
             )
-            if not created:
-                usuario.nombre = form.cleaned_data['nombre']
-                usuario.apellido = form.cleaned_data['apellido']
-                usuario.dni = dni
-                usuario.fecha_nacimiento = form.cleaned_data['fecha_nacimiento']
-                usuario.domicilio = form.cleaned_data['domicilio']
-                usuario.localidad = form.cleaned_data['localidad']
-                usuario.sede = form.cleaned_data['sede']
-                if not usuario.grado:
-                    usuario.grado = default_grado
-                if form.cleaned_data.get('foto_perfil'):
-                    usuario.foto_perfil = form.cleaned_data.get('foto_perfil')
-                usuario.save()
-            actividad = form.cleaned_data.get('actividad_inicial')
-            if actividad:
-                usuario.actividades.add(actividad)
+            
             request.session['alumno_id'] = usuario.id
             request.session['es_profe'] = usuario.es_profe
             return redirect('perfil')
@@ -188,28 +215,20 @@ def editar_salud(request):
 @alumno_requerido
 def solicitar_prorroga(request):
     alumno = request.user_obj
+    from apps.usuarios.services import UsuarioService
     
-    if alumno.estado_morosidad == 'vencido':
-        from datetime import date, timedelta
-        hoy = date.today()
-        
-        # Validación de "Una sola prórroga por mes"
-        if alumno.ultima_prorroga_solicitada and \
-           alumno.ultima_prorroga_solicitada.month == hoy.month and \
-           alumno.ultima_prorroga_solicitada.year == hoy.year:
-            messages.warning(request, "Ya has solicitado una prórroga este mes. Por favor, regulariza tu cuota para continuar.")
-            return redirect('cuota_vencida')
-
-        # Si no tiene fecha_prorroga activa o expiré, le otorgamos 15 días desde hoy
-        alumno.fecha_prorroga = hoy + timedelta(days=15)
-        alumno.ultima_prorroga_solicitada = hoy
-        alumno.save(update_fields=['fecha_prorroga', 'ultima_prorroga_solicitada'])
-        
-        messages.success(request, "🛡️ Prórroga de 15 días activada. Tenés acceso completo temporariamente.")
-        return redirect('perfil')
+    exito, mensaje = UsuarioService.solicitar_prorroga(alumno)
+    
+    if exito:
+        messages.success(request, f"🛡️ {mensaje}")
     else:
-        messages.info(request, "No necesitas prórroga, tu cuota está al día.")
-        return redirect('perfil')
+        if "al día" in mensaje:
+            messages.info(request, mensaje)
+        else:
+            messages.warning(request, mensaje)
+            return redirect('cuota_vencida')
+            
+    return redirect('perfil')
 
 @alumno_requerido
 def cuota_vencida(request):

@@ -1,0 +1,148 @@
+:root {
+    /* Color Palette - Zen-Tech Premium */
+    --deep-black: #050505;
+    --fire-orange: #f97316;
+    --shaolin-red: #C53030;
+    --gold-accent: #d4af37;
+    --text-main: #E8E5DA;
+    --text-muted: rgba(232, 229, 218, 0.4);
+    
+    /* Glassmorphism Tokens */
+    --glass-bg: rgba(10, 10, 10, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(25px);
+    
+    /* Shadows */
+    --shadow-ultra: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
+}
+
+/* Base Reset */
+body {
+    background-color: var(--deep-black);
+    color: var(--text-main);
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+/* Premium Glass Components */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-ultra);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(249, 115, 22, 0.3);
+    transform: translateY(-8px);
+}
+
+/* Premium Navigation Dock */
+.nav-dock {
+    @apply fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-[3rem] glass-panel z-50;
+}
+
+.nav-item {
+    @apply relative p-5 rounded-2xl text-white/30 transition-all duration-500 overflow-hidden;
+    isolation: isolate;
+}
+
+.nav-item::after {
+    content: "";
+    @apply absolute inset-0 bg-white/5 opacity-0 transition-opacity duration-500 -z-10;
+}
+
+.nav-item:hover {
+    @apply text-orange-500 scale-110;
+}
+
+.nav-item:hover::after {
+    @apply opacity-100;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+}
+
+/* Watermark & Background */
+.shaolin-watermark {
+    position: fixed;
+    inset: 0;
+    background-image: url("../img/Logo Long Hu He Transparent.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: clamp(300px, 60%, 800px);
+    opacity: 0.1;
+    filter: grayscale(1) brightness(0.2);
+    pointer-events: none;
+    z-index: -10;
+}
+
+/* Scrollbar Style */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--deep-black);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--fire-orange);
+}
+
+/* Liquid Effect Enhancement */
+.btn-liquid {
+    position: relative;
+    overflow: hidden !important;
+    z-index: 1;
+    isolation: isolate;
+}
+
+.btn-liquid::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 40%;
+    transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.btn-liquid:hover::before {
+    top: -50%;
+    transform: rotate(180deg);
+}
+
+/* Typography Polish */
+h1, h2, h3, h4 {
+    letter-spacing: -0.05em;
+    font-weight: 900;
+}
+
+.tracking-premium {
+    letter-spacing: 0.5em;
+}
+
+

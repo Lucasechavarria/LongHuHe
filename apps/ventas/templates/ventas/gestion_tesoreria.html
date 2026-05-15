@@ -1,448 +1,254 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard Tesorería - Long Hu He{% endblock %}
+{% block title %}Tesorería Central - Long Hu He{% endblock %}
 
 {% block extra_head %}
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="animate-fade-in space-y-10 pb-20">
+<div class="animate-fade-in space-y-20 pb-32 max-w-[1600px] mx-auto">
     
-    <!-- HEADER -->
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
-        <div class="space-y-2">
-            <p class="text-[10px] md:text-xs font-black uppercase text-orange-500 tracking-[0.4em]">Administración Central</p>
-            <h1 class="text-4xl md:text-6xl xl:text-7xl font-black uppercase text-white tracking-tighter leading-none">Tesorería <span class="text-orange-600">&</span> Métricas</h1>
-            <p class="text-white/40 font-bold max-w-md text-sm md:text-base">Control financiero en tiempo real, análisis de ingresos y gestión de cobros pendientes.</p>
+    <!-- HEADER PREMIUM -->
+    <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-b border-white/5 pb-16 relative">
+        <div class="absolute -left-20 top-0 w-64 h-64 bg-orange-600/5 rounded-full blur-[100px]"></div>
+        <div class="space-y-6 relative z-10">
+            <div class="inline-flex items-center gap-3 bg-orange-600/10 border border-orange-500/20 px-6 py-2 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                <span class="text-[10px] font-black uppercase text-orange-500 tracking-[0.4em]">Financial Control Center</span>
+            </div>
+            <h1 class="text-6xl md:text-8xl font-black uppercase text-white tracking-tighter leading-[0.8]">
+                Tesorería <span class="text-orange-500 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]">&</span> Métricas
+            </h1>
+            <p class="text-white/30 font-bold max-w-xl text-lg leading-relaxed">Gestión centralizada de activos, auditoría de transacciones y análisis de rendimiento institucional.</p>
         </div>
         
-        <div class="hidden md:flex bg-black/40 backdrop-blur-3xl p-1.5 rounded-3xl border border-white/5 self-start shadow-2xl">
-            <div class="px-6 py-3">
-                <p class="text-[9px] font-black text-white/30 uppercase tracking-widest">Estado Actual</p>
-                <p class="text-xs font-black text-emerald-500 uppercase flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sistema Online
+        <div class="flex gap-4 relative z-10">
+            <div class="glass-card p-8 rounded-[2.5rem] border-white/10 text-center min-w-[200px]">
+                <p class="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-2">Sistema Operativo</p>
+                <p class="text-xs font-black text-emerald-500 uppercase flex items-center justify-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></span> Cloud Synchronized
                 </p>
             </div>
         </div>
-    </div>
+    </header>
 
-    <!-- KPI CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <!-- Ingresos Mes (Desglosado) -->
-        <div class="premium-card md:col-span-2 rounded-[2.5rem] p-8 border border-white/10 bg-black/40 backdrop-blur-3xl relative overflow-hidden group hover:shadow-orange-500/10 transition-all duration-500">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-[50px]"></div>
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                    <p class="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none mb-1">Recaudación Total</p>
-                    <p class="text-4xl font-black text-white tracking-tighter leading-none">${{ kpis.ingresos_mes|default:"0" }}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 font-black italic underline underline-offset-4 decoration-orange-500">Composición del Mes</p>
+    <!-- KPI GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+        <!-- Ingresos Mes -->
+        <div class="glass-panel md:col-span-2 rounded-[4rem] p-12 relative overflow-hidden group">
+            <div class="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/5 rounded-full blur-[100px] transition-all duration-1000 group-hover:bg-orange-600/10"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between gap-12 relative z-10">
+                <div class="space-y-6">
                     <div class="space-y-1">
-                        <div class="flex items-center justify-end gap-2">
-                             <span class="text-[10px] font-bold text-white/40 uppercase">Academia (Total):</span>
-                             <span class="text-xs font-black text-white">${{ kpis.ingresos_pagos }}</span>
+                        <p class="text-[10px] font-black uppercase text-orange-500 tracking-[0.5em]">Recaudación Período Actual</p>
+                        <h2 class="text-7xl font-black text-white tracking-tighter italic leading-none">${{ kpis.ingresos_mes|default:"0" }}</h2>
+                    </div>
+                    <div class="flex gap-6">
+                        <div class="glass-card p-6 rounded-[1.5rem] border-white/5">
+                            <p class="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Academia</p>
+                            <p class="text-xl font-black text-white">${{ kpis.ingresos_pagos }}</p>
                         </div>
-                        <!-- Sub-desglose Academia -->
-                        <div class="flex flex-col items-end border-r-2 border-white/5 pr-2 mr-1">
-                            <div class="flex items-center gap-2">
-                                <span class="text-[9px] font-medium text-white/20 uppercase">Cuotas:</span>
-                                <span class="text-[10px] font-bold text-emerald-500/80">${{ stats_tipos.mes }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[9px] font-medium text-white/20 uppercase">Clases/Paq:</span>
-                                <span class="text-[10px] font-bold text-amber-500/80">${{ stats_tipos.clase_suelta|add:stats_tipos.paquete }}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-end gap-2 pt-1">
-                             <span class="text-[10px] font-bold text-white/40 uppercase">Tienda:</span>
-                             <span class="text-xs font-black text-blue-400">${{ kpis.ingresos_tienda }}</span>
+                        <div class="glass-card p-6 rounded-[1.5rem] border-white/5">
+                            <p class="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Tienda</p>
+                            <p class="text-xl font-black text-blue-500">${{ kpis.ingresos_tienda }}</p>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Desglose por Actividad -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 border-t border-white/5 pt-6">
-                {% for act in ingresos_por_actividad %}
-                <div class="bg-white/5 p-3 rounded-2xl border border-white/5">
-                    <p class="text-[8px] font-black text-white/20 uppercase truncate">{{ act.nombre }}</p>
-                    <p class="text-sm font-black text-white">${{ act.total }}</p>
-                </div>
-                {% empty %}
-                <div class="col-span-full py-2">
-                    <p class="text-[8px] font-black text-white/10 uppercase tracking-widest text-center italic">Sin actividad registrada este mes</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
 
-        <!-- Cobros Pendientes -->
-        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent relative overflow-hidden group hover:shadow-rose-500/10 transition-all duration-500">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-rose-600/10 rounded-full blur-[50px] group-hover:bg-rose-600/20 transition-all"></div>
-            <p class="text-[10px] font-black uppercase text-rose-500 tracking-widest mb-4">Pendientes</p>
-            <div class="flex items-end gap-2">
-                <span class="text-4xl font-black text-white tracking-tighter">${{ kpis.pendientes_monto|default:"0" }}</span>
-                <span class="text-xs font-bold text-white/30 mb-2 uppercase italic leading-none">{{ kpis.pendientes_count }}</span>
-            </div>
-            <p class="text-[9px] font-bold text-white/20 mt-4 uppercase tracking-widest">En espera de verificación manual</p>
-        </div>
-
-        <!-- Pagos Rechazados -->
-        <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-white/5 relative overflow-hidden group">
-            <div class="absolute inset-0 bg-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <p class="text-[10px] font-black uppercase text-white/40 tracking-widest mb-4">Rechazados</p>
-            <div class="flex items-end gap-2">
-                <span class="text-4xl font-black text-white tracking-tighter opacity-40">${{ kpis.rechazados_monto|default:"0" }}</span>
-                <span class="text-xs font-bold text-white/20 mb-2 uppercase italic leading-none">{{ kpis.rechazados_count }}</span>
-            </div>
-            <p class="text-[9px] font-bold text-white/10 mt-4 uppercase tracking-widest italic">Abonados pero no acreditados</p>
-        </div>
-    </div>
-
-        <!-- Acciones Rápidas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
-            <a href="{% url 'exportar_tesoreria_pdf' %}" class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-orange-600 flex flex-col justify-center gap-4 group cursor-pointer transition-all hover:scale-[1.02] hover:shadow-orange-600/20">
-                <h4 class="text-xl font-black text-white uppercase leading-none">Descargar PDF</h4>
-                <p class="text-xs text-white/60 font-medium">Borrador del cierre de caja actual.</p>
-                <div class="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors">
-                     <span class="text-[10px] font-black uppercase tracking-widest">Generar Reporte</span>
-                </div>
-            </a>
-            
-            <div class="premium-card rounded-[2.5rem] p-8 border border-white/5 bg-white/5 flex flex-col justify-center gap-4 group transition-all">
-                <h4 class="text-xl font-black text-white/40 uppercase leading-none italic">Cierre Automático</h4>
-                <p class="text-xs text-white/20 font-medium italic">El sistema archiva el mes vencido al iniciar el nuevo período.</p>
-                <div class="flex items-center gap-2 text-white/10 transition-colors">
-                     <span class="text-[10px] font-black uppercase tracking-widest leading-none">Proceso Activo</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Historial de Cierres -->
-    <section class="px-4 space-y-6">
-        <h3 class="text-xl font-black uppercase tracking-tight text-white/50 px-4">Historial de Cierres de Caja</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {% for cierre in cierres_recientes %}
-            <div class="premium-card p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex flex-col gap-3">
-                <div class="flex justify-between items-start">
-                    <div class="bg-black/40 px-3 py-1 rounded-lg border border-white/5 text-center">
-                        <p class="text-[9px] font-black text-orange-500 uppercase">{{ cierre.mes|stringformat:"02d" }} / {{ cierre.anio }}</p>
-                    </div>
-                </div>
-                <p class="text-2xl font-black text-white">${{ cierre.total_recaudado }}</p>
-                <a href="{{ cierre.archivo_pdf.url }}" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-orange-500 transition-colors flex items-center gap-2">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Ver Comprobante
-                </a>
-            </div>
-            {% empty %}
-            <div class="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white/10">No hay cierres archivados aún</p>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <!-- TABLA DE PAGOS RECHAZADOS (Auditoría Solicitada) -->
-    <section class="px-4 space-y-6 pt-12">
-        <div class="flex items-center justify-between px-4">
-            <h3 class="text-xl font-black uppercase tracking-tight text-white/50">Auditoría: Pagos Rechazados</h3>
-            <span class="bg-red-500/10 text-red-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-red-500/20">Últimos 10 casos</span>
-        </div>
-        
-        <div class="premium-card rounded-[3rem] overflow-hidden border border-white/5 bg-black/20">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="border-b border-white/5 bg-white/[0.02]">
-                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Fecha</th>
-                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Alumno</th>
-                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Actividad/Motivo</th>
-                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Monto</th>
-                            <th class="px-8 py-5 text-[10px] font-black uppercase text-white/20 tracking-widest">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-white/5">
-                        {% for pago in pagos_rechazados_recientes %}
-                        <tr class="group hover:bg-white/[0.02] transition-colors">
-                            <td class="px-8 py-6 text-xs font-bold text-white/40">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
-                            <td class="px-8 py-6">
-                                <p class="text-white font-black text-sm uppercase">{{ pago.alumno.nombre_completo }}</p>
-                                <p class="text-[9px] text-white/20 font-bold uppercase">{{ pago.alumno.dni }}</p>
-                            </td>
-                            <td class="px-8 py-6">
-                                <span class="text-xs font-bold text-white/60">
-                                    {{ pago.actividad.nombre|default:"Examen / Otros" }}
-                                    {% if pago.mercado_pago_id %}
-                                    <br><span class="text-[9px] text-orange-500/50">MP ID: {{ pago.mercado_pago_id }}</span>
-                                    {% endif %}
-                                </span>
-                            </td>
-                            <td class="px-8 py-6">
-                                <p class="text-lg font-black text-white/60 tracking-tighter">${{ pago.monto }}</p>
-                            </td>
-                            <td class="px-8 py-6">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                                    <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">No Acreditado</span>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="px-8 py-20 text-center">
-                                <p class="text-[10px] font-black uppercase text-white/10 tracking-[0.4em]">Sin registros de pagos rechazados este mes</p>
-                            </td>
-                        </tr>
+                <div class="space-y-4 md:text-right">
+                    <p class="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Composición Disciplinas</p>
+                    <div class="flex flex-wrap md:justify-end gap-3">
+                        {% for act in ingresos_por_actividad %}
+                        <div class="bg-white/5 border border-white/5 px-5 py-3 rounded-2xl">
+                            <p class="text-[8px] font-black text-white/40 uppercase">{{ act.nombre }}</p>
+                            <p class="text-sm font-black text-white">${{ act.total }}</p>
+                        </div>
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
 
+        <!-- Pendientes -->
+        <div class="glass-panel rounded-[4rem] p-12 border-rose-500/10 group relative overflow-hidden">
+            <div class="absolute inset-0 bg-rose-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <p class="text-[10px] font-black uppercase text-rose-500 tracking-[0.5em] mb-8">Auditoría Pendiente</p>
+            <div class="space-y-1">
+                <h2 class="text-6xl font-black text-white tracking-tighter leading-none">${{ kpis.pendientes_monto|default:"0" }}</h2>
+                <p class="text-xs font-black text-rose-500/40 uppercase tracking-widest">{{ kpis.pendientes_count }} TRANSACCIONES</p>
+            </div>
+            <div class="mt-12">
+                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-rose-500 animate-pulse" style="width: 65%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="glass-panel rounded-[4rem] p-10 flex flex-col justify-between gap-6 border-white/10 group">
+            <a href="{% url 'exportar_tesoreria_pdf' %}" class="btn-liquid bg-orange-600 h-1/2 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 group/btn transition-all">
+                <span class="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 group-hover/btn:text-white transition-colors">Generar Reporte</span>
+                <span class="text-xl font-black text-white uppercase tracking-tighter">Exportar PDF</span>
+            </a>
+            <div class="glass-card h-1/2 rounded-[2.5rem] flex flex-col items-center justify-center gap-2 border-white/5">
+                <span class="text-[9px] font-black uppercase tracking-[0.4em] text-white/10 italic">Cierre Automático</span>
+                <span class="text-sm font-black text-white/20 uppercase tracking-tighter">Proceso Mensual</span>
+            </div>
+        </div>
+    </div>
 
     <!-- CHARTS SECTION -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-auto">
-        <!-- Tendencia de Ingresos -->
-        <div class="premium-card rounded-[3rem] p-10 border border-white/5 bg-black/40 backdrop-blur-3xl min-h-[450px] flex flex-col">
-            <h3 class="text-xl font-black uppercase text-white tracking-tight mb-8">Tendencia de Recaudación (30d)</h3>
-            <div class="flex-grow flex items-center justify-center relative">
-                {% if chart_data.values %}
-                    <canvas id="revenueChart"></canvas>
-                {% else %}
-                    <div class="text-center opacity-20">
-                        <p class="text-sm font-black uppercase tracking-widest italic">Sin datos suficientes para tendencia</p>
-                    </div>
-                {% endif %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div class="lg:col-span-2 glass-panel rounded-[4rem] p-12 min-h-[500px] flex flex-col">
+            <div class="flex items-center justify-between mb-12">
+                <h3 class="text-2xl font-black uppercase text-white tracking-tighter">Tendencia de Recaudación</h3>
+                <span class="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Últimos 30 Días</span>
+            </div>
+            <div class="flex-grow relative">
+                <canvas id="revenueChart"></canvas>
             </div>
         </div>
 
-        <!-- Métodos de Pago -->
-        <div class="premium-card rounded-[3rem] p-10 border border-white/5 bg-black/40 backdrop-blur-3xl min-h-[450px] flex flex-col">
-            <h3 class="text-xl font-black uppercase text-white tracking-tight mb-8">Preferencias de Pago</h3>
-            <div class="flex-grow flex items-center justify-center relative">
-                 {% if chart_data.metodos_values %}
-                    <canvas id="methodsChart"></canvas>
-                {% else %}
-                    <div class="text-center opacity-20">
-                        <p class="text-sm font-black uppercase tracking-widest italic">Sin datos de métodos de pago</p>
-                    </div>
-                {% endif %}
+        <div class="glass-panel rounded-[4rem] p-12 min-h-[500px] flex flex-col">
+            <div class="mb-12">
+                <h3 class="text-2xl font-black uppercase text-white tracking-tighter">Mix de Pagos</h3>
+                <p class="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-2">Canales Utilizados</p>
+            </div>
+            <div class="flex-grow relative">
+                <canvas id="methodsChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- COLA DE PAGOS PENDIENTES -->
-    <div class="space-y-8">
-        <div class="flex items-center justify-between border-b border-white/5 pb-4">
-            <h3 class="text-2xl font-black uppercase text-white tracking-tight">Pagos <span class="text-orange-500">Pendientes</span></h3>
-            <span class="bg-white/5 text-white/40 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">{{ pagos_pendientes.count }} en espera</span>
+    <!-- PENDIENTES COLA -->
+    <section class="space-y-12">
+        <div class="flex items-center gap-6">
+            <h3 class="text-3xl font-black uppercase text-white tracking-tighter">Validación <span class="text-orange-500">Manual</span></h3>
+            <div class="h-px flex-grow bg-gradient-to-r from-orange-500/30 to-transparent"></div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6">
+        <div class="grid grid-cols-1 gap-8">
             {% for pago in pagos_pendientes %}
-            <div x-data="{ open: false, reject: false }" class="premium-card rounded-[2.5rem] p-8 border border-white/5 transition-all hover:border-orange-500/30 group">
-                <div class="flex flex-col lg:flex-row justify-between gap-8">
-                    <!-- Alumno Info -->
-                    <div class="flex items-center gap-6">
-                        <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative">
-                             {% if pago.alumno.foto_perfil %}
+            <div x-data="{ reject: false }" class="glass-card rounded-[3.5rem] p-10 border-white/5 hover:border-orange-500/30 group transition-all duration-700 shadow-2xl">
+                <div class="flex flex-col xl:flex-row justify-between gap-12">
+                    
+                    <div class="flex items-center gap-8">
+                        <div class="w-24 h-24 rounded-[2rem] bg-black/60 border border-white/10 overflow-hidden shrink-0 shadow-2xl">
+                            {% if pago.alumno.foto_perfil %}
                                 <img src="{{ pago.alumno.foto_perfil.url }}" class="w-full h-full object-cover">
                             {% else %}
                                 <div class="w-full h-full flex items-center justify-center text-white/5">
-                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 </div>
                             {% endif %}
                         </div>
-                        <div>
-                            <p class="text-[9px] font-black uppercase text-orange-500 tracking-widest">{{ pago.get_tipo_display }}</p>
-                            <h4 class="text-xl font-black text-white group-hover:text-orange-500 transition-colors">{{ pago.alumno.nombre_completo }}</h4>
-                            <p class="text-xs font-bold text-white/30">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</p>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-4 py-1 rounded-full border border-orange-500/20">{{ pago.get_tipo_display }}</span>
+                                <span class="text-[9px] font-bold text-white/20 uppercase tracking-widest">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <h4 class="text-3xl font-black text-white uppercase tracking-tighter group-hover:text-orange-500 transition-colors">{{ pago.alumno.nombre_completo }}</h4>
+                            <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">{{ pago.get_metodo_display }} · ID #{{ pago.id }}</p>
                         </div>
                     </div>
 
-                    <!-- Datos y Acciones -->
-                    <div class="flex flex-wrap items-center gap-8 lg:justify-end">
-                        <div class="text-right">
-                             <p class="text-3xl font-black text-white tracking-tighter">${{ pago.monto }}</p>
-                             <p class="text-[9px] font-bold text-white/30 uppercase tracking-widest">{{ pago.get_metodo_display }}</p>
+                    <div class="flex flex-col md:flex-row items-center gap-12">
+                        <div class="text-center md:text-right">
+                            <p class="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1 italic">Monto a Validar</p>
+                            <p class="text-5xl font-black text-white tracking-tighter drop-shadow-2xl italic">${{ pago.monto }}</p>
                         </div>
 
-                        <div class="flex items-center gap-3">
-                             {% if pago.comprobante %}
-                                <a href="{{ pago.comprobante.url }}" target="_blank" class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-600 transition-all text-white/40 hover:text-white group/btn">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                </a>
+                        <div class="flex items-center gap-4">
+                            {% if pago.comprobante %}
+                            <a href="{{ pago.comprobante.url }}" target="_blank" class="w-16 h-16 glass-card rounded-[1.2rem] flex items-center justify-center text-white/40 hover:text-white hover:border-white/40 transition-all">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </a>
                             {% endif %}
 
                             <form action="{% url 'gestionar_pago_accion' pago.id %}" method="POST" class="inline">
                                 {% csrf_token %}
                                 <input type="hidden" name="accion" value="aprobar">
-                                <button type="submit" class="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-600 transition-all shadow-lg active:scale-95">
+                                <button type="submit" class="btn-liquid bg-emerald-600 text-white px-10 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest shadow-2xl hover:bg-emerald-500">
                                     Aprobar
                                 </button>
                             </form>
-                            <button @click="reject = !reject" class="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all active:scale-95">
+                            
+                            <button @click="reject = !reject" class="glass-card px-10 py-5 rounded-[1.5rem] text-rose-500/60 font-black uppercase text-xs tracking-widest hover:text-rose-500 hover:border-rose-500/40">
                                 Rechazar
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Form Rechazo -->
-                <div x-show="reject" x-transition class="mt-8 pt-8 border-t border-white/5 animate-slide-up">
-                    <form action="{% url 'gestionar_pago_accion' pago.id %}" method="POST" class="flex flex-col md:flex-row gap-4">
+                <div x-show="reject" x-transition class="mt-12 pt-12 border-t border-white/5">
+                    <form action="{% url 'gestionar_pago_accion' pago.id %}" method="POST" class="flex flex-col md:flex-row gap-6">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="rechazar">
-                        <input type="text" name="motivo" placeholder="Motivo del rechazo (ej: Comprobante ilegible)" class="flex-grow bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder-white/20 focus:border-rose-500 outline-none transition-all">
-                        <button type="submit" class="bg-rose-500 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs">Confirmar</button>
-                    </form>
-                </div>
-            </div>
-            {% empty %}
-            <div class="py-20 text-center space-y-4">
-                <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-12 h-12 text-white/5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0114 0z"></path></svg>
-                </div>
-                <h3 class="text-2xl font-black text-white/20 uppercase">Todo al día</h3>
-                <p class="text-white/10 max-w-xs mx-auto">No hay pagos pendientes de validación manual en este momento.</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- COLA DE PEDIDOS TIENDA PENDIENTES -->
-    <div class="space-y-8">
-        <div class="flex items-center justify-between border-b border-white/5 pb-4">
-            <h3 class="text-2xl font-black uppercase text-white tracking-tight">Pedidos de <span class="text-blue-500">Tienda</span></h3>
-            <span class="bg-blue-500/10 text-blue-500 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">{{ pedidos_pendientes.count }} pedidos</span>
-        </div>
-
-        <div class="grid grid-cols-1 gap-6">
-            {% for pedido in pedidos_pendientes %}
-            <div x-data="{ cancel: false }" class="premium-card rounded-[2.5rem] p-8 border border-white/5 transition-all hover:border-blue-500/30 group">
-                <div class="flex flex-col lg:flex-row justify-between gap-8">
-                    <!-- Producto / Usuario Info -->
-                    <div class="flex items-center gap-6">
-                        <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-black uppercase text-blue-400 tracking-widest">PEDIDO #{{ pedido.id }} - {{ pedido.get_metodo_pago_display }}</p>
-                            <h4 class="text-xl font-black text-white group-hover:text-blue-500 transition-colors">{{ pedido.alumno.nombre_completo }}</h4>
-                            <div class="flex gap-2 mt-1">
-                                {% for item in pedido.items.all %}
-                                <span class="bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold text-white/40">{{ item.producto.nombre }} x{{ item.cantidad }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Datos y Acciones -->
-                    <div class="flex items-center gap-8 lg:justify-end">
-                        <div class="text-right">
-                             <p class="text-3xl font-black text-white tracking-tighter">${{ pedido.total }}</p>
-                             <p class="text-[9px] font-bold text-white/30 uppercase tracking-widest">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <form action="{% url 'gestionar_pedido_accion' pedido.id %}" method="POST" class="inline">
-                                {% csrf_token %}
-                                <input type="hidden" name="accion" value="pagar">
-                                <button type="submit" class="bg-blue-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95">
-                                    Pagado
-                                </button>
-                            </form>
-                            <button @click="cancel = !cancel" class="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-rose-500 hover:text-white transition-all active:scale-95">
-                                Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Form Cancelar -->
-                <div x-show="cancel" x-transition class="mt-8 pt-8 border-t border-white/5 animate-slide-up">
-                    <form action="{% url 'gestionar_pedido_accion' pedido.id %}" method="POST" class="flex items-center justify-between bg-rose-500/5 p-6 rounded-3xl border border-rose-500/10">
-                        {% csrf_token %}
-                        <input type="hidden" name="accion" value="cancelar">
-                        <p class="text-sm font-bold text-rose-500/70">¿Confirmas la cancelación de este pedido?</p>
-                        <button type="submit" class="bg-rose-500 text-white px-10 py-4 rounded-2xl font-black uppercase text-xs">Confirmar Cancelación</button>
+                        <input type="text" name="motivo" placeholder="Describa el motivo del rechazo..." class="flex-grow glass-card p-6 rounded-2xl text-white outline-none focus:border-rose-500/50">
+                        <button type="submit" class="bg-rose-600 text-white px-12 py-5 rounded-2xl font-black uppercase text-xs">Confirmar</button>
                     </form>
                 </div>
             </div>
             {% endfor %}
         </div>
-    </div>
+    </section>
 
-<!-- CHART SCRIPTS -->
+</div>
+
 {% if chart_data.labels %}
 {{ chart_data|json_script:"chart-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const chartData = JSON.parse(document.getElementById('chart-data').textContent);
-        
-        // 1. Gráfico de Ingresos
-        const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-        new Chart(ctxRevenue, {
+        Chart.defaults.color = 'rgba(255,255,255,0.4)';
+        Chart.defaults.font.family = 'Montserrat';
+        Chart.defaults.font.weight = '900';
+
+        const ctxRev = document.getElementById('revenueChart').getContext('2d');
+        const grad = ctxRev.createLinearGradient(0, 0, 0, 400);
+        grad.addColorStop(0, 'rgba(249, 115, 22, 0.4)');
+        grad.addColorStop(1, 'rgba(249, 115, 22, 0)');
+
+        new Chart(ctxRev, {
             type: 'line',
             data: {
                 labels: chartData.labels,
                 datasets: [{
-                    label: 'Recaudación Diaria ($)',
                     data: chartData.values,
-                    borderColor: '#ea580c',
-                    backgroundColor: 'rgba(234, 88, 12, 0.1)',
-                    borderWidth: 4,
+                    borderColor: '#f97316',
+                    borderWidth: 6,
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#ea580c',
-                    pointBorderColor: '#fff',
-                    pointRadius: 6,
-                    pointHoverRadius: 8
+                    backgroundColor: grad,
+                    pointRadius: 0,
+                    pointHoverRadius: 10,
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderWidth: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 10, weight: 'bold' } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 10, weight: 'bold' } }
-                    }
+                    y: { grid: { color: 'rgba(255,255,255,0.03)' }, border: { display: false } },
+                    x: { grid: { display: false } }
                 }
             }
         });
 
-        // 2. Gráfico de Métodos
-        const ctxMethods = document.getElementById('methodsChart').getContext('2d');
-        new Chart(ctxMethods, {
+        new Chart(document.getElementById('methodsChart').getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: chartData.metodos_labels,
                 datasets: [{
                     data: chartData.metodos_values,
-                    backgroundColor: [
-                        '#ea580c',
-                        '#ffffff',
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b'
-                    ],
+                    backgroundColor: ['#f97316', '#fff', '#2563eb', '#10b981', '#7c3aed'],
                     borderWidth: 0,
-                    hoverOffset: 20
+                    hoverOffset: 30
                 }]
             },
             options: {
@@ -451,19 +257,13 @@
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: {
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            font: { size: 12, weight: 'black' },
-                            padding: 30,
-                            usePointStyle: true
-                        }
+                        labels: { padding: 40, usePointStyle: true, font: { size: 10 } }
                     }
                 },
-                cutout: '70%'
+                cutout: '80%'
             }
         });
     });
 </script>
 {% endif %}
-
 {% endblock %}

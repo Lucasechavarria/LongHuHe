@@ -2,219 +2,259 @@
 {% load static %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-12 pb-32" x-data="{ section: 'perfil' }">
+<div class="max-w-6xl mx-auto space-y-20 pb-40 animate-fade-in" x-data="{ section: 'perfil' }">
     
-    <!-- HEADER DINÁMICO SHARP -->
-    <div class="flex flex-col md:flex-row items-center gap-10 animate-fade-in no-print">
+    <!-- PERFIL HEADER PREMIUM -->
+    <header class="flex flex-col lg:flex-row items-center gap-16 px-6 relative">
+        <div class="absolute -left-20 top-0 w-80 h-80 bg-orange-600/5 rounded-full blur-[120px]"></div>
+        
         <div class="relative group">
-            <div class="absolute -inset-2 bg-gradient-to-tr from-orange-600 to-amber-400 rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-            <div class="relative w-44 h-44 rounded-full border-4 border-black overflow-hidden ring-4 ring-orange-500/20">
+            <div class="absolute -inset-6 bg-gradient-to-tr from-orange-600 to-amber-500 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-all duration-1000"></div>
+            <div class="relative w-56 h-56 rounded-full border-[10px] border-black/60 overflow-hidden shadow-2xl ring-2 ring-white/5">
                 {% if alumno.foto_perfil %}
-                    <img src="{{ alumno.foto_perfil.url }}" alt="Perfil" class="w-full h-full object-cover">
+                    <img src="{{ alumno.foto_perfil.url }}" alt="Perfil" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110">
                 {% else %}
-                    <div class="w-full h-full bg-brown-950 flex items-center justify-center text-orange-500">
-                        <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <div class="w-full h-full bg-neutral-900 flex items-center justify-center text-orange-500">
+                        <svg class="w-28 h-28" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                     </div>
                 {% endif %}
             </div>
+            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-600 text-white text-[10px] font-black px-6 py-2 rounded-full shadow-2xl border-2 border-black uppercase tracking-[0.2em] whitespace-nowrap">
+                {{ alumno.grado_nombre }}
+            </div>
         </div>
         
-        <div class="text-center md:text-left space-y-2 max-w-full" x-data="{ nameLen: {{ alumno.nombre_completo|length }} }">
-            <h1 class="font-black tracking-tighter uppercase leading-[0.9] text-white transition-all break-words"
-                :style="{ fontSize: nameLen > 25 ? '5vw' : (nameLen > 15 ? '7vw' : '9vw') }"
-                style="font-size: clamp(2.5rem, 9vw, 4.5rem);">
-                {{ alumno.nombre }} <span class="text-orange-500">{{ alumno.apellido }}</span>
-            </h1>
-            <div class="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                <span class="px-5 py-1 bg-orange-600 rounded-full text-xs font-black uppercase tracking-widest text-white shadow-lg border border-orange-400/20">{{ alumno.grado_nombre }}</span>
-                <span class="text-white/40 font-bold text-sm">ID #{{ alumno.celular }}</span>
+        <div class="text-center lg:text-left space-y-6 flex-grow">
+            <div class="space-y-2">
+                <p class="text-orange-500 font-black text-xs uppercase tracking-[0.6em] opacity-80 italic">Discípulo Regular</p>
+                <h1 class="font-black tracking-tighter uppercase leading-[0.8] text-white text-7xl lg:text-9xl">
+                    {{ alumno.nombre }} <span class="text-orange-500 drop-shadow-[0_0_50px_rgba(249,115,22,0.4)]">{{ alumno.apellido }}</span>
+                </h1>
+            </div>
+            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                <div class="glass-card px-6 py-2 rounded-full border-white/5 text-[10px] font-black text-white/40 uppercase tracking-widest">
+                    ID: {{ alumno.celular }}
+                </div>
+                <div class="glass-card px-6 py-2 rounded-full border-white/5 text-[10px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]"></span>
+                    {{ alumno.sede.nombre|default:"Sede Central" }}
+                </div>
             </div>
         </div>
-    </div>
+    </header>
 
-    <!-- TABS DE NAVEGACIÓN -->
-    <div class="flex bg-white/5 p-2 rounded-[2.5rem] no-print">
-        <button @click="section = 'perfil'" :class="section === 'perfil' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Datos</button>
-        <button @click="section = 'institucional'" :class="section === 'institucional' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Cuenta</button>
-        <button @click="section = 'camino'" :class="section === 'camino' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Camino</button>
-        <button @click="section = 'asistencia'" :class="section === 'asistencia' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'" class="btn-liquid flex-1 py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all">Carnet</button>
-    </div>
+    <!-- NAVIGATION TABS -->
+    <nav class="flex glass-panel p-2 rounded-[3rem] sticky top-6 z-40 mx-6 shadow-2xl border-white/10">
+        <template x-for="t in [
+            {id:'perfil', n:'Ficha'}, 
+            {id:'institucional', n:'Estado'}, 
+            {id:'camino', n:'Camino'}, 
+            {id:'asistencia', n:'Acceso'}
+        ]">
+            <button @click="section = t.id" 
+                    :class="section === t.id ? 'bg-orange-600 text-white shadow-2xl' : 'text-white/30 hover:text-white'" 
+                    class="flex-1 py-5 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-700"
+                    x-text="t.n"></button>
+        </template>
+    </nav>
 
-    <div class="relative min-h-[500px]">
-        <!-- SECCIÓN 1: DATOS PERSONALES -->
-        <div x-show="section === 'perfil'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-10" class="no-print space-y-8">
-            <div class="premium-card rounded-[3rem] p-10 border border-white/5 relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-                <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px]"></div>
+    <main class="relative px-6">
+        
+        <!-- SECTION: PERFIL -->
+        <div x-show="section === 'perfil'" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-20" class="space-y-12">
+            <div class="glass-panel rounded-[4rem] p-12 lg:p-20 relative overflow-hidden group">
+                <div class="absolute -right-40 -top-40 w-96 h-96 bg-orange-600/5 rounded-full blur-[120px]"></div>
                 
-                <div class="flex items-center justify-between relative z-10 mb-10">
-                    <h3 class="text-3xl font-black uppercase text-white tracking-tight">Mi Información</h3>
-                    <a href="{% url 'editar_perfil' %}" class="btn-liquid btn-liquid-orange bg-white/5 hover:bg-orange-600 hover:text-white text-orange-500 p-4 rounded-2xl transition-all border border-white/10 group/btn">
-                        <svg class="w-6 h-6 transform group-hover/btn:rotate-12 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                <div class="flex items-center justify-between mb-16">
+                    <div class="space-y-2">
+                        <h3 class="text-5xl font-black uppercase text-white tracking-tighter">Información <span class="text-orange-500">Esencial</span></h3>
+                        <p class="text-white/20 text-[10px] font-black uppercase tracking-[0.5em]">Registro de identidad y contacto</p>
+                    </div>
+                    <a href="{% url 'editar_perfil' %}" class="w-16 h-16 glass-card rounded-2xl flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all duration-700 group/btn">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     </a>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-                    <div class="space-y-2">
-                        <p class="text-[10px] uppercase text-orange-500 font-black tracking-[0.3em]">Teléfono de Contacto</p>
-                        <p class="text-4xl font-black text-white tracking-tighter">{{ alumno.celular|default:"---" }}</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-16 relative z-10">
+                    <div class="space-y-4">
+                        <p class="text-[9px] font-black uppercase text-orange-500/60 tracking-[0.4em] italic">WhatsApp Directo</p>
+                        <p class="text-5xl font-black text-white tracking-tighter italic">{{ alumno.celular|default:"---" }}</p>
                     </div>
-                    <div class="space-y-2">
-                        <p class="text-[10px] uppercase text-orange-500 font-black tracking-[0.3em]">Fecha de Ingreso</p>
-                        <p class="text-3xl font-black text-white/90">{{ alumno.fecha_ingreso_real|default:alumno.date_joined|date:"d M Y"|upper }}</p>
+                    <div class="space-y-4">
+                        <p class="text-[9px] font-black uppercase text-orange-500/60 tracking-[0.4em] italic">Ingreso Institucional</p>
+                        <p class="text-4xl font-black text-white uppercase tracking-tighter">{{ alumno.fecha_ingreso_real|default:alumno.date_joined|date:"d M Y" }}</p>
                     </div>
-                    <div class="md:col-span-2 space-y-2">
-                        <p class="text-[10px] uppercase text-orange-500 font-black tracking-[0.3em]">Domicilio Registrado</p>
-                        <p class="text-2xl font-bold text-white/80 leading-tight">{{ alumno.domicilio|default:"---" }}<br><span class="text-white/40">{{ alumno.localidad|default:"---" }}</span></p>
+                    <div class="md:col-span-2 space-y-4 border-t border-white/5 pt-12">
+                        <p class="text-[9px] font-black uppercase text-orange-500/60 tracking-[0.4em] italic">Residencia Declarada</p>
+                        <p class="text-3xl font-black text-white/80 leading-[1.1] uppercase tracking-tighter">
+                            {{ alumno.domicilio|default:"---" }}<br>
+                            <span class="text-white/20 text-xl tracking-widest">{{ alumno.localidad|default:"---" }}</span>
+                        </p>
                     </div>
-                </div>
-                
-                <div class="pt-6 relative z-10">
-                    <a href="{% url 'editar_perfil' %}" class="btn-liquid w-full block bg-gradient-to-r from-orange-600 to-amber-600 text-white text-center py-6 rounded-3xl font-black uppercase tracking-widest transition-all hover:shadow-[0_15px_40px_rgba(234,88,12,0.4)] active:scale-95">
-                        <span class="relative z-10">ACTUALIZAR FICHA 📝</span>
-                    </a>
                 </div>
             </div>
 
-            <!-- PRÓXIMOS EXÁMENES (Reconexión Audit) -->
+            <!-- EXAMEN PROXIMO -->
             {% if mesas_disponibles %}
-            <div class="mt-8 animate-fade-in no-print">
-                <h3 class="text-2xl font-black uppercase tracking-tighter mb-4 text-orange-500">Próximos Exámenes</h3>
-                <div class="grid gap-4">
+            <section class="space-y-8">
+                <div class="flex items-center gap-4">
+                    <h3 class="text-2xl font-black uppercase text-white tracking-tighter">Mesas de <span class="text-orange-500">Graduación</span></h3>
+                    <div class="h-px flex-grow bg-white/5"></div>
+                </div>
+                <div class="grid gap-6">
                     {% for mesa in mesas_disponibles %}
-                    <div class="premium-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div>
-                            <h4 class="text-xl font-bold">Mesa de Graduación #{{ mesa.id }}</h4>
-                            <p class="text-white/40 text-sm">Fecha: {{ mesa.fecha|date:"d/m/Y - H:i" }}</p>
+                    <div class="glass-card p-10 rounded-[3rem] flex flex-col md:flex-row justify-between items-center gap-8 group">
+                        <div class="flex items-center gap-8">
+                            <div class="bg-orange-600 text-white w-20 h-20 rounded-[2rem] flex flex-col items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-700">
+                                <span class="text-[10px] font-black uppercase leading-none">{{ mesa.fecha|date:"M" }}</span>
+                                <span class="text-3xl font-black italic">{{ mesa.fecha|date:"d" }}</span>
+                            </div>
+                            <div class="space-y-1">
+                                <h4 class="text-2xl font-black uppercase tracking-tighter">Convocatoria de Grado</h4>
+                                <p class="text-white/30 text-[10px] font-black uppercase tracking-[0.3em]">{{ mesa.lugar }} · {{ mesa.fecha|date:"H:i" }}hs</p>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <span class="text-[10px] font-bold uppercase py-1 px-3 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
-                                Abierta
-                            </span>
-                            <a href="{% url 'inscribir_examen' mesa.id %}" class="btn-liquid bg-orange-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-orange-600 transition-all shadow-lg active:scale-95">
-                                <span class="relative z-10">Inscribirme</span>
-                            </a>
-                        </div>
+                        <a href="{% url 'inscribir_examen' mesa.id %}" class="btn-liquid bg-orange-600 text-white px-12 py-5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl">
+                            Inscribirse
+                        </a>
                     </div>
                     {% endfor %}
                 </div>
-            </div>
+            </section>
             {% endif %}
         </div>
 
-        <!-- SECCIÓN 2: ESTADO Y VENCIMIENTOS -->
-        <div x-show="section === 'institucional'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-10" class="space-y-8 no-print">
-            <div class="premium-card rounded-[3rem] p-10 border border-white/5 relative overflow-hidden group">
-                <div class="absolute -right-20 -top-20 w-64 h-64 bg-shaolin-red/10 rounded-full blur-[80px]"></div>
+        <!-- SECTION: INSTITUCIONAL -->
+        <div x-show="section === 'institucional'" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-20" class="space-y-12">
+            <div class="glass-panel rounded-[4rem] p-12 lg:p-20 relative overflow-hidden group">
+                <div class="absolute -right-40 -top-40 w-96 h-96 bg-shaolin-red/10 rounded-full blur-[120px]"></div>
                 
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-                    <div class="space-y-4">
-                        <h3 class="text-3xl font-black uppercase text-white tracking-tight">Estado de Cuenta</h3>
-                        <div class="flex items-center gap-4">
-                            <span class="w-4 h-4 rounded-full animate-pulse" style="--status-color: {{ alumno.color_estado|default:'#ff6600' }}; background-color: var(--status-color); box-shadow: 0 0 15px var(--status-color);"></span>
-                            <span class="text-2xl font-black uppercase tracking-widest text-white">{{ alumno.get_estado_morosidad_display }}</span>
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-16 relative z-10">
+                    <div class="space-y-8">
+                        <div class="space-y-2">
+                            <h3 class="text-5xl font-black uppercase text-white tracking-tighter">Estado de <span class="text-orange-500">Membresía</span></h3>
+                            <p class="text-white/20 text-[10px] font-black uppercase tracking-[0.5em]">Situación administrativa actual</p>
+                        </div>
+                        <div class="inline-flex items-center gap-6 glass-panel px-10 py-6 rounded-[2.5rem] border-white/10 shadow-2xl">
+                            <span class="w-5 h-5 rounded-full animate-pulse shadow-[0_0_25px_var(--status-color)]" style="--status-color: {{ alumno.color_estado|default:'#f97316' }}; background-color: var(--status-color);"></span>
+                            <span class="text-4xl font-black uppercase tracking-tighter italic text-white">{{ alumno.get_estado_morosidad_display }}</span>
                         </div>
                     </div>
 
-                    <div class="bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10 text-center min-w-[250px]">
-                        <p class="text-[10px] uppercase text-orange-500 font-black tracking-[0.3em] mb-2">Próximo Vencimiento</p>
+                    <div class="glass-card p-12 rounded-[3.5rem] text-center border-l-8 border-orange-600 bg-black/40">
+                        <p class="text-[9px] font-black uppercase text-orange-500 tracking-[0.6em] mb-4 italic">Vencimiento Próximo</p>
                         {% if alumno.fecha_vencimiento_cuota %}
-                            <p class="text-4xl font-black text-white tracking-tighter">{{ alumno.fecha_vencimiento_cuota|date:"d M Y"|upper }}</p>
-                            <p class="text-[10px] font-bold text-white/40 mt-2 uppercase">Recuerda abonar antes de esta fecha</p>
+                            <p class="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">{{ alumno.fecha_vencimiento_cuota|date:"d M Y" }}</p>
+                            <p class="text-[9px] font-black text-white/20 uppercase tracking-widest mt-6">Sincronizado con Tesorería Central</p>
                         {% else %}
-                            <p class="text-4xl font-black text-white/20 tracking-tighter italic">---</p>
-                            <p class="text-[10px] font-bold text-white/20 mt-2 uppercase">Sin pagos registrados</p>
+                            <p class="text-6xl font-black text-white/10 tracking-tighter italic">PENDIENTE</p>
                         {% endif %}
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 relative z-10">
-                    <a href="{% url 'pago_historial' %}" class="premium-card bg-white/5 hover:bg-white/10 p-8 rounded-[2rem] border border-white/5 flex items-center justify-between group/card transition-all">
-                        <div class="space-y-1">
-                            <p class="text-xl font-black text-white group-hover/card:text-orange-500 transition-colors uppercase">Mis Pagos</p>
-                            <p class="text-xs text-white/40 font-bold">Ver historial completo</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-20">
+                    <a href="{% url 'pago_historial' %}" class="glass-card p-10 rounded-[3rem] flex items-center justify-between group/card hover:border-white/20">
+                        <div class="space-y-2">
+                            <p class="text-3xl font-black text-white uppercase group-hover/card:text-orange-500 transition-colors tracking-tighter">Auditoría</p>
+                            <p class="text-[10px] text-white/20 font-black uppercase tracking-widest">Historial de Transacciones</p>
                         </div>
-                        <svg class="w-8 h-8 text-white/10 group-hover/card:text-orange-500 group-hover/card:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        <div class="w-14 h-14 glass-panel rounded-2xl flex items-center justify-center group-hover/card:bg-orange-600 transition-all duration-700">
+                            <svg class="w-8 h-8 text-white/20 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </div>
                     </a>
-                    <a href="{% url 'pago_tipo' %}" class="btn-liquid premium-card bg-orange-600 hover:bg-orange-500 p-8 rounded-[2rem] shadow-2xl flex items-center justify-between group/card transition-all">
-                        <div class="space-y-1 relative z-10">
-                            <p class="text-xl font-black text-white uppercase">Pagar Cuota</p>
-                            <p class="text-xs text-white/80 font-bold">Renovar membresía ahora</p>
+                    <a href="{% url 'pago_tipo' %}" class="btn-liquid bg-orange-600 p-10 rounded-[3rem] flex items-center justify-between group/card shadow-[0_30px_60px_rgba(234,88,12,0.4)]">
+                        <div class="space-y-2 relative z-10">
+                            <p class="text-3xl font-black text-white uppercase tracking-tighter">Renovar Ahora</p>
+                            <p class="text-[10px] text-white/60 font-black uppercase tracking-widest">Pago Instantáneo Seguro</p>
                         </div>
-                        <svg class="w-8 h-8 text-white/60 group-hover/card:translate-x-2 transition-all relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center relative z-10 group-hover/card:scale-110 transition-all duration-700">
+                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
                     </a>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- BECAS -->
-                <div class="premium-card p-8 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20">
-                    <p class="text-[10px] uppercase text-blue-500 font-black tracking-widest mb-4">Becas y Beneficios</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                <div class="glass-card p-12 rounded-[3.5rem] border-t-8 border-blue-500 text-center space-y-4">
+                    <p class="text-[10px] uppercase text-blue-500 font-black tracking-[0.4em]">Beneficios</p>
                     {% if alumno.es_becado %}
-                        <p class="text-xl font-black text-white">BECA ACTIVA</p>
-                        <p class="text-xs text-white/60 font-medium mt-1">{{ alumno.motivo_beca|default:"Beca Deportiva" }}</p>
+                        <p class="text-3xl font-black text-white uppercase italic">Beca Activa</p>
+                        <p class="text-[9px] text-white/20 font-black uppercase tracking-tighter italic">Carga institucional {{ alumno.motivo_beca|default:"LHH" }}</p>
                     {% else %}
-                        <p class="text-xl font-black text-white/40 italic uppercase tracking-tighter leading-none">Sin Becas</p>
+                        <p class="text-3xl font-black text-white/20 italic tracking-tighter">ESTÁNDAR</p>
                     {% endif %}
                 </div>
-                <!-- CLASES PAQUETE -->
-                <div class="premium-card p-8 rounded-[2.5rem] bg-amber-600/10 border border-amber-500/20">
-                    <p class="text-[10px] uppercase text-amber-500 font-black tracking-widest mb-4">Clases Pack</p>
-                    <p class="text-4xl font-black text-white tracking-tighter">{{ alumno.clases_disponibles }}</p>
-                    <p class="text-xs text-white/40 font-black uppercase mt-1">Disponibles</p>
+                <div class="glass-card p-12 rounded-[3.5rem] border-t-8 border-amber-500 text-center space-y-2">
+                    <p class="text-[10px] uppercase text-amber-500 font-black tracking-[0.4em]">Pack Clases</p>
+                    <p class="text-7xl font-black text-white tracking-tighter leading-none italic">{{ alumno.clases_disponibles }}</p>
+                    <p class="text-[9px] text-white/20 font-black uppercase tracking-widest mt-4">Créditos Disponibles</p>
                 </div>
-                <!-- SEDE -->
-                <div class="premium-card p-8 rounded-[2.5rem] bg-white/5 border border-white/5">
-                    <p class="text-[10px] uppercase text-white/40 font-black tracking-widest mb-4">Sede Principal</p>
-                    <p class="text-xl font-black text-white uppercase">{{ alumno.sede.nombre|default:"Central" }}</p>
+                <div class="glass-card p-12 rounded-[3.5rem] border-t-8 border-white/20 text-center space-y-4">
+                    <p class="text-[10px] uppercase text-white/40 font-black tracking-[0.4em]">Asignación</p>
+                    <p class="text-3xl font-black text-white uppercase tracking-tighter italic">{{ alumno.sede.nombre|default:"Central" }}</p>
+                    <p class="text-[9px] text-white/20 font-black uppercase tracking-widest mt-4">Sede de Práctica</p>
                 </div>
             </div>
         </div>
 
-        <!-- SECCIÓN 3: ASISTENCIA (QR / CARNET) -->
-        <div x-show="section === 'asistencia'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-10" class="flex flex-col items-center w-full px-4">
-            <div id="seccion-carnet" class="premium-card rounded-[4rem] p-8 sm:p-12 text-center relative overflow-hidden group max-w-xl w-full flex flex-col items-center gap-10 border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
-                <div class="absolute -top-40 -left-40 w-80 h-80 bg-orange-600/10 rounded-full blur-[100px]"></div>
+        <!-- SECTION: ACCESO -->
+        <div x-show="section === 'asistencia'" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-20" class="max-w-xl mx-auto">
+            <div class="glass-panel rounded-[5rem] p-16 text-center relative overflow-hidden group shadow-[0_60px_150px_rgba(0,0,0,0.9)] border-white/10">
+                <div class="absolute -top-40 -left-40 w-96 h-96 bg-orange-600/10 rounded-full blur-[150px]"></div>
                 
-                <div class="space-y-2 relative z-10">
-                    <h3 class="text-4xl font-black uppercase text-white tracking-tighter">Mi Carnet</h3>
-                    <p class="text-orange-500 font-black text-[10px] tracking-[0.5em] italic">LONG HU HE ERP</p>
+                <div class="space-y-6 mb-16 relative z-10">
+                    <h3 class="text-6xl font-black uppercase text-white tracking-tighter italic leading-none">Mi Carnet <span class="text-orange-500 drop-shadow-[0_0_30px_rgba(249,115,22,0.4)]">Pro</span></h3>
+                    <div class="h-2 w-24 bg-orange-600 mx-auto rounded-full shadow-[0_0_15px_#f97316]"></div>
                 </div>
                 
-                <div class="relative z-10 p-2 sm:p-6 bg-gradient-to-br from-orange-500 to-amber-400 rounded-[3.5rem] shadow-2xl border-4 border-black/50 w-full max-w-[450px]">
-                    <div class="bg-white p-4 sm:p-8 rounded-[2.5rem] aspect-square flex items-center justify-center overflow-hidden">
-                        <img src="{{ alumno.generar_qr_base64 }}" alt="QR" class="w-full h-full object-contain scale-110">
+                <div class="relative group/qr p-4 bg-gradient-to-br from-orange-600/40 to-amber-500/40 rounded-[5rem] shadow-2xl border border-white/10">
+                    <div class="bg-white p-12 rounded-[4.5rem] aspect-square flex items-center justify-center relative overflow-hidden">
+                        <img src="{{ alumno.generar_qr_base64 }}" alt="QR" class="w-full h-full object-contain relative z-10 group-hover/qr:scale-110 transition-transform duration-1000">
+                    </div>
+                    <div class="absolute inset-6 border-2 border-orange-500/10 rounded-[4rem] pointer-events-none">
+                        <div class="absolute top-0 left-0 right-0 h-1.5 bg-orange-500 shadow-[0_0_30px_#f97316] animate-[scan_4s_linear_infinite]"></div>
                     </div>
                 </div>
 
-                <div class="space-y-6 max-w-xs relative z-10 no-print text-center">
-                    <p class="text-white/40 font-bold text-sm uppercase tracking-widest leading-loose mx-auto">Escanea este código en recepción para marcar tu ingreso.</p>
+                <div class="mt-16 space-y-6 relative z-10">
+                    <p class="text-white/30 font-black text-xs uppercase tracking-[0.4em] max-w-xs mx-auto leading-relaxed italic">Autorización institucional de acceso mediante escaneo facial/QR</p>
+                    <div class="flex items-center justify-center gap-4 text-orange-500/50 text-[11px] font-black uppercase tracking-[0.5em]">
+                        <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_#f97316]"></span>
+                        LHH ACTIVE CORE
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- SECCIÓN 4: LOGROS (CAMINO MARCIAL) -->
-        <div x-show="section === 'camino'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-10" class="no-print">
-            <div class="premium-card rounded-[3rem] p-10 border-t-8 border-brown-700 relative overflow-hidden group">
-                <div class="absolute -right-20 -bottom-20 w-60 h-60 bg-white/5 rounded-full blur-[80px]"></div>
-                <h3 class="text-3xl font-black uppercase text-white tracking-tight text-center mb-12 relative z-10">Mi Camino Marcial</h3>
+        <!-- SECTION: CAMINO -->
+        <div x-show="section === 'camino'" x-transition:enter="transition ease-out duration-700" x-transition:enter-start="opacity-0 translate-y-20">
+            <div class="glass-panel rounded-[4rem] p-12 lg:p-20 relative overflow-hidden group">
+                <div class="absolute -right-40 -bottom-40 w-96 h-96 bg-orange-600/5 rounded-full blur-[150px]"></div>
+                <div class="text-center mb-24 space-y-4">
+                    <h3 class="text-6xl font-black uppercase text-white tracking-tighter">Bitácora <span class="text-orange-500">Marcial</span></h3>
+                    <p class="text-white/20 text-[11px] font-black uppercase tracking-[0.6em] italic">Evolución de grados y linajes</p>
+                </div>
                 
                 {% if linea_tiempo %}
-                    <div class="relative space-y-12 z-10">
-                        <div class="absolute left-8 top-0 bottom-0 w-1 bg-white/5"></div>
+                    <div class="relative space-y-24 z-10 pb-20">
+                        <div class="absolute left-10 lg:left-14 top-4 bottom-0 w-1 bg-gradient-to-b from-orange-500 via-white/5 to-transparent rounded-full shadow-[0_0_15px_rgba(249,115,22,0.3)]"></div>
                         {% for examen in linea_tiempo %}
-                            <div class="relative pl-24 group/item">
-                                <div class="absolute left-[29px] top-4 w-2.5 h-2.5 rounded-full bg-orange-500 border-4 border-black group-hover/item:scale-[3] transition-all"></div>
-                                <div class="bg-white/5 rounded-[2.5rem] p-8 border border-white/5 hover:bg-white/10 transition-all shadow-xl">
-                                    <div class="flex flex-wrap justify-between items-center gap-6">
-                                        <div>
-                                            <h4 class="text-3xl font-black uppercase text-white tracking-tighter">{{ examen.grado.nombre_formateado }}</h4>
-                                            <p class="text-orange-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-1">{{ examen.fecha|date:"d M Y" }}</p>
+                            <div class="relative pl-32 lg:pl-48 group/item">
+                                <div class="absolute left-0 top-10 flex items-center justify-center">
+                                    <div class="w-24 lg:w-32 h-px bg-white/10 group-hover/item:bg-orange-500/50 transition-colors"></div>
+                                    <div class="absolute left-[34px] lg:left-[48px] w-5 h-5 rounded-full bg-black border-4 border-orange-600 shadow-[0_0_20px_#f97316] group-hover/item:scale-150 transition-all duration-1000 z-10"></div>
+                                </div>
+                                
+                                <div class="glass-card rounded-[4rem] p-10 hover:bg-white/5 transition-all duration-1000 border-white/5 group-hover/item:border-orange-500/30">
+                                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+                                        <div class="space-y-4">
+                                            <p class="text-orange-500 font-black uppercase text-[11px] tracking-[0.5em] italic">{{ examen.fecha|date:"d M Y" }}</p>
+                                            <h4 class="text-5xl lg:text-7xl font-black uppercase text-white tracking-tighter leading-none italic">{{ examen.grado.nombre_formateado }}</h4>
                                         </div>
-                                        <div class="text-right">
-                                            <p class="text-[9px] uppercase text-white/20 font-black tracking-widest italic">Autorizado por</p>
-                                            <p class="text-lg font-bold text-white/80 leading-none">
-                                                {{ examen.examinador.nombre_completo|default:examen.examinador_externo|default:"Asociación LHH" }}
+                                        <div class="bg-black/60 px-8 py-5 rounded-[2rem] border border-white/5 shadow-inner">
+                                            <p class="text-[9px] uppercase text-white/20 font-black tracking-[0.5em] mb-2 italic text-center lg:text-right">Examinador Oficial</p>
+                                            <p class="text-2xl font-black text-white/90 leading-none italic tracking-tighter">
+                                                {{ examen.examinador.nombre_completo|default:examen.examinador_externo|default:"MAESTRO SENIOR" }}
                                             </p>
                                         </div>
                                     </div>
@@ -223,48 +263,48 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="py-24 text-center opacity-20 relative z-10">
-                        <svg class="w-20 h-20 mx-auto mb-6 opacity-40 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                        <p class="text-3xl font-black uppercase tracking-[0.2em] italic leading-tight">Tu historia marcial<br>comienza aquí</p>
+                    <div class="py-40 text-center relative z-10 flex flex-col items-center gap-12">
+                        <div class="w-32 h-32 rounded-full glass-panel flex items-center justify-center text-white/5 border-white/5">
+                            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                        <p class="text-5xl font-black uppercase tracking-tighter text-white/10 leading-[0.8]">El camino del Guerrero<br>se forja paso a paso</p>
                     </div>
                 {% endif %}
             </div>
         </div>
 
-    </div>
+    </main>
 
-    <!-- BOTONES DE SOPORTE -->
-    <div class="pt-20 flex flex-col gap-6 text-center pb-32 no-print">
+    <!-- SUPPORT & LOGOUT -->
+    <footer class="pt-20 flex flex-col md:flex-row gap-8 px-6 pb-40">
         <a href="https://wa.me/5491131078008" target="_blank" 
-           class="btn-liquid bg-green-600/20 hover:bg-green-600 text-green-500 hover:text-white p-8 rounded-[2.5rem] border-2 border-green-500/30 transition-all transform active:scale-95 flex items-center justify-center gap-4 group">
-            <span class="text-2xl font-black uppercase tracking-tighter relative z-10">SOPORTE TÉCNICO</span>
-            <svg class="w-8 h-8 relative z-10" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
+           class="flex-[2] btn-liquid bg-emerald-600/10 text-emerald-500 py-10 rounded-[4rem] border-2 border-emerald-500/10 flex items-center justify-center gap-6 group">
+            <span class="text-3xl font-black uppercase tracking-tighter relative z-10 italic">LHH Support Central</span>
+            <svg class="w-10 h-10 relative z-10 group-hover:rotate-[20deg] transition-transform duration-700" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
         </a>
         <a href="{% url 'logout' %}" 
-           class="btn-liquid btn-liquid-red bg-shaolin-red/10 text-shaolin-red p-6 rounded-[2rem] border-2 border-shaolin-red/20 font-black uppercase text-xs tracking-[0.4em] transition-all hover:bg-shaolin-red hover:text-white active:scale-95">
-            <span class="relative z-10">CERRAR SESIÓN 👋</span>
+           class="flex-1 btn-liquid bg-shaolin-red/10 text-shaolin-red py-10 rounded-[4rem] border-2 border-shaolin-red/10 font-black uppercase text-[10px] tracking-[0.5em] transition-all hover:bg-shaolin-red hover:text-white flex items-center justify-center">
+            Cerrar Portal 👋
         </a>
-    </div>
+    </footer>
 </div>
 
 <style>
-    [x-cloak] { display: none !important; }
-    
-    .animate-fade-in {
-        animation: fadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
+    @keyframes scan {
+        0% { top: 0; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
     }
     
     @media print {
         .no-print { display: none !important; }
         body { background: white !important; color: black !important; }
-        .premium-card { 
+        .glass-panel, .glass-card { 
             border: 2px solid black !important; 
             box-shadow: none !important; 
             background: white !important; 
+            backdrop-filter: none !important;
         }
     }
 </style>
