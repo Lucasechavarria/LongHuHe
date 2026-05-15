@@ -145,7 +145,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
-if 'test' in sys.argv:
+if 'test' in sys.argv or 'pytest' in sys.modules or any('pytest' in arg for arg in sys.argv):
     # Fuerza SQLite para los tests para evitar errores de permisos en DBs remotas
     DATABASES = {
         'default': {

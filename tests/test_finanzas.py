@@ -2,6 +2,7 @@ import pytest
 from apps.usuarios.models import Usuario
 from apps.academia.models import Actividad, Sede
 from apps.ventas.models import Pago
+from apps.ventas.services.pago_service import PagoService
 
 @pytest.mark.django_db
 def test_calculo_comisiones_profesor():
@@ -26,9 +27,8 @@ def test_calculo_comisiones_profesor():
         estado=Pago.EstadoPago.PENDIENTE
     )
     
-    # 3. Act: Aprobar pago (dispara recalcular_comisiones en .save())
-    pago.estado = Pago.EstadoPago.APROBADO
-    pago.save()
+    # 3. Act: Aprobar pago vía Service (dispara recalcular_comisiones)
+    PagoService.transicionar_a_aprobado(pago)
     
     # 4. Assert: Por defecto 50% para el profe en este modelo simplificado
     pago.refresh_from_db()
