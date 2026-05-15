@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from apps.usuarios.models import Usuario
+
 from apps.usuarios.views import profe_requerido
 
 import json
