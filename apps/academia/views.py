@@ -3,6 +3,8 @@ from django.contrib import messages
 from apps.usuarios.views import alumno_requerido
 from .models import Cronograma, InscripcionClase, Sede, Actividad
 from apps.usuarios.models import Usuario
+from django.utils import timezone
+import datetime
 
 
 @alumno_requerido
@@ -47,7 +49,8 @@ def lista_clases(request):
         'profesor_seleccionado': int(profesor_id) if profesor_id else '',
         'clases_por_dia': clases_por_dia,
         'mis_clases_ids': list(mis_clases_ids),
-        'dias_semana': Cronograma.DiasSemana.choices
+        'dias_semana': Cronograma.DiasSemana.choices,
+        'hoy_cod': ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'LU'][timezone.localtime().weekday()]
     })
 
 

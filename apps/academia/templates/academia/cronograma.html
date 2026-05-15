@@ -6,31 +6,31 @@
 
 {% block content %}
 <div class="space-y-16 animate-fade-in px-4 pb-32 max-w-7xl mx-auto" x-data="{ 
-    {% with hoy=dias_semana.0.0|default:'LU' %}
-    diaActivo: '{{ hoy }}',
-    {% endwith %}
+    diaActivo: '{{ hoy_cod|default:'LU' }}',
     showFiltros: false 
 }">
 
-    <!-- HEADER PREMIUM -->
-    <header class="text-center relative py-10">
-        <div class="absolute inset-0 bg-gradient-to-b from-orange-600/5 to-transparent blur-3xl rounded-full opacity-30"></div>
-        <h1 class="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter relative z-10 leading-[0.8]">
-            Horarios <span class="text-orange-500 drop-shadow-[0_0_40px_rgba(249,115,22,0.4)]">Oficiales</span>
+    <!-- HEADER PREMIUM - ACCESSIBLE -->
+    <header class="text-center relative py-12">
+        <div class="absolute inset-0 bg-gradient-to-b from-orange-600/10 to-transparent blur-3xl rounded-full opacity-30"></div>
+        <h1 class="text-7xl md:text-9xl font-black text-white uppercase tracking-tighter relative z-10 leading-[0.8]">
+            Agenda <span class="text-orange-500 drop-shadow-[0_0_50px_rgba(249,115,22,0.5)]">Semanal</span>
         </h1>
-        <p class="text-white/40 font-bold mt-6 text-xs uppercase tracking-[0.5em] max-w-md mx-auto leading-loose">Cronograma semanal de disciplinas y sedes</p>
+        <p class="text-white/60 font-black mt-8 text-sm uppercase tracking-[0.6em] max-w-xl mx-auto leading-relaxed">
+            Selecciona un día y encuentra tu próxima clase
+        </p>
     </header>
 
     <!-- BARRA DE FILTROS STICKY PREMIUM -->
     <div class="sticky top-2 z-[60] glass-panel rounded-[2.5rem] p-4 border border-white/10 shadow-[0_25px_50px_rgba(0,0,0,0.5)]">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
             
-            <!-- Selector de Días (Chips) -->
-            <div class="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-hide snap-x">
+            <!-- Selector de Días (Chips) - ACCESSIBLE -->
+            <div class="flex gap-4 overflow-x-auto w-full lg:w-auto pb-4 lg:pb-0 scrollbar-hide snap-x">
                 {% for dia_cod, dia_nom in dias_semana %}
                 <button @click="diaActivo = '{{ dia_cod }}'" 
-                        :class="diaActivo === '{{ dia_cod }}' ? 'bg-orange-600 text-white shadow-xl' : 'text-white/40 hover:text-white'"
-                        class="px-8 py-4 rounded-[1.2rem] font-black uppercase tracking-tighter text-[10px] transition-all duration-500 shrink-0 snap-center border border-white/5">
+                        :class="diaActivo === '{{ dia_cod }}' ? 'bg-orange-600 text-white shadow-[0_15px_30px_rgba(234,88,12,0.4)] scale-110' : 'text-white/40 hover:text-white bg-white/5'"
+                        class="px-10 py-6 rounded-[1.5rem] font-black uppercase tracking-tighter text-sm transition-all duration-700 shrink-0 snap-center border border-white/10">
                     {{ dia_nom }}
                 </button>
                 {% endfor %}
@@ -43,26 +43,44 @@
             </button>
 
             <!-- Controles de Filtro -->
-            <div :class="showFiltros ? 'flex' : 'hidden lg:flex'" class="flex-col md:flex-row gap-4 w-full lg:w-auto animate-fade-in">
-                <form method="GET" action="" class="flex flex-col md:flex-row gap-4 w-full">
-                    <select name="sede" onchange="this.form.submit()" class="filter-select">
-                        <option value="">Sedes</option>
-                        {% for s in sedes %}
-                        <option value="{{ s.id }}" {% if s.id == sede_seleccionada %}selected{% endif %}>{{ s.nombre }}</option>
-                        {% endfor %}
-                    </select>
+            <div :class="showFiltros ? 'flex' : 'hidden lg:flex'" class="flex-col md:flex-row gap-6 w-full lg:w-auto animate-fade-in items-center">
+                <form method="GET" action="" class="flex flex-col md:flex-row gap-6 w-full">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-4">📍 Sede / Centro</label>
+                        <select name="sede" onchange="this.form.submit()" class="filter-select-lg">
+                            <option value="">Todas las Sedes</option>
+                            {% for s in sedes %}
+                            <option value="{{ s.id }}" {% if s.id == sede_seleccionada %}selected{% endif %}>{{ s.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     
-                    <select name="actividad" onchange="this.form.submit()" class="filter-select">
-                        <option value="">Disciplinas</option>
-                        {% for a in actividades %}
-                        <option value="{{ a.id }}" {% if a.id == actividad_seleccionada %}selected{% endif %}>{{ a.nombre }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-4">🥋 Disciplina</label>
+                        <select name="actividad" onchange="this.form.submit()" class="filter-select-lg">
+                            <option value="">Todas las Actividades</option>
+                            {% for a in actividades %}
+                            <option value="{{ a.id }}" {% if a.id == actividad_seleccionada %}selected{% endif %}>{{ a.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-4">👨‍🏫 Profesor</label>
+                        <select name="profesor" onchange="this.form.submit()" class="filter-select-lg">
+                            <option value="">Todos los Profesores</option>
+                            {% for p in profesores %}
+                            <option value="{{ p.id }}" {% if p.id == profesor_seleccionado %}selected{% endif %}>{{ p.nombre_completo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     
                     {% if sede_seleccionada or actividad_seleccionada or profesor_seleccionado %}
-                        <a href="?" class="btn-liquid bg-rose-600/20 text-rose-500 p-4 rounded-[1.2rem] hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </a>
+                        <div class="flex items-end pb-1">
+                            <a href="?" class="w-full md:w-16 h-16 bg-rose-600/20 text-rose-500 rounded-2xl hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center border border-rose-500/20">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </a>
+                        </div>
                     {% endif %}
                 </form>
             </div>
@@ -121,31 +139,33 @@
                 </div>
 
                 <!-- Footer / Action -->
-                <div class="mt-10 pt-10 border-t border-white/5 relative z-10">
-                    <div class="flex flex-col gap-6">
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-end">
-                                <p class="text-[9px] font-black text-white/20 uppercase tracking-widest italic">Disponibilidad</p>
-                                <p class="text-xs font-black text-white italic">{{ clase.alumnos_inscritos.count }}<span class="text-white/20">/</span>{{ clase.cupo }}</p>
+                <div class="mt-12 pt-10 border-t border-white/5 relative z-10">
+                    <div class="flex flex-col gap-8">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end px-2">
+                                <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] italic">Cupos Disponibles</p>
+                                <p class="text-xl font-black text-white italic tracking-tighter">
+                                    {{ clase.alumnos_inscritos.count }}<span class="text-white/20"> / </span>{{ clase.cupo }}
+                                </p>
                             </div>
-                            <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-orange-600 to-amber-400 transition-all duration-1000" 
+                            <div class="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                                <div class="h-full bg-gradient-to-r from-orange-600 to-amber-400 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(249,115,22,0.3)]" 
                                      style="width: var(--progress-width);"></div>
                             </div>
                         </div>
 
                         {% if clase.id in mis_clases_ids %}
                             <a href="{% url 'desanotarse_clase' clase.id %}" 
-                               class="btn-liquid bg-rose-600/10 text-rose-500 text-[10px] font-black uppercase py-5 rounded-2xl hover:bg-rose-600 hover:text-white transition-all text-center border border-rose-500/20">
-                                <span class="relative z-10">Bajarme de la Clase</span>
+                               class="w-full bg-rose-600/10 text-rose-500 text-xs font-black uppercase py-6 rounded-[1.5rem] hover:bg-rose-600 hover:text-white transition-all text-center border border-rose-500/20 shadow-xl">
+                                <span class="relative z-10">Darse de Baja</span>
                             </a>
                         {% else %}
                             <form action="{% url 'inscribir_clase' clase.id %}" method="post" x-data="{ loading: false }" @submit="loading = true">
                                 {% csrf_token %}
                                 <button type="submit" 
                                         :disabled="loading"
-                                        class="btn-liquid w-full bg-orange-600 text-white text-[10px] font-black uppercase py-5 rounded-2xl hover:bg-orange-500 transition-all shadow-2xl disabled:opacity-50">
-                                    <span class="relative z-10" x-text="loading ? 'Procesando...' : 'Anotarme ahora'"></span>
+                                        class="btn-liquid w-full bg-orange-600 text-white text-sm font-black uppercase py-7 rounded-[2rem] hover:bg-orange-500 transition-all shadow-[0_20px_40px_rgba(234,88,12,0.4)] disabled:opacity-50">
+                                    <span class="relative z-10" x-text="loading ? '⏳ Procesando...' : 'Anotarme Ahora'"></span>
                                 </button>
                             </form>
                         {% endif %}
@@ -177,26 +197,29 @@
 </div>
 
 <style>
-    .filter-select {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 2px solid rgba(255, 255, 255, 0.05) !important;
-        border-radius: 1.2rem !important;
-        padding: 1rem 1.5rem !important;
+    .filter-select-lg {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 2px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 1.5rem !important;
+        padding: 1.2rem 2rem !important;
         color: white !important;
         font-family: inherit !important;
         font-weight: 900 !important;
         text-transform: uppercase !important;
         outline: none !important;
         appearance: none !important;
-        transition: all 0.5s ease !important;
-        font-size: 10px !important;
-        letter-spacing: 0.1em !important;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        font-size: 13px !important;
+        letter-spacing: 0.05em !important;
         cursor: pointer !important;
-        min-width: 180px !important;
+        min-width: 220px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
     }
-    .filter-select:focus {
+    .filter-select-lg:focus {
         border-color: #f97316 !important;
-        background: rgba(0, 0, 0, 0.6) !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 40px rgba(249,115,22,0.2) !important;
     }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
 </style>
