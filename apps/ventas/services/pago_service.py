@@ -33,7 +33,9 @@ class PagoService:
     @staticmethod
     def recalcular_comisiones(pago):
         """ Calcula cuánto va para el profe y cuánto para la asociación. """
-        if not pago.monto:
+        if not pago.monto or pago.monto <= 0:
+            pago.monto_comision_profesor = Decimal('0.00')
+            pago.monto_utilidad_asociacion = Decimal('0.00')
             return
         
         pct = Decimal('50.00') # Default base: 50%
@@ -41,6 +43,7 @@ class PagoService:
         if pago.clase_programada:
             pct = pago.clase_programada.porcentaje_comision_profesor
         elif pago.actividad and hasattr(pago.actividad, 'porcentaje_comision'):
+            # Nota: Actividad actualmente no tiene este campo, pero se deja por extensibilidad
             pct = pago.actividad.porcentaje_comision
         
         pago.monto_comision_profesor = (pago.monto * (pct / Decimal('100'))).quantize(Decimal('0.01'))
@@ -58,8 +61,8 @@ class PagoService:
 
         pago.estado = pago.EstadoPago.APROBADO
 
-        # 1. Calcular comisiones del profesor
-        if pago.monto_comision_profesor == 0:
+        # 1. Calcular comisiones del profesor si no están seteadas
+        if not pago.monto_comision_profesor or pago.monto_comision_profesor == 0:
             PagoService.recalcular_comisiones(pago)
 
         # 2. Incrementar contador de usos del descuento
@@ -73,21 +76,27 @@ class PagoService:
         alumno = pago.alumno
 
         if pago.tipo == pago.TipoPago.MES:
-            if not alumno.dia_corte_cuota:
+            # Asegurar día de corte válido (evita ValueError en date())
+            if not alumno.dia_corte_cuota or alumno.dia_corte_cuota <= 0:
                 alumno.dia_corte_cuota = hoy.day
-
-            dia_corte = alumno.dia_corte_cuota
+            
+            # Si hoy es el día 31 y el mes que viene tiene 30, calendar.monthrange lo maneja
+            dia_corte = max(1, alumno.dia_corte_cuota) 
+            
+            # Fecha base para el cálculo: si ya tenía un vencimiento futuro, sumamos desde ahí
             base = alumno.fecha_vencimiento_cuota if (alumno.fecha_vencimiento_cuota and alumno.fecha_vencimiento_cuota >= hoy) else hoy
+            
             mes_sig = base.month % 12 + 1
             anio_sig = base.year + (1 if base.month == 12 else 0)
 
+            # Ajustar día si el mes siguiente es más corto
             ultimo_dia_mes_sig = calendar.monthrange(anio_sig, mes_sig)[1]
             dia_real = min(dia_corte, ultimo_dia_mes_sig)
 
             nuevo_vencimiento = date(anio_sig, mes_sig, dia_real)
 
             alumno.fecha_vencimiento_cuota = nuevo_vencimiento
-            alumno.fecha_prorroga = None
+            alumno.fecha_prorroga = None # Al pagar, se limpia la prórroga si existía
             alumno.save(update_fields=['fecha_vencimiento_cuota', 'fecha_prorroga', 'dia_corte_cuota'])
 
         elif pago.tipo in [pago.TipoPago.PAQUETE, pago.TipoPago.CLASE_SUELTA]:

@@ -421,6 +421,7 @@ def cerrar_caja_mensual(request):
     return redirect('gestion_tesoreria')
 
 @profe_requerido
+@transaction.atomic
 def gestionar_pago_accion(request, pago_id):
     """ Procesa la aprobacion o rechazo de un pago manual usando PagoService. """
     pago = get_object_or_404(Pago.objects.select_for_update(), id=pago_id)
