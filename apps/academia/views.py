@@ -4,7 +4,6 @@ from apps.usuarios.views import alumno_requerido
 from .models import Cronograma, InscripcionClase, Sede, Actividad
 from apps.usuarios.models import Usuario
 from django.utils import timezone
-import datetime
 
 
 @alumno_requerido
