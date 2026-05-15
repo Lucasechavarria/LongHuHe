@@ -71,10 +71,10 @@ class ScannerService:
                 actividad_detectada = inscripcion_activa.clase.actividad
             else:
                 actividad_detectada = "Clase Libre"
-        else:
+            mensaje = f"Bloqueado: No tienes clase programada ahora ({ahora.strftime('%H:%M')})."
             return {
                 'success': False,
-                'message': f"Bloqueado: No tienes clase programada ahora ({ahora.strftime('%H:%M')}).",
+                'message': mensaje,
                 'color': 'red',
                 'alertas': ["HORARIO NO CORRESPONDIENTE"]
             }
@@ -109,11 +109,12 @@ class ScannerService:
 
         RegistroAsistencia.objects.create(alumno=alumno, actividad=actividad_detectada)
         
-        actividad_nombre = actividad_detectada.nombre if getattr(actividad_detectada, 'nombre', None) else str(actividad_detectada)
         if hasattr(actividad_detectada, 'nombre'):
-             actividad_nombre = actividad_detectada.nombre
+            actividad_nombre = actividad_detectada.nombre
+        elif actividad_detectada:
+            actividad_nombre = str(actividad_detectada)
         else:
-             actividad_nombre = "General" if not actividad_detectada else str(actividad_detectada)
+            actividad_nombre = "General"
 
         return {
             'success': True,

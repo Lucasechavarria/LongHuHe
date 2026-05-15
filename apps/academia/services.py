@@ -1,6 +1,7 @@
 from django.db import transaction, models
 from django.shortcuts import get_object_or_404
 from .models import Cronograma, InscripcionClase
+from apps.ventas.models import Pago
 
 class AcademiaService:
     """
@@ -20,22 +21,34 @@ class AcademiaService:
         
         # 1. Verificar Morosidad
         if alumno.estado_morosidad == 'vencido':
-            return None, "No puedes inscribirte a clases porque tu cuota está vencida. Por favor, regulariza tu situación.", False
+            mensaje = (
+                "No puedes inscribirte a clases porque tu cuota está vencida. "
+                "Por favor, regulariza tu situación."
+            )
+            return None, mensaje, False
 
         # 2. Verificar Saldo si es Paquete
-        from apps.ventas.models import Pago
         if clase.actividad.tipo_cobro == Pago.TipoPago.PAQUETE:
             if alumno.clases_disponibles <= 0:
-                return None, "No tienes clases disponibles. Debes adquirir un nuevo paquete para inscribirte.", False
+                mensaje = (
+                    "No tienes clases disponibles. "
+                    "Debes adquirir un nuevo paquete para inscribirte."
+                )
+                return None, mensaje, False
 
         # 3. Verificar si ya está inscrito
-        inscripcion_previa = InscripcionClase.objects.filter(alumno=alumno, clase=clase).exclude(estado='baja').first()
+        inscripcion_previa = InscripcionClase.objects.filter(
+            alumno=alumno, clase=clase
+        ).exclude(estado='baja').first()
         if inscripcion_previa:
             return inscripcion_previa, "Ya estás anotado en este horario.", False
 
 
         # 2. Contar inscriptos regulares actuales
-        inscriptos_regulares = InscripcionClase.objects.filter(clase=clase, estado=InscripcionClase.EstadoInscrito.REGULAR).count()
+        inscriptos_regulares = InscripcionClase.objects.filter(
+            clase=clase, 
+            estado=InscripcionClase.EstadoInscrito.REGULAR
+        ).count()
         
         if inscriptos_regulares < clase.cupo:
             estado = InscripcionClase.EstadoInscrito.REGULAR
@@ -81,7 +94,6 @@ class AcademiaService:
 
         # Si liberamos un cupo REGULAR, reintegramos crédito si era paquete
         if estado_anterior == InscripcionClase.EstadoInscrito.REGULAR:
-            from apps.ventas.models import Pago
             if clase.actividad.tipo_cobro == Pago.TipoPago.PAQUETE and not alumno.es_becado:
                 alumno.clases_disponibles = models.F('clases_disponibles') + 1
                 alumno.save(update_fields=['clases_disponibles'])

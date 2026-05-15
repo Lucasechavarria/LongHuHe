@@ -7,6 +7,7 @@ from apps.academia.models import Cronograma
 from .models import RegistroAsistencia
 from django.utils import timezone
 import json
+from .services import ScannerService
 
 @profe_requerido
 def escaner(request):
@@ -24,7 +25,6 @@ def registrar_asistencia_qr(request):
             
             alumno = get_object_or_404(Usuario, uuid_carnet=uuid_carnet)
             # Validaciones y Procesamiento vía Service Layer
-            from .services import ScannerService
             resultado = ScannerService.procesar_escaneo(uuid_carnet)
             return JsonResponse(resultado)
             
