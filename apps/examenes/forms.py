@@ -1,4 +1,4 @@
-from django import models, forms
+from django import forms
 from .models import MesaExamen
 from apps.usuarios.models import Usuario
 
