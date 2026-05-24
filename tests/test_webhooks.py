@@ -39,7 +39,7 @@ def setup_datos(db):
 def test_webhook_metodo_invalido(api_client):
     """ El webhook debe rechazar llamadas que no sean POST """
     url = reverse('mercadopago_webhook')
-    response = api_client.get(url)
+    response = api_client.get(url, secure=True)
     assert response.status_code == 400
     assert json.loads(response.content)['status'] == 'bad_request'
 
@@ -49,7 +49,7 @@ def test_webhook_firma_invalida(mock_validar, api_client):
     """ Si la firma es inválida, debe rechazar con 400 Forbidden """
     mock_validar.return_value = False
     url = reverse('mercadopago_webhook')
-    response = api_client.post(url, data=json.dumps({"id": 123}), content_type="application/json")
+    response = api_client.post(url, data=json.dumps({"id": 123}), content_type="application/json", secure=True)
     assert response.status_code == 400
     assert json.loads(response.content)['status'] == 'forbidden'
 
@@ -59,7 +59,7 @@ def test_webhook_payload_malformado(mock_validar, api_client):
     """ Si el payload JSON es malformado, debe responder con 400 y no 500 """
     mock_validar.return_value = True
     url = reverse('mercadopago_webhook')
-    response = api_client.post(url, data="payload corrupto", content_type="application/json")
+    response = api_client.post(url, data="payload corrupto", content_type="application/json", secure=True)
     assert response.status_code == 400
     assert json.loads(response.content)['detail'] == 'JSON malformado'
 
@@ -93,7 +93,8 @@ def test_webhook_v2_aprobacion_exitosa(mock_gateway, mock_validar, api_client, s
     response = api_client.post(
         url, 
         data=json.dumps(payload), 
-        content_type="application/json"
+        content_type="application/json",
+        secure=True
     )
     
     assert response.status_code == 200
