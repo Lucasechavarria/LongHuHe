@@ -289,23 +289,33 @@
                 {% if linea_tiempo %}
                     <div class="relative space-y-24 z-10 pb-20">
                         <div class="absolute left-10 lg:left-14 top-4 bottom-0 w-1 bg-gradient-to-b from-orange-500 via-white/5 to-transparent rounded-full shadow-[0_0_15px_rgba(249,115,22,0.3)]"></div>
-                        {% for examen in linea_tiempo %}
+                        {% for item in linea_tiempo %}
                             <div class="relative pl-32 lg:pl-48 group/item">
                                 <div class="absolute left-0 top-10 flex items-center justify-center">
                                     <div class="w-24 lg:w-32 h-px bg-white/10 group-hover/item:bg-orange-500/50 transition-colors"></div>
-                                    <div class="absolute left-[34px] lg:left-[48px] w-5 h-5 rounded-full bg-black border-4 border-orange-600 shadow-[0_0_20px_#f97316] group-hover/item:scale-150 transition-all duration-1000 z-10"></div>
+                                    <div class="absolute left-[34px] lg:left-[48px] w-5 h-5 rounded-full bg-black border-4 {{ item.icon_bg }} group-hover/item:scale-150 transition-all duration-1000 z-10"></div>
                                 </div>
                                 
                                 <div class="glass-card rounded-[4rem] p-10 hover:bg-white/5 transition-all duration-1000 border-white/5 group-hover/item:border-orange-500/30">
                                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
                                         <div class="space-y-4">
-                                            <p class="text-orange-500 font-black uppercase text-[11px] tracking-[0.5em] italic">{{ examen.fecha|date:"d M Y" }}</p>
-                                            <h4 class="text-5xl lg:text-7xl font-black uppercase text-white tracking-tighter leading-none italic">{{ examen.grado.nombre_formateado }}</h4>
+                                            <div class="flex items-center gap-3">
+                                                <p class="text-orange-500 font-black uppercase text-[11px] tracking-[0.5em] italic">{{ item.fecha|date:"d M Y" }}</p>
+                                                <span class="text-[8px] font-black uppercase tracking-wider py-1 px-3 rounded-full border border-white/10 {% if item.tipo == 'examen' %}text-orange-500 bg-orange-500/5{% else %}text-yellow-500 bg-yellow-500/5{% endif %}">
+                                                    {{ item.tipo|upper }}
+                                                </span>
+                                            </div>
+                                            <h4 class="text-3xl lg:text-5xl font-black uppercase text-white tracking-tighter leading-tight italic">{{ item.titulo }}</h4>
+                                            <p class="text-white/40 text-xs font-semibold uppercase tracking-widest">
+                                                {{ item.subtitulo }} {% if item.detalle %}· <span class="text-white/60 font-black italic">{{ item.detalle }}</span>{% endif %}
+                                            </p>
                                         </div>
-                                        <div class="bg-black/60 px-8 py-5 rounded-[2rem] border border-white/5 shadow-inner">
-                                            <p class="text-[9px] uppercase text-white/20 font-black tracking-[0.5em] mb-2 italic text-center lg:text-right">Examinador Oficial</p>
-                                            <p class="text-2xl font-black text-white/90 leading-none italic tracking-tighter">
-                                                {{ examen.examinador.nombre_completo|default:examen.examinador_externo|default:"MAESTRO SENIOR" }}
+                                        <div class="bg-black/60 px-8 py-5 rounded-[2rem] border border-white/5 shadow-inner shrink-0 min-w-[200px]">
+                                            <p class="text-[9px] uppercase text-white/20 font-black tracking-[0.5em] mb-2 italic text-center lg:text-right">
+                                                {% if item.tipo == 'examen' %}Examinadores{% else %}Lugar / Sede{% endif %}
+                                            </p>
+                                            <p class="text-sm font-black text-white/90 leading-tight italic tracking-tighter text-center lg:text-right">
+                                                {{ item.responsable }}
                                             </p>
                                         </div>
                                     </div>

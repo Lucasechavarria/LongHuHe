@@ -169,3 +169,26 @@ class InscripcionTorneo(models.Model):
 
     def __str__(self):
         return f"{self.alumno.nombre_completo} -> {self.torneo.nombre}"
+
+class ResultadoTorneo(models.Model):
+    class PodioOpciones(models.TextChoices):
+        NINGUNO = 'ninguno', 'Participación (Sin Podio)'
+        PRIMERO = '1ro', '1er Puesto 🥇'
+        SEGUNDO = '2do', '2do Puesto 🥈'
+        TERCERO = '3ro', '3er Puesto 🥉'
+        MENCION = 'mencion', 'Mención Especial 🏅'
+
+    alumno = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE, related_name="resultados_torneos")
+    torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE, related_name="resultados_alumnos")
+    categoria = models.CharField("Categoría", max_length=100, help_text="Ej: Formas de Puño, Combate, Armas...")
+    asistio = models.BooleanField("¿Asistió?", default=True)
+    podio = models.CharField("Podio / Resultado", max_length=20, choices=PodioOpciones.choices, default=PodioOpciones.NINGUNO)
+
+    class Meta:
+        verbose_name = "Resultado de Torneo"
+        verbose_name_plural = "01.7 - Resultados de Torneos"
+        unique_together = ['alumno', 'torneo', 'categoria']
+
+    def __str__(self):
+        podio_str = self.get_podio_display() if self.podio != 'ninguno' else "Participación"
+        return f"{self.alumno.nombre_completo} - {self.torneo.nombre} [{self.categoria}]: {podio_str}"

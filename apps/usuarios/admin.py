@@ -49,6 +49,16 @@ class UsuarioAdmin(UserAdmin):
     list_select_related = ("grado", "sede")
     search_fields = ("nombre", "apellido", "celular", "dni", "username")
     ordering = ("apellido", "nombre")
+    
+    actions = ['restablecer_pin']
+
+    @admin.action(description="Restablecer PIN a por defecto (últimos 4 del DNI/celular)")
+    def restablecer_pin(self, request, queryset):
+        count = 0
+        for usuario in queryset:
+            usuario.blanquear_pin()
+            count += 1
+        self.message_user(request, f"Se ha restablecido el PIN para {count} alumnos de forma exitosa.")
 
     fieldsets = (
         ("Acceso", {"fields": ("username", "password")}),

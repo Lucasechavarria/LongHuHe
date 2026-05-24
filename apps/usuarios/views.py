@@ -193,9 +193,47 @@ def perfil(request):
         candidatos__alumno=alumno
     ).order_by('fecha')
     
+    # Compilar la Línea de Tiempo (Bitácora Marcial) combinada
+    linea_tiempo = []
+    
+    # 1. Exámenes del alumno (graduaciones y ascensos)
+    examenes = alumno.examenes.all().select_related('grado', 'examinador')
+    for ex in examenes:
+        linea_tiempo.append({
+            'fecha': ex.fecha,
+            'tipo': 'examen',
+            'titulo': ex.grado.nombre_formateado,
+            'subtitulo': f"Examen en {ex.observaciones.split('. ')[0]}" if ex.observaciones else "Examen Oficial",
+            'detalle': ex.observaciones.split('. ')[1] if ex.observaciones and len(ex.observaciones.split('. ')) > 1 else "",
+            'responsable': ex.examinador.nombre_completo if ex.examinador else (ex.examinador_externo or "Mesa Examinadora"),
+            'icon_bg': 'border-orange-600 shadow-[0_0_20px_#f97316]'
+        })
+        
+    # 2. Torneos del alumno (participaciones/podios)
+    try:
+        from apps.academia.models import ResultadoTorneo
+        resultados = alumno.resultados_torneos.all().select_related('torneo')
+        for res in resultados:
+            podio_val = res.get_podio_display()
+            linea_tiempo.append({
+                'fecha': res.torneo.fecha.date(),
+                'tipo': 'torneo',
+                'titulo': res.torneo.nombre,
+                'subtitulo': f"Categoría: {res.categoria}",
+                'detalle': f"Logro: {podio_val}" if res.podio != 'ninguno' else "Participación",
+                'responsable': res.torneo.lugar,
+                'icon_bg': 'border-yellow-500 shadow-[0_0_20px_#eab308]'
+            })
+    except Exception:
+        pass
+        
+    # Ordenar cronológicamente (más recientes primero)
+    linea_tiempo.sort(key=lambda x: x['fecha'], reverse=True)
+    
     return render(request, 'usuarios/perfil.html', {
         'alumno': alumno,
-        'mesas_disponibles': mesas_disponibles
+        'mesas_disponibles': mesas_disponibles,
+        'linea_tiempo': linea_tiempo
     })
 
 @alumno_requerido
@@ -260,14 +298,24 @@ def logout(request):
 def login_profesor(request):
     """
     Vista de login seguro para profesores y personal administrativo.
-    Utiliza el sistema de contraseñas nativo y robusto de Django.
+    Soporta autenticación flexible por Nombre de Usuario, Email, Celular o DNI.
     """
     if 'alumno_id' in request.session:
         request.session.flush()
 
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
+        username_input = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
+        
+        # Resolver usuario dinámicamente por múltiples campos
+        user_obj = Usuario.objects.filter(
+            Q(username=username_input) | 
+            Q(email=username_input) | 
+            Q(celular=username_input) |
+            Q(dni=username_input)
+        ).first()
+        
+        username = user_obj.username if user_obj else username_input
         
         from django.contrib.auth import authenticate, login as django_login
         user = authenticate(request, username=username, password=password)

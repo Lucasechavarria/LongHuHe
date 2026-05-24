@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from apps.usuarios.views import alumno_requerido, profe_requerido
-from .models import Cronograma, InscripcionClase, Sede, Actividad, Torneo, InscripcionTorneo
+from .models import Cronograma, InscripcionClase, Sede, Actividad, Torneo, InscripcionTorneo, ResultadoTorneo
 from apps.usuarios.models import Usuario
 from django.utils import timezone
 from .forms import TorneoForm
@@ -236,4 +236,56 @@ def ver_inscritos_torneo(request, torneo_id):
     return render(request, 'academia/inscritos_torneo.html', {
         'torneo': torneo,
         'inscripciones': inscripciones
+    })
+
+@profe_requerido
+def registrar_resultados_torneo(request, torneo_id):
+    """
+    Carga post-torneo: registra asistencia, categorías y podios de competidores.
+    """
+    torneo = get_object_or_404(Torneo, id=torneo_id)
+    
+    # Acción de Eliminación Rápida
+    delete_id = request.GET.get('delete_id')
+    if delete_id:
+        resultado = get_object_or_404(ResultadoTorneo, id=delete_id, torneo=torneo)
+        alumno_nombre = resultado.alumno.nombre_completo
+        cat_nombre = resultado.categoria
+        resultado.delete()
+        messages.success(request, f"✅ Se eliminó el resultado de {alumno_nombre} en la categoría '{cat_nombre}'.")
+        return redirect('registrar_resultados_torneo', torneo_id=torneo.id)
+
+    # Procesar carga de resultado (POST)
+    if request.method == 'POST':
+        alumno_id = request.POST.get('alumno_id')
+        categoria = request.POST.get('categoria', '').strip()
+        asistio = request.POST.get('asistio') == 'on'
+        podio = request.POST.get('podio', 'ninguno')
+        
+        if not alumno_id or not categoria:
+            messages.error(request, "⚠️ Debes seleccionar un alumno y definir una categoría.")
+        else:
+            alumno = get_object_or_404(Usuario, id=alumno_id)
+            try:
+                ResultadoTorneo.objects.create(
+                    alumno=alumno,
+                    torneo=torneo,
+                    categoria=categoria,
+                    asistio=asistio,
+                    podio=podio
+                )
+                messages.success(request, f"🏆 Cargado resultado para {alumno.nombre_completo} ({categoria}).")
+            except Exception:
+                messages.warning(request, f"⚠️ El alumno {alumno.nombre_completo} ya tiene registrado un resultado en la categoría '{categoria}'.")
+            return redirect('registrar_resultados_torneo', torneo_id=torneo.id)
+
+    # Datos para renderizar
+    resultados = torneo.resultados_alumnos.select_related('alumno', 'alumno__grado').order_by('alumno__apellido', 'categoria')
+    alumnos = Usuario.objects.filter(es_profe=False, is_active=True).order_by('apellido', 'nombre')
+    
+    return render(request, 'academia/registrar_resultados.html', {
+        'torneo': torneo,
+        'resultados': resultados,
+        'alumnos': alumnos,
+        'podio_opciones': ResultadoTorneo.PodioOpciones.choices
     })
