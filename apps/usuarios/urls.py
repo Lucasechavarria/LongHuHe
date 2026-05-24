@@ -12,4 +12,5 @@ urlpatterns = [
     path('perfil/prorroga/', views.solicitar_prorroga, name='solicitar_prorroga'),
     path('perfil/bloqueado/', views.cuota_vencida, name='cuota_vencida'),
     path('logout/', views.logout, name='logout'),
+    path('profe/login/', views.login_profesor, name='login_profesor'),
 ]

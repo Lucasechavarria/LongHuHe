@@ -63,15 +63,11 @@ class InscripcionExamen(models.Model):
             ascenso_aprobado.send(sender=self.__class__, inscripcion=self)
             
             self.procesado = True
-            # No llamamos a self.save() aquí para evitar recursión.
-            # El llamador (save() o admin action) se encarga de persistir self.procesado.
 
     def save(self, *args, **kwargs):
-        # 1. Guardado base
-        super().save(*args, **kwargs)
-        
-        # 2. Disparar ascenso si está aprobado y no procesado
+        # 1. Disparar ascenso en memoria si está aprobado y no procesado
         if self.resultado == self.EstadoResultado.APROBADO and not self.procesado:
             self.aplicar_ascenso()
-            # Persistimos el flag procesado sin re-disparar save() completo
-            InscripcionExamen.objects.filter(pk=self.pk).update(procesado=True)
+            
+        # 2. Guardado base consolidado en una sola escritura
+        super().save(*args, **kwargs)

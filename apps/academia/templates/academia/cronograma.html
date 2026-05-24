@@ -5,7 +5,7 @@
 {% block title %}Cronograma de Clases - Long Hu He{% endblock %}
 
 {% block content %}
-<div class="space-y-16 animate-fade-in px-4 pb-32 max-w-7xl mx-auto" x-data="{ 
+<div class="space-y-16 animate-fade-in px-4 pb-10 max-w-7xl mx-auto" x-data="{ 
     diaActivo: '{{ hoy_cod|default:'LU' }}',
     showFiltros: false 
 }">
@@ -22,20 +22,26 @@
     </header>
 
     <!-- BARRA DE FILTROS STICKY PREMIUM -->
-    <div class="sticky top-2 z-[60] glass-panel rounded-[2rem] md:rounded-[2.5rem] p-3 md:p-4 border border-white/10 shadow-[0_25px_50px_rgba(0,0,0,0.5)] mx-2 md:mx-0">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-4 md:gap-6">
-            
-            <!-- Selector de Días (Chips) - ACCESSIBLE -->
-            <div class="flex gap-3 md:gap-4 overflow-x-auto w-full lg:w-auto pb-2 md:pb-0 scrollbar-hide snap-x">
+    <div class="sticky top-2 z-[60] glass-panel rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 border border-white/10 shadow-[0_25px_50px_rgba(0,0,0,0.5)] mx-2 md:mx-0 flex flex-col gap-6">
+        
+        <!-- Fila 1: Selector de Días (Chips) - ACCESSIBLE -->
+        <div class="flex justify-center w-full">
+            <div class="flex gap-2.5 md:gap-4 overflow-x-auto w-full justify-start md:justify-center pb-2 md:pb-0 scrollbar-hide snap-x">
                 {% for dia_cod, dia_nom in dias_semana %}
                 <button @click="diaActivo = '{{ dia_cod }}'" 
                         :class="diaActivo === '{{ dia_cod }}' ? 'bg-orange-600 text-white shadow-[0_10px_20px_rgba(234,88,12,0.4)] scale-105' : 'text-white/40 hover:text-white bg-white/5'"
-                        class="px-8 md:px-10 py-5 md:py-6 rounded-[1.2rem] md:rounded-[1.5rem] font-black uppercase tracking-tighter text-xs md:text-sm transition-all duration-700 shrink-0 snap-center border border-white/10">
+                        class="px-6 md:px-10 py-4 md:py-6 rounded-[1.2rem] md:rounded-[1.5rem] font-black uppercase tracking-tighter text-xs md:text-sm transition-all duration-700 shrink-0 snap-center border border-white/10">
                     {{ dia_nom }}
                 </button>
                 {% endfor %}
             </div>
+        </div>
 
+        <!-- Línea divisoria tenue -->
+        <div class="h-px w-full bg-white/10" :class="showFiltros ? 'block' : 'hidden lg:block'"></div>
+
+        <!-- Fila 2: Botón Filtros (Mobile Toggle) y Controles de Filtro -->
+        <div class="w-full flex flex-col gap-4">
             <!-- Botón Filtros (Mobile Toggle) -->
             <button @click="showFiltros = !showFiltros" 
                     class="lg:hidden w-full flex items-center justify-center gap-3 py-5 bg-white/5 rounded-[1.2rem] text-orange-500 font-black uppercase text-[11px] tracking-widest border border-white/10 active:scale-95 transition-transform">
@@ -48,10 +54,10 @@
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 -translate-y-4"
                  x-transition:enter-end="opacity-100 translate-y-0"
-                 class="lg:!flex flex-col lg:flex-row gap-6 w-full lg:w-auto items-center pb-4 lg:pb-0">
+                 class="lg:!flex flex-col gap-6 w-full items-center pb-4 lg:pb-0">
                 
-                <form method="GET" action="" class="flex flex-col lg:flex-row gap-6 w-full">
-                    <div class="flex flex-col gap-2">
+                <form method="GET" action="" class="flex flex-col lg:flex-row gap-6 w-full items-end justify-center">
+                    <div class="flex flex-col gap-2 w-full lg:flex-1">
                         <label class="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-4">📍 Sede / Centro</label>
                         <select name="sede" onchange="this.form.submit()" class="filter-select-lg w-full">
                             <option value="">Todas las Sedes</option>
@@ -61,7 +67,7 @@
                         </select>
                     </div>
                     
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 w-full lg:flex-1">
                         <label class="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-4">🥋 Disciplina</label>
                         <select name="actividad" onchange="this.form.submit()" class="filter-select-lg w-full">
                             <option value="">Todas las Actividades</option>
@@ -71,7 +77,7 @@
                         </select>
                     </div>
 
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 w-full lg:flex-1">
                         <label class="text-[9px] font-black text-orange-500 uppercase tracking-widest ml-4">👨‍🏫 Profesor</label>
                         <select name="profesor" onchange="this.form.submit()" class="filter-select-lg w-full">
                             <option value="">Todos los Profesores</option>
@@ -82,7 +88,7 @@
                     </div>
                     
                     {% if sede_seleccionada or actividad_seleccionada or profesor_seleccionado %}
-                        <div class="flex items-end pb-1">
+                        <div class="flex items-end pb-1 w-full lg:w-auto shrink-0">
                             <a href="?" class="w-full lg:w-16 h-16 bg-rose-600/20 text-rose-500 rounded-2xl hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center border border-rose-500/20">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </a>
@@ -194,7 +200,7 @@
     </div>
 
     <!-- FOOTER NAV -->
-    <div class="pt-20 flex justify-center">
+    <div class="pt-10 flex justify-center">
         <a href="{% url 'perfil' %}" class="glass-card px-12 py-6 rounded-full text-[10px] font-black uppercase text-white/40 tracking-[0.5em] hover:text-orange-500 hover:border-orange-500/30 transition-all duration-500">
             Volver al Dashboard
         </a>

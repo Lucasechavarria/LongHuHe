@@ -24,49 +24,42 @@ def rate_limit_login(view_func):
 def requiere_rol(rol_nombre):
     """
     Decorador avanzado para RBAC (Role Based Access Control).
-    Verifica si el usuario tiene el campo booleano 'rol_nombre' activo.
+    Verifica si el usuario tiene el campo booleano 'rol_nombre' activo y sesión Django segura.
     """
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
-            # 1. Asegurar objeto usuario en request
-            if not hasattr(request, 'user_obj'):
-                if 'alumno_id' in request.session:
-                    request.user_obj = Usuario.objects.filter(id=request.session['alumno_id']).first()
-                elif request.user.is_authenticated:
-                    request.user_obj = request.user
+            # Exigir sesión segura de Django autenticada con contraseña
+            if not request.user.is_authenticated or not (request.user.es_profe or request.user.is_staff):
+                messages.error(request, "⚠️ Se requiere inicio de sesión administrativo seguro.")
+                return redirect('login_profesor')
             
-            if not getattr(request, 'user_obj', None):
-                messages.error(request, "Sesión requerida.")
-                return redirect('splash')
-
-            # 2. Verificar rol (o acceso total)
-            usuario = request.user_obj
+            usuario = request.user
+            request.user_obj = usuario
+            
             if usuario.rol_acceso_total:
                 return view_func(request, *args, **kwargs)
             
             if getattr(usuario, rol_nombre, False):
                 return view_func(request, *args, **kwargs)
             
-            messages.error(request, f"Acceso denegado: Se requiere el rol '{rol_nombre.replace('rol_', '').replace('_', ' ').title()}'.")
-            return redirect('splash')
+            nombre_legible = rol_nombre.replace('rol_', '').replace('_', ' ').title()
+            messages.error(request, f"⚠️ Acceso denegado: Se requiere el rol administrativo '{nombre_legible}'.")
+            return redirect('perfil')
         return _wrapped_view
     return decorator
 
 def profe_requerido(view_func):
-    """ Decorador base para asegurar que sea un profesor/staff. """
+    """ Decorador base para asegurar que sea un profesor/staff con sesión segura de Django. """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if 'alumno_id' in request.session:
-            usuario = Usuario.objects.filter(id=request.session['alumno_id']).first()
-            if usuario and usuario.es_profe:
-                request.user_obj = usuario
-                return view_func(request, *args, **kwargs)
-        if request.user.is_authenticated and getattr(request.user, 'es_profe', False):
+        # Exigir sesión segura de Django autenticada con contraseña
+        if request.user.is_authenticated and (request.user.es_profe or request.user.is_staff):
             request.user_obj = request.user
             return view_func(request, *args, **kwargs)
-        messages.error(request, "Acceso restringido solo para profesores.")
-        return redirect('splash')
+            
+        messages.error(request, "⚠️ Acceso restringido. Por favor inicia sesión como Instructor.")
+        return redirect('login_profesor')
     return _wrapped_view
 
 def alumno_requerido(view_func):
@@ -121,34 +114,52 @@ def identificacion(request):
         return redirect('perfil')
     if request.method == 'POST':
         identificador = request.POST.get('identificador', '').strip()
-        nacimiento = request.POST.get('nacimiento', '').strip()
+        pin = request.POST.get('pin', '').strip()
         
         ip = get_client_ip(request)
         key = f"rate_limit_login_{ip}"
         
         from .models import BitacoraSeguridad
-        if identificador and nacimiento:
+        if identificador and pin:
             alumno = Usuario.objects.filter(Q(celular__icontains=identificador) | Q(dni=identificador)).first()
             if alumno:
-                if alumno.fecha_nacimiento and str(alumno.fecha_nacimiento.year) == nacimiento:
+                # 1. Bloquear accesos administrativos / de profesores en este login simplificado
+                if alumno.es_profe or alumno.is_staff or alumno.is_superuser:
+                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento de acceso profe en panel de alumnos para ID {identificador}")
+                    messages.error(request, "⚠️ Los profesores deben iniciar sesión mediante el Panel de Instructores.")
+                    return render(request, 'usuarios/identificacion.html')
+
+                # 2. Migración transparente de PIN si el alumno no lo tiene configurado (perezosa)
+                fue_autogenerado = False
+                if not alumno.pin_hash:
+                    alumno.blanquear_pin()
+                    alumno.refresh_from_db()
+                    fue_autogenerado = True
+
+                # 3. Validación de PIN seguro
+                if alumno.check_pin(pin):
                     request.session['alumno_id'] = alumno.id
-                    request.session['es_profe'] = alumno.es_profe
-                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_EXITOSO, "Login exitoso via DNI/Nacimiento", usuario=alumno)
+                    request.session['es_profe'] = False  # Garantizar que no se inyecten permisos
+                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_EXITOSO, "Login exitoso via DNI/PIN", usuario=alumno)
                     cache.delete(key) # Limpiar intentos
-                    messages.success(request, f"¡Bienvenido, {alumno.nombre}!")
+                    
+                    if fue_autogenerado:
+                        messages.success(request, f"¡Bienvenido, {alumno.nombre}! Hemos asignado un PIN de seguridad temporal (últimos 4 números de tu DNI o celular). Por favor, modifícalo en tu perfil.")
+                    else:
+                        messages.success(request, f"¡Bienvenido, {alumno.nombre}!")
                     return redirect('perfil')
                 else:
                     # Incrementar intentos
                     cache.set(key, cache.get(key, 0) + 1, 900) # 15 min
-                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento fallido para DNI {identificador}: Año nacimiento incorrecto")
-                    messages.error(request, "⚠️ El Año de Nacimiento proveido es incorrecto.")
+                    BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento fallido para DNI {identificador}: PIN incorrecto")
+                    messages.error(request, "⚠️ El PIN ingresado es incorrecto.")
             else:
                 cache.set(key, cache.get(key, 0) + 1, 900)
                 BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento fallido: Identificador {identificador} no encontrado")
                 messages.info(request, "No encontramos tus datos. ¡Por favor, completa tu inscripción!")
                 return redirect('onboarding')
         else:
-            messages.warning(request, "Debes completar el DNI y el Año de Nacimiento.")
+            messages.warning(request, "Debes completar el Identificador y el PIN de acceso.")
     return render(request, 'usuarios/identificacion.html')
 
 def onboarding(request):
@@ -245,3 +256,38 @@ def logout(request):
     request.session.flush()
     messages.info(request, "Sesión cerrada correctamente.")
     return redirect('acceso_opciones')
+
+def login_profesor(request):
+    """
+    Vista de login seguro para profesores y personal administrativo.
+    Utiliza el sistema de contraseñas nativo y robusto de Django.
+    """
+    if 'alumno_id' in request.session:
+        request.session.flush()
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+        
+        from django.contrib.auth import authenticate, login as django_login
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            if user.es_profe or user.is_staff or user.is_superuser:
+                django_login(request, user)
+                request.session['alumno_id'] = user.id
+                request.session['es_profe'] = True
+                
+                from .models import BitacoraSeguridad
+                BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_EXITOSO, "Login admin exitoso", usuario=user)
+                
+                messages.success(request, f"¡Bienvenido, {user.nombre}!")
+                if user.rol_gestion_tesoreria or user.rol_acceso_total:
+                    return redirect('gestion_tesoreria')
+                return redirect('perfil')
+            else:
+                messages.error(request, "⚠️ Acceso denegado: Esta cuenta no tiene rango de profesor o staff.")
+        else:
+            messages.error(request, "⚠️ Credenciales inválidas. Verifica tu usuario y contraseña.")
+            
+    return render(request, 'usuarios/login_profesor.html')

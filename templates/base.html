@@ -134,14 +134,14 @@
             </a>
         </div>
 
-        <main class="flex-grow pb-32">
+        <main class="flex-grow pb-12">
             {% block content %}{% endblock %}
         </main>
 
         <!-- DOCK NAVIGATION ZEN-TECH -->
         {% block navbar %}
         <nav class="fixed bottom-10 left-0 right-0 z-[80] px-6">
-            <div class="max-w-fit mx-auto glass-panel rounded-[3rem] p-3 flex justify-center items-center gap-3 shadow-[0_50px_100px_rgba(0,0,0,0.9)] border border-white/10 group/nav">
+            <div class="max-w-fit mx-auto glass-panel rounded-[3rem] p-2 md:p-3 flex justify-center items-center gap-1.5 md:gap-3 shadow-[0_50px_100px_rgba(0,0,0,0.9)] border border-white/10 group/nav">
                 
                 {% if alumno_actual.grado or request.session.es_profe or user.is_staff %}
                 <!-- HOME -->
@@ -228,7 +228,7 @@
         {% endblock %}
 
         {% block footer %}
-        <footer class="mt-20 text-center space-y-8 py-10 border-t border-white/5 relative z-10">
+        <footer class="mt-10 text-center space-y-6 py-6 border-t border-white/5 relative z-10">
             <div class="flex justify-center items-center gap-10 opacity-30 group-hover:opacity-100 transition-opacity">
                  <img src="{% static 'img/Logo Long Hu He Transparent.png' %}" class="h-10 grayscale brightness-200" alt="Logo">
             </div>
@@ -261,7 +261,7 @@
     
     <style>
         .nav-item {
-            @apply p-5 rounded-2xl text-white/30 hover:bg-white/5 hover:text-orange-500 transition-all duration-500 flex items-center justify-center;
+            @apply p-3.5 md:p-5 rounded-2xl text-white/30 hover:bg-white/5 hover:text-orange-500 transition-all duration-500 flex items-center justify-center;
         }
         .nav-item.active {
             @apply text-orange-500 bg-white/5 shadow-inner;

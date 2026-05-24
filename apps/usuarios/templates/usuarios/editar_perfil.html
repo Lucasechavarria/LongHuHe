@@ -70,6 +70,12 @@
                 {{ form.localidad }}
                 {% if form.localidad.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.localidad.errors.0 }}</p>{% endif %}
             </div>
+            <div class="md:col-span-2 pt-6 border-t border-white/5">
+                <label class="block text-sm font-black uppercase text-orange-500 tracking-widest mb-2">PIN de Acceso (4 números)</label>
+                <p class="text-xs text-white/40 mb-4 uppercase tracking-wider">Completa este campo únicamente si deseas cambiar tu clave de 4 números para el inicio de sesión.</p>
+                {{ form.pin }}
+                {% if form.pin.errors %}<p class="text-red-500 text-sm mt-2 font-bold">{{ form.pin.errors.0 }}</p>{% endif %}
+            </div>
         </div>
 
         <div class="pt-10">

@@ -156,8 +156,16 @@ def validar_signature_mp(request):
     if not ts or not v1:
         return False
 
-    # Extraer el resource_id del body o la querystring
-    data_id = request.GET.get("data.id") or request.GET.get("id", "")
+    # Extraer el resource_id de la querystring o del body JSON (soporte Webhooks V2)
+    data_id = request.GET.get("data.id") or request.GET.get("id")
+    if not data_id and request.method == "POST" and request.body:
+        try:
+            import json
+            body_data = json.loads(request.body)
+            data_id = body_data.get("data", {}).get("id") or body_data.get("id")
+        except Exception:
+            pass
+    data_id = str(data_id or "")
 
     # Construir el string a firmar según la spec oficial de MP
     # Formato: "id:[data.id];request-id:[x-request-id];ts:[ts];"
@@ -248,8 +256,8 @@ def gestion_tesoreria(request):
     total_rechazados_monto = pagos_rechazados_mes.aggregate(total=Sum('monto'))['total'] or Decimal('0.00')
     pagos_rechazados_recientes = pagos_rechazados_mes.order_by('-fecha_registro')[:10]
 
-    pagos_pendientes = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).order_by('-fecha_registro')
-    pedidos_pendientes = Pedido.objects.filter(estado=Pedido.Estado.PENDIENTE).order_by('-fecha_registro').prefetch_related('items__producto')
+    pagos_pendientes = Pago.objects.filter(estado=Pago.EstadoPago.PENDIENTE).select_related('alumno', 'actividad').order_by('-fecha_registro')
+    pedidos_pendientes = Pedido.objects.filter(estado=Pedido.Estado.PENDIENTE).select_related('alumno').prefetch_related('items__producto').order_by('-fecha_registro')
     
     return render(request, 'ventas/gestion_tesoreria.html', {
         'pagos_pendientes': pagos_pendientes,
@@ -712,8 +720,13 @@ def mercadopago_webhook(request):
                             else:
                                 pago.save()
         return JsonResponse({'status': 'ok'}, status=200)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'bad_request', 'detail': 'JSON malformado'}, status=400)
     except Exception as e:
-        return JsonResponse({'status': 'error', 'detail': str(e)}, status=500)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error procesando webhook de MP: {e}", exc_info=True)
+        return JsonResponse({'status': 'bad_request', 'detail': str(e)}, status=400)
 
 @alumno_requerido
 def tienda_inicio(request):

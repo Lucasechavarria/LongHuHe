@@ -100,6 +100,7 @@ class Usuario(AbstractUser):
         help_text="Determina qué contenido de la biblioteca puede ver el alumno."
     )
     foto_perfil = models.ImageField("Foto de Perfil", upload_to="perfiles/", null=True, blank=True)
+    pin_hash = models.CharField("PIN de Acceso Hasheado", max_length=128, blank=True, null=True)
 
     # Campos de Mercado Pago para Profesores (Marketplace)
     mp_access_token = models.CharField("MP Access Token", max_length=500, blank=True, null=True)
@@ -200,6 +201,32 @@ class Usuario(AbstractUser):
 
     class Meta:
         db_table = 'core_usuario' # Link to existing table
+
+    def set_pin(self, raw_pin):
+        """Hashea y guarda el PIN de acceso de 4 dígitos."""
+        from django.contrib.auth.hashers import make_password
+        self.pin_hash = make_password(str(raw_pin).strip())
+
+    def check_pin(self, raw_pin):
+        """Verifica si el PIN provisto coincide con el hasheado."""
+        from django.contrib.auth.hashers import check_password
+        if not self.pin_hash:
+            return False
+        return check_password(str(raw_pin).strip(), self.pin_hash)
+
+    def blanquear_pin(self):
+        """Resetea el PIN de acceso a los últimos 4 dígitos del DNI (o celular)."""
+        default_pin = "1234"
+        if self.dni and len(self.dni) >= 4:
+            default_pin = self.dni[-4:]
+        elif self.celular and len(self.celular) >= 4:
+            import re
+            nums = re.sub(r'\D', '', self.celular)
+            if len(nums) >= 4:
+                default_pin = nums[-4:]
+        self.set_pin(default_pin)
+        self.save(update_fields=['pin_hash'])
+        return default_pin
 
     def save(self, *args, **kwargs):
         # 1. Gestión de Superusuario (Acceso Total)

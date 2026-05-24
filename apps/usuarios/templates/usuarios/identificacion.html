@@ -36,15 +36,19 @@
                 </div>
                 
                 <div class="relative">
-                    <input type="number" 
-                           name="nacimiento" 
+                    <input type="password" 
+                           name="pin" 
                            required
-                           placeholder="Año de Nacimiento (Ej: 1985)"
-                           class="w-full bg-black/40 border-2 border-white/5 rounded-[2.5rem] py-8 px-10 text-2xl font-bold text-center text-orange-400 placeholder-orange-500/20 focus:border-orange-500 focus:bg-black/60 transition-all duration-500 outline-none tracking-[0.3em] shadow-2xl">
+                           inputmode="numeric"
+                           pattern="[0-9]*"
+                           maxlength="4"
+                           placeholder="PIN DE 4 NÚMEROS"
+                           class="w-full bg-black/40 border-2 border-white/5 rounded-[2.5rem] py-8 px-10 text-4xl font-bold text-center text-orange-400 placeholder-orange-500/20 focus:border-orange-500 focus:bg-black/60 transition-all duration-500 outline-none tracking-[0.6em] shadow-2xl">
                 </div>
 
-                <p class="text-white/20 text-center font-bold uppercase tracking-[0.2em] pt-4 text-[10px] leading-relaxed">
-                    Tu contraseña es tu año de nacimiento <br> registrado en la ficha médica.
+                <p class="text-white/30 text-center font-bold uppercase tracking-[0.1em] pt-4 text-[10px] leading-relaxed">
+                    Ingresa tu PIN de 4 dígitos (como el del cajero). <br> 
+                    <span class="text-orange-500/50">Si es tu primera vez, usa los últimos 4 dígitos de tu DNI o Celular.</span>
                 </p>
             </div>
 

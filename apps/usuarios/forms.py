@@ -118,6 +118,19 @@ class AlumnoOnboardingForm(forms.ModelForm):
         return dni
 
 class UsuarioPerfilForm(forms.ModelForm):
+    pin = forms.CharField(
+        label="PIN de Acceso (4 números)",
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-orange-400 focus:border-orange-500 outline-none transition-all text-center tracking-[0.5em] font-bold text-2xl',
+            'maxlength': '4',
+            'inputmode': 'numeric',
+            'pattern': '[0-9]*',
+            'placeholder': '••••'
+        }),
+        help_text="Opcional. Completa para cambiar tu PIN actual (4 números)."
+    )
+
     class Meta:
         model = Usuario
         fields = ['foto_perfil', 'nombre', 'apellido', 'celular', 'domicilio', 'localidad']
@@ -141,6 +154,23 @@ class UsuarioPerfilForm(forms.ModelForm):
                 'class': 'w-full rounded-2xl bg-white/5 border border-white/10 p-4 text-white focus:border-orange-500 outline-none transition-all'
             }),
         }
+
+    def clean_pin(self):
+        pin = self.cleaned_data.get('pin')
+        if pin:
+            pin = pin.strip()
+            if not pin.isdigit() or len(pin) != 4:
+                raise forms.ValidationError("El PIN debe constar de exactamente 4 números.")
+        return pin
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        pin = self.cleaned_data.get('pin')
+        if pin:
+            usuario.set_pin(pin)
+        if commit:
+            usuario.save()
+        return usuario
 
 class UsuarioSaludForm(forms.ModelForm):
     declaracion_jurada = forms.BooleanField(
