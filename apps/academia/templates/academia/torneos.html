@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Torneos de la Escuela - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="space-y-16 animate-fade-in px-4 pb-10 max-w-7xl mx-auto">
+
+    <!-- HEADER PREMIUM -->
+    <header class="text-center relative py-8 md:py-16 px-4">
+        <div class="absolute inset-0 bg-gradient-to-b from-orange-600/10 to-transparent blur-3xl rounded-full opacity-30"></div>
+        <h1 class="text-5xl md:text-9xl font-black text-white uppercase tracking-tighter relative z-10 leading-[0.8]">
+            Torneos <span class="text-gradient-gold drop-shadow-[0_0_50px_rgba(249,115,22,0.4)]">{{ anio_actual }}</span>
+        </h1>
+        <p class="text-white/60 font-black mt-6 md:mt-10 text-[10px] md:text-sm uppercase tracking-[0.4em] md:tracking-[0.6em] max-w-xl mx-auto leading-relaxed">
+            Inscríbete y representa a la escuela en competencias oficiales
+        </p>
+    </header>
+
+    <!-- GRILLA DE TORNEOS -->
+    <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {% for torneo in torneos %}
+        <div class="glass-card rounded-[3.5rem] p-10 border border-white/5 flex flex-col group hover:border-orange-500/40 transition-all duration-700 relative overflow-hidden shadow-2xl">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px]"></div>
+            
+            <!-- Ribbon / Estado de Inscripción -->
+            {% if torneo.id in mis_inscripciones_ids %}
+            <div class="absolute top-8 right-8 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[8px] font-black uppercase tracking-[0.3em] py-2 px-5 rounded-full shadow-2xl">
+                ✓ INSCRITO
+            </div>
+            {% endif %}
+
+            <!-- Card Header -->
+            <div class="mb-8 md:mb-10 relative z-10">
+                <span class="text-[9px] font-black tracking-[0.4em] uppercase py-2 px-5 rounded-full border border-white/10 text-orange-500 bg-orange-500/5">
+                    CONVOCATORIA
+                </span>
+                <h3 class="text-3xl font-black text-white uppercase tracking-tighter mt-6 group-hover:text-orange-500 transition-colors leading-tight">
+                    {{ torneo.nombre }}
+                </h3>
+            </div>
+
+            <!-- Info Body -->
+            <div class="space-y-6 relative z-10 flex-grow">
+                <!-- Fecha -->
+                <div class="flex items-center gap-5">
+                    <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-orange-500 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[7px] font-black text-white/20 uppercase tracking-[0.4em]">Fecha y Hora</p>
+                        <h4 class="text-sm font-black text-white uppercase tracking-tight">{{ torneo.fecha|date:"d F Y · H:i" }} HS</h4>
+                    </div>
+                </div>
+
+                <!-- Lugar -->
+                <div class="flex items-center gap-5">
+                    <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-orange-500 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[7px] font-black text-white/20 uppercase tracking-[0.4em]">Lugar del Evento</p>
+                        <h4 class="text-sm font-black text-white uppercase tracking-tight">{{ torneo.lugar }}</h4>
+                    </div>
+                </div>
+
+                <!-- Costo Informativo -->
+                <div class="flex items-center gap-5">
+                    <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-orange-500 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M12 16v1"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-[7px] font-black text-white/20 uppercase tracking-[0.4em]">Costo de Inscripción</p>
+                        <h4 class="text-sm font-black text-white uppercase tracking-tight">
+                            {% if torneo.costo_inscripcion > 0 %}$ {{ torneo.costo_inscripcion }}{% else %}Gratuito{% endif %}
+                        </h4>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                {% if torneo.descripcion %}
+                <div class="pt-4 border-t border-white/5">
+                    <p class="text-[7px] font-black text-white/20 uppercase tracking-[0.4em] mb-2">Detalles del Evento</p>
+                    <p class="text-white/60 text-xs leading-relaxed font-medium line-clamp-3 group-hover:line-clamp-none transition-all duration-700">
+                        {{ torneo.descripcion }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Footer Action -->
+            <div class="mt-12 pt-10 border-t border-t-white/5 relative z-10">
+                {% if torneo.id in mis_inscripciones_ids %}
+                    <a href="{% url 'desanotarse_torneo' torneo.id %}" 
+                       class="w-full bg-rose-600/10 text-rose-500 text-xs font-black uppercase py-6 rounded-[1.5rem] hover:bg-rose-600 hover:text-white transition-all text-center border border-rose-500/20 shadow-xl block">
+                        Cancelar Convocatoria
+                    </a>
+                {% else %}
+                    <form action="{% url 'inscribir_torneo' torneo.id %}" method="post" x-data="{ loading: false }" @submit="loading = true">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                :disabled="loading"
+                                class="btn-liquid w-full bg-orange-600 text-white text-xs font-black uppercase py-6 rounded-[2.5rem] hover:bg-orange-500 transition-all shadow-[0_20px_40px_rgba(234,88,12,0.4)] disabled:opacity-50">
+                            <span class="relative z-10" x-text="loading ? '⏳ Procesando...' : 'Anotarme Ahora 🏆'"></span>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="md:col-span-2 lg:col-span-3 py-40 glass-panel rounded-[4rem] border-2 border-dashed border-white/5 flex flex-col items-center gap-10">
+            <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-white/10">
+                <!-- trophy icon -->
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13V7a2 2 0 012-2h14a2 2 0 012 2v6a6 6 0 01-6 6H9a6 6 0 01-6-6zM3 9h3M21 9h-3"></path></svg>
+            </div>
+            <div class="space-y-4">
+                <h3 class="text-3xl font-black text-white/20 uppercase tracking-tighter italic text-center">Agenda de Torneos Vacía</h3>
+                <p class="text-white/10 text-[10px] font-black uppercase tracking-[0.4em] text-center">No hay torneos vigentes programados para este año aún</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- FOOTER NAV -->
+    <div class="pt-10 flex justify-center">
+        <a href="{% url 'perfil' %}" class="glass-card px-12 py-6 rounded-full text-[10px] font-black uppercase text-white/40 tracking-[0.5em] hover:text-orange-500 hover:border-orange-500/30 transition-all duration-500">
+            Volver al Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}

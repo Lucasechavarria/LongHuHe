@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alumnos Inscritos: {{ torneo.nombre }} - Long Hu He{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto pt-10 pb-20 space-y-12">
+
+    <!-- Header Tournament Info -->
+    <header class="flex items-center justify-between px-6">
+        <div>
+            <a href="{% url 'gestion_torneos' %}" class="flex items-center gap-2 text-white/20 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest mb-4">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                VOLVER AL PANEL DE GESTIÓN
+            </a>
+            <p class="text-orange-500 font-bold uppercase tracking-[0.3em] text-[10px] mb-2 italic">Delegación Oficial</p>
+            <h1 class="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
+                {{ torneo.nombre }}
+            </h1>
+            <p class="text-white/30 font-bold uppercase tracking-widest text-[9px] mt-2">
+                {{ torneo.lugar }} · {{ torneo.fecha|date:"d-m-Y · H:i" }}hs
+            </p>
+        </div>
+        <div class="hidden sm:block shrink-0">
+            <div class="p-6 rounded-[2rem] bg-orange-500 text-white min-w-[150px] shadow-2xl text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest mb-1 opacity-70">INSCRITOS</p>
+                <p class="text-4xl font-black">{{ inscripciones.count }}</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Listado de Alumnos -->
+    <div class="premium-card rounded-[3.5rem] overflow-hidden border border-white/5 bg-black/20 pb-10">
+        <div class="p-10 border-b border-white/5 flex items-center justify-between">
+            <h2 class="text-3xl font-black text-white uppercase tracking-tighter italic">Nómina de Competidores</h2>
+            <div class="flex gap-2">
+                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] border-b border-white/5">
+                    <tr>
+                        <th class="px-10 py-6">ALUMNO</th>
+                        <th class="px-8 py-6">GRADO ACTUAL</th>
+                        <th class="px-8 py-6">CONTACTO</th>
+                        <th class="px-8 py-6">INSCRIPCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for insc in inscripciones %}
+                    <tr class="group hover:bg-white/5 transition-all">
+                        <!-- Alumno Info -->
+                        <td class="px-10 py-6">
+                            <div class="flex items-center gap-6">
+                                <div class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden shrink-0">
+                                    {% if insc.alumno.foto_perfil %}
+                                        <img src="{{ insc.alumno.foto_perfil.url }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-white/20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-black text-white uppercase tracking-tight">{{ insc.alumno.nombre_completo }}</h3>
+                                    <p class="text-[9px] text-white/30 font-bold uppercase tracking-widest">ID Cel: {{ insc.alumno.celular }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <!-- Grado -->
+                        <td class="px-8 py-6">
+                            <span class="px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[10px] font-black tracking-widest uppercase italic">
+                                {{ insc.alumno.grado.nombre|default:"Principiante" }}
+                            </span>
+                        </td>
+                        <!-- Contacto WhatsApp -->
+                        <td class="px-8 py-6">
+                            {% if insc.alumno.celular %}
+                            <a href="https://wa.me/{{ insc.alumno.celular }}" target="_blank" 
+                               class="inline-flex items-center gap-2 bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600 hover:text-white border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest py-2 px-4 rounded-xl shadow-xl transition-all">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
+                                WhatsApp
+                            </a>
+                            {% else %}
+                            <span class="text-white/20 text-xs font-bold">Sin Celular</span>
+                            {% endif %}
+                        </td>
+                        <!-- Fecha Inscripción -->
+                        <td class="px-8 py-6">
+                            <span class="text-xs font-bold text-white/30 uppercase">
+                                {{ insc.fecha_inscripcion|date:"d-m-Y · H:i" }}hs
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-20 text-center">
+                            <p class="text-white/20 font-black uppercase text-[10px] tracking-widest">Sin alumnos inscriptos en este torneo aún</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

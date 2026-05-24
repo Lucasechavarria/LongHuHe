@@ -21,8 +21,8 @@
         </p>
     </header>
 
-    <!-- BARRA DE FILTROS STICKY PREMIUM -->
-    <div class="sticky top-2 z-[60] glass-panel rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 border border-white/10 shadow-[0_25px_50px_rgba(0,0,0,0.5)] mx-2 md:mx-0 flex flex-col gap-6">
+    <!-- BARRA DE FILTROS PREMIUM -->
+    <div class="glass-panel rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 border border-white/10 shadow-[0_25px_50px_rgba(0,0,0,0.5)] mx-2 md:mx-0 flex flex-col gap-6">
         
         <!-- Fila 1: Selector de Días (Chips) - ACCESSIBLE -->
         <div class="flex justify-center w-full">
@@ -30,7 +30,7 @@
                 {% for dia_cod, dia_nom in dias_semana %}
                 <button @click="diaActivo = '{{ dia_cod }}'" 
                         :class="diaActivo === '{{ dia_cod }}' ? 'bg-orange-600 text-white shadow-[0_10px_20px_rgba(234,88,12,0.4)] scale-105' : 'text-white/40 hover:text-white bg-white/5'"
-                        class="px-6 md:px-10 py-4 md:py-6 rounded-[1.2rem] md:rounded-[1.5rem] font-black uppercase tracking-tighter text-xs md:text-sm transition-all duration-700 shrink-0 snap-center border border-white/10">
+                        class="px-5 md:px-8 py-3 md:py-4.5 rounded-xl md:rounded-[1.2rem] font-black uppercase tracking-tighter text-xs md:text-sm transition-all duration-700 shrink-0 snap-center border border-white/10">
                     {{ dia_nom }}
                 </button>
                 {% endfor %}
@@ -212,8 +212,8 @@
     .filter-select-lg {
         background: rgba(255, 255, 255, 0.08) !important;
         border: 2px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 1.5rem !important;
-        padding: 1.1rem 1.5rem !important;
+        border-radius: 1.2rem !important;
+        padding: 0.8rem 1.2rem !important;
         color: white !important;
         font-family: inherit !important;
         font-weight: 900 !important;
@@ -221,7 +221,7 @@
         outline: none !important;
         appearance: none !important;
         transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        font-size: 13px !important;
+        font-size: 12px !important;
         letter-spacing: 0.05em !important;
         cursor: pointer !important;
         min-width: 100% !important;
@@ -229,8 +229,8 @@
     }
     @media (min-width: 1024px) {
         .filter-select-lg {
-            min-width: 220px !important;
-            padding: 1.2rem 2rem !important;
+            min-width: 200px !important;
+            padding: 0.8rem 1.5rem !important;
         }
     }
     .filter-select-lg:focus {

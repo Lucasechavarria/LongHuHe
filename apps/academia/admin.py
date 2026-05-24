@@ -1,6 +1,6 @@
 from django.contrib import admin
 from apps.usuarios.admin import ModularAdminMixin
-from .models import Actividad, Sede, Cronograma, InscripcionClase
+from .models import Actividad, Sede, Cronograma, InscripcionClase, Torneo, InscripcionTorneo
 
 class SedesAdminMixin(ModularAdminMixin):
     rol_requerido = "rol_gestion_sedes"
@@ -61,3 +61,17 @@ class InscripcionClaseAdmin(SedesAdminMixin, admin.ModelAdmin):
     list_filter = ("estado", "clase__sede", "clase__actividad")
     search_fields = ("alumno__nombre", "alumno__apellido", "alumno__dni")
     autocomplete_fields = ("alumno", "clase")
+
+@admin.register(Torneo)
+class TorneoAdmin(SedesAdminMixin, admin.ModelAdmin):
+    list_display = ("nombre", "fecha", "lugar", "costo_inscripcion", "activo")
+    list_filter = ("activo", "fecha")
+    search_fields = ("nombre", "lugar")
+    list_editable = ("activo", "costo_inscripcion")
+
+@admin.register(InscripcionTorneo)
+class InscripcionTorneoAdmin(SedesAdminMixin, admin.ModelAdmin):
+    list_display = ("alumno", "torneo", "fecha_inscripcion")
+    list_filter = ("torneo", "fecha_inscripcion")
+    search_fields = ("alumno__nombre", "alumno__apellido", "torneo__nombre")
+    autocomplete_fields = ("alumno", "torneo")

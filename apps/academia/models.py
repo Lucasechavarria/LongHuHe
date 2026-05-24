@@ -140,3 +140,32 @@ class InscripcionClase(models.Model):
             return f"{alumno_str} -> {clase_str} ({estado_str})"
         except Exception:
             return f"Inscripción #{self.id} (Error al mostrar detalles)"
+
+class Torneo(models.Model):
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    fecha = models.DateTimeField("Fecha y Hora")
+    lugar = models.CharField(max_length=200)
+    costo_inscripcion = models.DecimalField("Costo de Inscripción", max_digits=10, decimal_places=2, default=0)
+    activo = models.BooleanField("Convocatoria Abierta", default=True)
+
+    class Meta:
+        verbose_name = "Torneo"
+        verbose_name_plural = "01.5 - Torneos"
+        ordering = ["fecha"]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.fecha.strftime('%d/%m/%Y')})"
+
+class InscripcionTorneo(models.Model):
+    alumno = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE, related_name="inscripciones_torneos")
+    torneo = models.ForeignKey(Torneo, on_delete=models.CASCADE, related_name="alumnos_inscritos")
+    fecha_inscripcion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Inscripción a Torneo"
+        verbose_name_plural = "01.6 - Inscripciones a Torneos"
+        unique_together = ['alumno', 'torneo']
+
+    def __str__(self):
+        return f"{self.alumno.nombre_completo} -> {self.torneo.nombre}"
