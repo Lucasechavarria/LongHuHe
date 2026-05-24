@@ -2,7 +2,6 @@ import json
 import pytest
 from django.urls import reverse
 from django.test import Client
-from django.conf import settings
 from apps.usuarios.models import Usuario
 from apps.ventas.models import Pago, Actividad
 from unittest.mock import patch, MagicMock
