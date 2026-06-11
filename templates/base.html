@@ -31,21 +31,112 @@
         /* Smooth Page Transitions */
         .page-enter { opacity: 0; transform: scale(1.05) blur(10px); }
         .page-enter-active { opacity: 1; transform: scale(1) blur(0); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* Accessibility Styles */
+        .text-large-mode {
+            font-size: 1.15rem !important;
+        }
+        .text-large-mode p, .text-large-mode li, .text-large-mode select {
+            font-size: 1.25rem !important;
+        }
+        .text-large-mode label {
+            font-size: 1.35rem !important;
+        }
+        .text-large-mode h1, .text-large-mode .text-7xl, .text-large-mode .text-8xl, .text-large-mode .text-9xl {
+            font-size: 4.5rem !important;
+            line-height: 1.1 !important;
+        }
+        .text-large-mode h2, .text-large-mode .text-6xl {
+            font-size: 3.5rem !important;
+            line-height: 1.1 !important;
+        }
+        .text-large-mode h3, .text-large-mode .text-5xl {
+            font-size: 2.75rem !important;
+        }
+        .text-large-mode h4, .text-large-mode .text-3xl, .text-large-mode .text-4xl {
+            font-size: 2rem !important;
+        }
+        .text-large-mode button, .text-large-mode a, .text-large-mode input {
+            font-size: 1.25rem !important;
+        }
+        .text-large-mode .nav-item span {
+            font-size: 1rem !important;
+        }
+
+        /* High Contrast Mode */
+        .high-contrast-mode.dark {
+            background-color: #000000 !important;
+            background-image: none !important;
+            color: #ffffff !important;
+        }
+        .high-contrast-mode.light {
+            background-color: #ffffff !important;
+            background-image: none !important;
+            color: #000000 !important;
+        }
+        .high-contrast-mode.dark h1, .high-contrast-mode.dark h2, .high-contrast-mode.dark h3, .high-contrast-mode.dark h4, .high-contrast-mode.dark p, .high-contrast-mode.dark span, .high-contrast-mode.dark label, .high-contrast-mode.dark a, .high-contrast-mode.dark button {
+            color: #ffffff !important;
+        }
+        .high-contrast-mode.light h1, .high-contrast-mode.light h2, .high-contrast-mode.light h3, .high-contrast-mode.light h4, .high-contrast-mode.light p, .high-contrast-mode.light span, .high-contrast-mode.light label, .high-contrast-mode.light a, .high-contrast-mode.light button {
+            color: #000000 !important;
+        }
+        .high-contrast-mode .glass-panel, .high-contrast-mode .glass-card {
+            background: transparent !important;
+            border: 3px solid currentColor !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
+        .high-contrast-mode input, .high-contrast-mode select {
+            border: 3px solid currentColor !important;
+            background: transparent !important;
+            color: currentColor !important;
+        }
+        .high-contrast-mode input::placeholder {
+            color: currentColor !important;
+            opacity: 0.8 !important;
+        }
+        .high-contrast-mode button {
+            border: 3px solid currentColor !important;
+            background: transparent !important;
+            color: currentColor !important;
+        }
+        .high-contrast-mode.dark .fixed.top-4.right-4 div {
+            background-color: #000000 !important;
+            border-color: #ffffff !important;
+        }
+        .high-contrast-mode.light .fixed.top-4.right-4 div {
+            background-color: #ffffff !important;
+            border-color: #000000 !important;
+        }
     </style>
     
     <script>
         function globalApp() {
             return {
                 darkMode: localStorage.getItem('zen-theme') !== 'light',
+                fontSize: localStorage.getItem('zen-font-size') || 'normal',
+                highContrast: localStorage.getItem('zen-high-contrast') === 'true',
+                cartCount: 0,
+                
                 toggleTheme() {
                     this.darkMode = !this.darkMode;
                     localStorage.setItem('zen-theme', this.darkMode ? 'dark' : 'light');
                 },
-                init() {
-                    // Pre-render logic if needed
+                toggleFontSize() {
+                    this.fontSize = this.fontSize === 'normal' ? 'large' : 'normal';
+                    localStorage.setItem('zen-font-size', this.fontSize);
                 },
-                syncCart(count) {
-                    this.$el.setAttribute('data-cart-count', count);
+                toggleHighContrast() {
+                    this.highContrast = !this.highContrast;
+                    localStorage.setItem('zen-high-contrast', this.highContrast ? 'true' : 'false');
+                },
+                init() {
+                    const initial = document.body.dataset.cartCount;
+                    this.cartCount = parseInt(initial) || 0;
+                },
+                syncCart(data) {
+                    this.cartCount = (typeof data === 'object') ? data.count : data;
+                    this.$el.setAttribute('data-cart-count', this.cartCount);
                 }
             }
         }
@@ -54,10 +145,75 @@
 </head>
 <body x-data="globalApp()" 
       x-init="init()"
-      :class="darkMode ? 'dark bg-black' : 'light bg-cream-50'"
+      :class="{ 
+          'dark bg-black text-[#E8E5DA]': darkMode, 
+          'light bg-cream-50 text-neutral-900': !darkMode, 
+          'text-large-mode': fontSize === 'large', 
+          'high-contrast-mode': highContrast 
+      }"
       @cart-update.window="syncCart($event.detail)" 
       data-cart-count="{{ request.session.carrito_count|default:0 }}"
-      class="font-sans antialiased text-[#E8E5DA] selection:bg-orange-500 selection:text-white min-h-screen overflow-x-hidden">
+      class="font-sans antialiased selection:bg-orange-500 selection:text-white min-h-screen overflow-x-hidden">
+    
+    <!-- MENU DE ACCESIBILIDAD FLOTANTE -->
+    <div x-data="{ openAccess: false }" class="fixed top-4 right-4 z-[9999] no-print">
+        <button @click="openAccess = !openAccess" 
+                class="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-5 rounded-full shadow-2xl transition-all duration-300 transform active:scale-95 border-2 border-white/20 text-sm">
+            <span class="text-lg">👁️</span>
+            <span>Vista</span>
+        </button>
+        
+        <!-- ACCESSIBILITY DROPDOWN PANEL -->
+        <div x-show="openAccess" 
+             @click.away="openAccess = false"
+             x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             class="absolute right-0 mt-3 w-80 bg-neutral-900 border border-white/10 rounded-[2rem] p-6 shadow-2xl space-y-4">
+            
+            <h4 class="text-lg font-bold text-white border-b border-white/10 pb-2 flex items-center justify-between">
+                <span>Opciones de Vista</span>
+                <button @click="openAccess = false" class="text-white/40 hover:text-white text-sm">✕</button>
+            </h4>
+            
+            <div class="space-y-4">
+                <!-- FontSize Toggle -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-white/80">Tamaño del Texto:</span>
+                    <button @click="toggleFontSize()" 
+                            class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all duration-300 border-2"
+                            :class="fontSize === 'large' ? 'bg-orange-600 border-orange-600 text-white' : 'border-white/20 text-white/60 hover:text-white'">
+                        <span x-text="fontSize === 'large' ? 'Grande (A+)' : 'Normal'"></span>
+                    </button>
+                </div>
+                
+                <!-- Dark/Light Theme Toggle -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-white/80">Color de Fondo:</span>
+                    <button @click="toggleTheme()" 
+                            class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all duration-300 border-2"
+                            :class="!darkMode ? 'bg-orange-600 border-orange-600 text-white' : 'border-white/20 text-white/60 hover:text-white'">
+                        <span x-text="darkMode ? 'Oscuro 🌙' : 'Claro ☀️'"></span>
+                    </button>
+                </div>
+                
+                <!-- High Contrast Toggle -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-white/80">Alto Contraste:</span>
+                    <button @click="toggleHighContrast()" 
+                            class="px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all duration-300 border-2"
+                            :class="highContrast ? 'bg-orange-600 border-orange-600 text-white' : 'border-white/20 text-white/60 hover:text-white'">
+                        <span x-text="highContrast ? 'Activado' : 'Desactivado'"></span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-[10px] text-white/40 border-t border-white/5 pt-3 leading-tight text-center">
+                Diseñado para facilitar la lectura.
+            </div>
+        </div>
+    </div>
     
     <!-- ZEN TRANSITION VEIL -->
     <div x-init="$nextTick(() => $el.classList.add('opacity-0', 'pointer-events-none'))" 
@@ -252,21 +408,7 @@
         {% endblock %}
     </div>
 
-    <!-- Alpine.js Global Controller -->
-    <script>
-        function globalApp() {
-            return {
-                cartCount: 0,
-                init() {
-                    const initial = document.body.dataset.cartCount;
-                    this.cartCount = parseInt(initial) || 0;
-                },
-                syncCart(data) {
-                    this.cartCount = data.count;
-                }
-            }
-        }
-    </script>
+    <!-- Alpine.js Global Controller consolidated in head -->
     
     <style>
         .nav-item {

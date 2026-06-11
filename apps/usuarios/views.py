@@ -156,8 +156,8 @@ def identificacion(request):
             else:
                 cache.set(key, cache.get(key, 0) + 1, 900)
                 BitacoraSeguridad.registrar(request, BitacoraSeguridad.TipoEvento.ACCESO_FALLIDO, f"Intento fallido: Identificador {identificador} no encontrado")
-                messages.info(request, "No encontramos tus datos. ¡Por favor, completa tu inscripción!")
-                return redirect('onboarding')
+                messages.error(request, "⚠️ No encontramos tus datos con ese DNI o Celular. Verifica los números o regístrate si eres nuevo.")
+                return render(request, 'usuarios/identificacion.html')
         else:
             messages.warning(request, "Debes completar el Identificador y el PIN de acceso.")
     return render(request, 'usuarios/identificacion.html')

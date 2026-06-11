@@ -20,54 +20,94 @@
     </div>
 
     <!-- LOGIN PANEL -->
-    <div class="glass-panel w-full max-w-xl rounded-[4rem] p-12 shadow-[0_50px_100px_rgba(0,0,0,0.6)] border border-white/10 relative overflow-hidden group">
+    <div class="glass-panel w-full max-w-xl rounded-[4rem] p-12 shadow-[0_50px_100px_rgba(0,0,0,0.6)] border border-white/20 relative overflow-hidden group">
         <div class="absolute -top-40 -right-40 w-80 h-80 bg-orange-600/5 rounded-full blur-[100px]"></div>
         
-        <form method="post" class="space-y-10 relative z-10">
+        <form method="post" class="space-y-8 relative z-10" x-data="{ showPin: false }">
             {% csrf_token %}
             
-            <div class="space-y-4">
-                <div class="relative">
-                    <input type="text" 
-                           name="identificador" 
-                           required
-                           placeholder="DNI O CELULAR"
-                           class="w-full bg-black/40 border-2 border-white/5 rounded-[2.5rem] py-10 px-10 text-4xl font-black text-center text-white placeholder-white/10 focus:border-orange-500 focus:bg-black/60 transition-all duration-500 outline-none uppercase tracking-tighter shadow-2xl">
+            <div class="space-y-6">
+                <!-- Identificador Field -->
+                <div>
+                    <label for="identificador" class="block text-white font-bold text-lg mb-2 text-left pl-4 uppercase tracking-wider">
+                        DNI o Número de Celular
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                               name="identificador" 
+                               id="identificador"
+                               required
+                               placeholder="Ingresa tu documento o celular"
+                               class="w-full bg-black/60 border-2 border-white/20 rounded-[2.5rem] py-8 px-8 text-3xl font-black text-center text-white placeholder-white/40 focus:border-orange-500 focus:bg-black/80 transition-all duration-500 outline-none uppercase tracking-normal shadow-2xl">
+                    </div>
                 </div>
                 
-                <div class="relative">
-                    <input type="password" 
-                           name="pin" 
-                           required
-                           inputmode="numeric"
-                           pattern="[0-9]*"
-                           maxlength="4"
-                           placeholder="PIN DE 4 NÚMEROS"
-                           class="w-full bg-black/40 border-2 border-white/5 rounded-[2.5rem] py-8 px-10 text-4xl font-bold text-center text-orange-400 placeholder-orange-500/20 focus:border-orange-500 focus:bg-black/60 transition-all duration-500 outline-none tracking-[0.6em] shadow-2xl">
+                <!-- PIN Field -->
+                <div>
+                    <label for="pin" class="block text-white font-bold text-lg mb-2 text-left pl-4 uppercase tracking-wider">
+                        Clave PIN de 4 números
+                    </label>
+                    <div class="relative flex items-center">
+                        <input :type="showPin ? 'text' : 'password'" 
+                               name="pin" 
+                               id="pin"
+                               required
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               maxlength="4"
+                               placeholder="Ej: 1234"
+                               class="w-full bg-black/60 border-2 border-white/20 rounded-[2.5rem] py-8 px-8 text-3xl font-bold text-center text-orange-400 placeholder-orange-500/40 focus:border-orange-500 focus:bg-black/80 transition-all duration-500 outline-none tracking-[0.5em] shadow-2xl">
+                        
+                        <!-- Toggle Show/Hide PIN Button -->
+                        <button type="button" 
+                                @click="showPin = !showPin" 
+                                class="absolute right-6 text-white/60 hover:text-white font-black text-sm px-3 py-1 bg-white/5 border border-white/10 rounded-full transition-all focus:outline-none select-none">
+                            <span x-text="showPin ? 'Ocultar' : 'Ver'"></span>
+                        </button>
+                    </div>
                 </div>
 
-                <p class="text-white/30 text-center font-bold uppercase tracking-[0.1em] pt-4 text-[10px] leading-relaxed">
-                    Ingresa tu PIN de 4 dígitos (como el del cajero). <br> 
-                    <span class="text-orange-500/50">Si es tu primera vez, usa los últimos 4 dígitos de tu DNI o Celular.</span>
-                </p>
+                <!-- Caja Informativa de Ayuda -->
+                <div class="bg-orange-500/10 border border-orange-500/30 rounded-[2rem] p-6 text-left space-y-3">
+                    <p class="text-white text-base font-bold flex items-center gap-2">
+                        <span>💡</span> ¿Cómo ingresar?
+                    </p>
+                    <ul class="text-white/80 text-xs space-y-1.5 list-disc list-inside leading-relaxed font-semibold">
+                        <li>Escribe tu DNI o celular sin guiones ni espacios.</li>
+                        <li>Ingresa tu PIN de 4 números (como la clave del cajero).</li>
+                        <li><strong class="text-orange-400">¿Primera vez?</strong> Usa los últimos 4 números de tu DNI o celular.</li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="pt-6 flex flex-col gap-8">
+            <div class="pt-4 flex flex-col gap-6">
+                <!-- Submit Button -->
                 <button type="submit" 
-                        class="btn-liquid w-full bg-orange-600 text-white rounded-[2.5rem] py-10 text-3xl font-black uppercase shadow-[0_20px_50px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all duration-500 tracking-[0.2em] relative overflow-hidden group/btn">
-                    <span class="relative z-10">INGRESAR</span>
+                        class="btn-liquid w-full bg-orange-600 text-white rounded-[2.5rem] py-8 text-2xl font-black uppercase shadow-[0_20px_50px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all duration-500 tracking-[0.1em] relative overflow-hidden group/btn">
+                    <span class="relative z-10">INGRESAR A MI PORTAL</span>
                 </button>
                 
-                <div class="flex items-center gap-4 py-2">
-                    <div class="h-px flex-1 bg-white/5"></div>
-                    <span class="text-white/10 font-black uppercase text-[10px] tracking-[0.5em]">Nuevos Alumnos</span>
-                    <div class="h-px flex-1 bg-white/5"></div>
+                <div class="flex items-center gap-4 py-1">
+                    <div class="h-px flex-1 bg-white/10"></div>
+                    <span class="text-white/30 font-black uppercase text-[10px] tracking-[0.3em]">Nuevos Alumnos</span>
+                    <div class="h-px flex-1 bg-white/10"></div>
                 </div>
 
+                <!-- Registration Link -->
                 <a href="{% url 'onboarding' %}" 
-                   class="w-full text-center py-6 border-2 border-dashed border-white/5 rounded-[2.5rem] text-white/30 font-black uppercase text-xs tracking-[0.4em] hover:border-orange-500/30 hover:text-white transition-all duration-500">
-                    No soy alumno · INSCRIBIRME
+                   class="w-full text-center py-5 border-2 border-dashed border-white/20 rounded-[2.5rem] text-white/50 hover:text-white font-black uppercase text-xs tracking-[0.2em] hover:border-orange-500/40 hover:bg-white/5 transition-all duration-500">
+                    No soy alumno · INSCRIBIRME AQUÍ
                 </a>
+
+                <!-- WhatsApp Direct Link -->
+                <div class="pt-2 text-center">
+                    <a href="https://wa.me/5491131078008?text=Hola,%20necesito%20ayuda%20para%20ingresar%20a%20la%20App%20de%20Tai-Chi" 
+                       target="_blank" 
+                       class="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-bold text-xs bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-6 py-3 rounded-full transition-all">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
+                        ¿Necesitas ayuda para ingresar? Toca aquí
+                    </a>
+                </div>
             </div>
         </form>
     </div>
