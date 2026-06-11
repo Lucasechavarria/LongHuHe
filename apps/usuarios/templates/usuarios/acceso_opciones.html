@@ -17,7 +17,7 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
-        <!-- Opción 1: Alumno Existente -->
+        <!-- Opción 1: Ingresar al Portal -->
         <a href="{% url 'identificacion' %}" 
            class="premium-card group relative p-10 rounded-[3rem] flex flex-col items-center gap-8 transition-all hover:scale-105 active:scale-95 border-b-8 border-orange-600 hover:border-orange-500 bg-neutral-100 dark:bg-white/5 hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-300 dark:border-white/5">
             <div class="w-24 h-24 bg-neutral-200 dark:bg-white/10 rounded-full flex items-center justify-center shadow-lg group-hover:bg-orange-500 group-hover:shadow-[0_0_40px_rgba(255,140,0,0.5)] transition-all">
@@ -26,8 +26,8 @@
                 </svg>
             </div>
             <div class="text-center space-y-2">
-                <span class="block text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">YA SOY ALUMNO</span>
-                <p class="text-neutral-500 dark:text-white/60 font-bold uppercase text-xs tracking-widest group-hover:text-neutral-800 dark:group-hover:text-white/80">Identifícate con DNI o Celular</p>
+                <span class="block text-3xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">INGRESAR AL PORTAL</span>
+                <p class="text-neutral-500 dark:text-white/60 font-bold uppercase text-xs tracking-widest group-hover:text-neutral-800 dark:group-hover:text-white/80">Identifícate con tu DNI o Celular</p>
             </div>
         </a>
 
@@ -45,12 +45,6 @@
             </div>
         </a>
     </div>
-
-    <!-- Login Administrativo Sutil (Dojo Digital Staff) -->
-    <a href="{% url 'login_profesor' %}" class="opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2 text-neutral-700 dark:text-white font-black uppercase text-[10px] tracking-[0.4em] py-2">
-        <svg class="w-3 h-3 text-neutral-700 dark:text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
-        Acceso Docente
-    </a>
 
     <!-- Volver al Home sutil -->
     <a href="{% url 'splash' %}" class="opacity-60 hover:opacity-100 transition-opacity flex items-center gap-2 text-neutral-700 dark:text-white font-black uppercase text-xs tracking-[0.3em]">
