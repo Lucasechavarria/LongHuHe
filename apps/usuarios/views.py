@@ -211,7 +211,6 @@ def perfil(request):
         
     # 2. Torneos del alumno (participaciones/podios)
     try:
-        from apps.academia.models import ResultadoTorneo
         resultados = alumno.resultados_torneos.all().select_related('torneo')
         for res in resultados:
             podio_val = res.get_podio_display()
