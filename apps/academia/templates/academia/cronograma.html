@@ -26,11 +26,11 @@
         
         <!-- Fila 1: Selector de Días (Chips) - ACCESSIBLE -->
         <div class="flex justify-center w-full">
-            <div class="flex gap-2.5 md:gap-4 overflow-x-auto w-full justify-start md:justify-center pb-2 md:pb-0 scrollbar-hide snap-x">
+            <div class="flex flex-wrap gap-2.5 md:gap-4 justify-center w-full pb-2 md:pb-0">
                 {% for dia_cod, dia_nom in dias_semana %}
                 <button @click="diaActivo = '{{ dia_cod }}'" 
                         :class="diaActivo === '{{ dia_cod }}' ? 'bg-orange-600 text-white shadow-[0_10px_20px_rgba(234,88,12,0.4)] scale-105' : 'text-white/40 hover:text-white bg-white/5'"
-                        class="px-5 md:px-8 py-3 md:py-4.5 rounded-xl md:rounded-[1.2rem] font-black uppercase tracking-tighter text-xs md:text-sm transition-all duration-700 shrink-0 snap-center border border-white/10">
+                        class="px-5 md:px-8 py-3 md:py-4.5 rounded-xl md:rounded-[1.2rem] font-black uppercase tracking-tighter text-xs md:text-sm transition-all duration-700 border border-white/10">
                     {{ dia_nom }}
                 </button>
                 {% endfor %}
@@ -130,22 +130,22 @@
                 <!-- Info Body -->
                 <div class="space-y-4 md:space-y-6 relative z-10 flex-grow">
                     <div class="flex items-center gap-4 md:gap-6">
-                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center text-orange-500 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/30 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700 shadow-md">
                             <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <p class="text-[7px] md:text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Ubicación</p>
-                            <h4 class="text-lg md:text-xl font-black text-white uppercase tracking-tighter truncate">{{ clase.sede.nombre }}</h4>
+                            <h4 class="text-lg md:text-xl font-black text-white uppercase tracking-tighter leading-tight">{{ clase.sede.nombre }}</h4>
                         </div>
                     </div>
 
                     <div class="flex items-center gap-4 md:gap-6">
-                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 flex items-center justify-center text-orange-500 border border-white/10 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/30 group-hover:bg-orange-600 group-hover:text-white transition-all duration-700 shadow-md">
                             <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                             <p class="text-[7px] md:text-[8px] font-black text-white/20 uppercase tracking-[0.4em]">Instructor</p>
-                            <h4 class="text-lg md:text-xl font-black text-white uppercase tracking-tighter truncate">Prof. {{ clase.profesor.nombre_completo }}</h4>
+                            <h4 class="text-lg md:text-xl font-black text-white uppercase tracking-tighter leading-tight">Prof. {{ clase.profesor.nombre_completo }}</h4>
                         </div>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
 
                         {% if clase.id in mis_clases_ids %}
                             <a href="{% url 'desanotarse_clase' clase.id %}" 
-                               class="w-full bg-rose-600/10 text-rose-500 text-xs font-black uppercase py-6 rounded-[1.5rem] hover:bg-rose-600 hover:text-white transition-all text-center border border-rose-500/20 shadow-xl">
+                               class="w-full bg-rose-600 text-white text-lg font-black uppercase py-6 rounded-[1.5rem] hover:bg-rose-700 transition-all text-center border border-rose-700/20 shadow-xl">
                                 <span class="relative z-10">Darse de Baja</span>
                             </a>
                         {% else %}
@@ -176,7 +176,7 @@
                                 {% csrf_token %}
                                 <button type="submit" 
                                         :disabled="loading"
-                                        class="btn-liquid w-full bg-orange-600 text-white text-sm font-black uppercase py-7 rounded-[2rem] hover:bg-orange-500 transition-all shadow-[0_20px_40px_rgba(234,88,12,0.4)] disabled:opacity-50">
+                                        class="btn-liquid w-full bg-orange-600 text-white text-lg font-black uppercase py-7 rounded-[2rem] hover:bg-orange-500 transition-all shadow-[0_20px_40px_rgba(234,88,12,0.4)] disabled:opacity-50">
                                     <span class="relative z-10" x-text="loading ? '⏳ Procesando...' : 'Anotarme Ahora'"></span>
                                 </button>
                             </form>
@@ -200,8 +200,8 @@
     </div>
 
     <!-- FOOTER NAV -->
-    <div class="pt-10 flex justify-center">
-        <a href="{% url 'perfil' %}" class="glass-card px-12 py-6 rounded-full text-[10px] font-black uppercase text-white/40 tracking-[0.5em] hover:text-orange-500 hover:border-orange-500/30 transition-all duration-500">
+    <div class="pt-10 flex justify-center w-full px-4">
+        <a href="{% url 'perfil' %}" class="w-full max-w-md text-center bg-white/10 hover:bg-white/20 text-white border-2 border-white/20 px-12 py-6 rounded-full text-base font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-lg active:scale-95 block">
             Volver al Dashboard
         </a>
     </div>

@@ -187,10 +187,6 @@
                             <h3 class="text-5xl font-black uppercase text-white tracking-tighter">Estado de <span class="text-orange-500">Membresía</span></h3>
                             <p class="text-white/20 text-[10px] font-black uppercase tracking-[0.5em]">Situación administrativa actual</p>
                         </div>
-                        <div class="inline-flex items-center gap-6 glass-panel px-10 py-6 rounded-[2.5rem] border-white/10 shadow-2xl">
-                            <span class="w-5 h-5 rounded-full animate-pulse shadow-[0_0_25px_var(--status-color)]" style="--status-color: {{ alumno.color_estado|default:'#f97316' }}; background-color: var(--status-color);"></span>
-                            <span class="text-4xl font-black uppercase tracking-tighter italic text-white">{{ alumno.get_estado_morosidad_display }}</span>
-                        </div>
                     </div>
 
                     <div class="glass-card p-12 rounded-[3.5rem] text-center border-l-8 border-orange-600 bg-black/40">
@@ -268,12 +264,6 @@
                     </div>
                 </div>
 
-                <div class="mt-16 space-y-6 relative z-10">
-                    <div class="flex items-center justify-center gap-4 text-orange-500/50 text-[11px] font-black uppercase tracking-[0.5em]">
-                        <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse shadow-[0_0_10px_#f97316]"></span>
-                        LHH ACTIVE CORE
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -339,13 +329,13 @@
     <!-- SUPPORT & LOGOUT -->
     <footer class="pt-20 flex flex-col md:flex-row gap-8 px-6 pb-40">
         <a href="https://wa.me/5491131078008" target="_blank" 
-           class="flex-[2] btn-liquid bg-emerald-600/10 text-emerald-500 py-10 rounded-[4rem] border-2 border-emerald-500/10 flex items-center justify-center gap-6 group">
+           class="flex-[2] btn-liquid bg-emerald-600 hover:bg-emerald-500 text-white py-10 rounded-[4rem] border-2 border-emerald-500/20 shadow-[0_15px_40px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-6 group">
             <span class="text-3xl font-black uppercase tracking-tighter relative z-10 italic">LHH Support Central</span>
             <svg class="w-10 h-10 relative z-10 group-hover:rotate-[20deg] transition-transform duration-700" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
         </a>
         <a href="{% url 'logout' %}" 
-           class="flex-1 btn-liquid bg-shaolin-red/10 text-shaolin-red py-10 rounded-[4rem] border-2 border-shaolin-red/10 font-black uppercase text-[10px] tracking-[0.5em] transition-all hover:bg-shaolin-red hover:text-white flex items-center justify-center">
-            Cerrar Portal 👋
+           class="flex-1 btn-liquid bg-shaolin-red hover:bg-red-700 text-white py-10 rounded-[4rem] border-2 border-shaolin-red/20 font-black uppercase text-3xl tracking-[0.1em] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center shadow-[0_15px_40px_rgba(197,48,48,0.3)]">
+            Cerrar Sesión
         </a>
     </footer>
 </div>
