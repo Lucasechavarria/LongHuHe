@@ -110,7 +110,7 @@
             
             {% for clase in clases_por_dia|get_item:dia_cod %}
             <div class="glass-card rounded-[3.5rem] p-10 border border-white/5 flex flex-col group hover:border-orange-500/40 transition-all duration-700 relative overflow-hidden shadow-2xl"
-                 style="--act-color: {{ clase.actividad.color_etiqueta }}; --progress-width: {% if clase.cupo > 0 %}{% widthratio clase.alumnos_inscritos.count clase.cupo 100 %}{% else %}0{% endif %}%">
+                 style="--act-color: {{ clase.actividad.color_etiqueta }}; --progress-width: {% if clase.cupo > 0 %}{% widthratio clase.num_inscriptos clase.cupo 100 %}{% else %}0{% endif %}%">
                 <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px]"></div>
                 
                 <!-- Card Header -->
@@ -157,7 +157,7 @@
                             <div class="flex justify-between items-end px-2">
                                 <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] italic">Cupos Disponibles</p>
                                 <p class="text-xl font-black text-white italic tracking-tighter">
-                                    {{ clase.alumnos_inscritos.count }}<span class="text-white/20"> / </span>{{ clase.cupo }}
+                                    {{ clase.num_inscriptos }}<span class="text-white/20"> / </span>{{ clase.cupo }}
                                 </p>
                             </div>
                             <div class="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">

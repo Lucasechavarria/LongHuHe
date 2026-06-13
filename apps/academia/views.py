@@ -21,7 +21,9 @@ def lista_clases(request):
     actividad_id = request.GET.get('actividad')
     profesor_id = request.GET.get('profesor')
     
-    clases = Cronograma.objects.all().select_related('actividad', 'profesor', 'sede').order_by('hora_inicio')
+    clases = Cronograma.objects.all().select_related('actividad', 'profesor', 'sede').annotate(
+        num_inscriptos=Count('alumnos_inscritos')
+    ).order_by('hora_inicio')
     
     if sede_id:
         clases = clases.filter(sede_id=sede_id)

@@ -239,7 +239,7 @@
                 </div>
                 <div class="glass-card p-12 rounded-[3.5rem] border-t-8 border-white/20 text-center space-y-4">
                     <p class="text-[10px] uppercase text-white/40 font-black tracking-[0.4em]">Asignación</p>
-                    <p class="text-3xl font-black text-white uppercase tracking-tighter italic">{{ alumno.sede.nombre|default:"Central" }}</p>
+                    <p class="text-3xl font-black text-white uppercase tracking-tighter italic break-words" style="font-size: 1.5rem !important; line-height: 1.2 !important; word-break: break-word;">{{ alumno.sede.nombre|default:"Central" }}</p>
                     <p class="text-[9px] text-white/20 font-black uppercase tracking-widest mt-4">Sede de Práctica</p>
                 </div>
             </div>
@@ -329,12 +329,12 @@
     <!-- SUPPORT & LOGOUT -->
     <footer class="pt-20 flex flex-col md:flex-row gap-8 px-6 pb-40">
         <a href="https://wa.me/5491131078008" target="_blank" 
-           class="flex-[2] btn-liquid bg-emerald-600 hover:bg-emerald-500 text-white py-10 rounded-[4rem] border-2 border-emerald-500/20 shadow-[0_15px_40px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center gap-6 group">
-            <span class="text-3xl font-black uppercase tracking-tighter relative z-10 italic">LHH Support Central</span>
+           class="flex-[2] btn-liquid bg-emerald-600 hover:bg-emerald-500 text-white py-10 rounded-[4rem] border-2 border-emerald-500/20 shadow-[0_15px_40px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center text-center gap-6 group">
+            <span class="text-3xl font-black uppercase tracking-tighter relative z-10 italic text-center">LHH Support Central</span>
             <svg class="w-10 h-10 relative z-10 group-hover:rotate-[20deg] transition-transform duration-700" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.483 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.308 1.656zm6.757-4.247c1.514.897 3.035 1.358 4.672 1.359 5.587 0 10.134-4.547 10.136-10.134.001-2.707-1.054-5.251-2.971-7.168-1.917-1.917-4.461-2.971-7.168-2.972-5.588 0-10.135 4.547-10.137 10.134-.001 1.79.468 3.533 1.358 5.047l-1.085 3.963 4.062-1.066zm10.505-7.305c-.282-.141-1.664-.822-1.923-.916-.258-.095-.447-.141-.635.141-.188.282-.728.916-.893 1.104-.164.188-.329.212-.611.071-.282-.141-1.191-.439-2.269-1.401-.839-.748-1.405-1.671-1.569-1.953-.164-.282-.018-.435.123-.575.127-.126.282-.329.423-.494.141-.164.188-.282.282-.471.095-.188.047-.353-.024-.494-.071-.141-.635-1.53-.87-2.095-.23-.553-.464-.477-.635-.486-.164-.008-.353-.01-.541-.01s-.494.071-.753.353c-.259.282-.988.965-.988 2.353s1.012 2.73 1.153 2.918c.141.188 1.992 3.041 4.825 4.262.674.29 1.2.463 1.61.593.677.215 1.293.185 1.78.113.543-.081 1.664-.679 1.899-1.335.235-.656.235-1.22.165-1.335-.07-.113-.258-.184-.543-.325z"/></svg>
         </a>
         <a href="{% url 'logout' %}" 
-           class="flex-1 btn-liquid bg-shaolin-red hover:bg-red-700 text-white py-10 rounded-[4rem] border-2 border-shaolin-red/20 font-black uppercase text-3xl tracking-[0.1em] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center shadow-[0_15px_40px_rgba(197,48,48,0.3)]">
+           class="flex-1 btn-liquid bg-shaolin-red hover:bg-red-700 text-white py-10 rounded-[4rem] border-2 border-shaolin-red/20 font-black uppercase text-3xl tracking-[0.1em] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex items-center justify-center text-center shadow-[0_15px_40px_rgba(197,48,48,0.3)]">
             Cerrar Sesión
         </a>
     </footer>
