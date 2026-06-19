@@ -1,16 +1,24 @@
-from django.shortcuts import render
+import json
+from datetime import timedelta
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 from apps.usuarios.views import profe_requerido
-
-import json
+from apps.usuarios.models import Usuario
+from apps.academia.models import Actividad
+from apps.ventas.models import Pago
+from apps.ventas.services.pago_service import PagoService
+from apps.asistencia.models import RegistroAsistencia
 from .services import ScannerService
+
 
 @profe_requerido
 def escaner(request):
     """ Vista del escáner premium para el profesor. """
     return render(request, 'asistencia/escaner.html')
+
 
 @csrf_exempt
 @profe_requerido
@@ -30,15 +38,6 @@ def registrar_asistencia_qr(request):
             
     return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
-
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from datetime import date, timedelta
-from apps.usuarios.models import Usuario
-from apps.academia.models import Actividad
-from apps.ventas.models import Pago
-from apps.ventas.services.pago_service import PagoService
-from apps.asistencia.models import RegistroAsistencia
 
 @csrf_exempt
 @profe_requerido
@@ -78,6 +77,7 @@ def api_registrar_pago_efectivo_scanner(request):
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
     return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
+
 @csrf_exempt
 @profe_requerido
 def api_otorgar_prorroga_scanner(request):
@@ -103,6 +103,7 @@ def api_otorgar_prorroga_scanner(request):
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
     return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+
 
 @csrf_exempt
 @profe_requerido
