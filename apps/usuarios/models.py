@@ -347,6 +347,10 @@ class Usuario(AbstractUser):
 
         # 2. Sin fecha de vencimiento aún (alumno nuevo o sin primer pago aprobado)
         if not self.fecha_vencimiento_cuota:
+            from datetime import timedelta
+            if self.date_joined and (hoy - self.date_joined.date()) <= timedelta(days=7):
+                return "al_dia"
+
             from apps.ventas.models import Pago
             pago_mes_actual = Pago.objects.filter(
                 alumno=self,

@@ -50,7 +50,7 @@ class UsuarioAdmin(UserAdmin):
     search_fields = ("nombre", "apellido", "celular", "dni", "username")
     ordering = ("apellido", "nombre")
     
-    actions = ['restablecer_pin']
+    actions = ['restablecer_pin', 'desbloquear_prorroga_15_dias', 'dar_de_alta_30_dias']
 
     @admin.action(description="Restablecer PIN a por defecto (últimos 4 del DNI/celular)")
     def restablecer_pin(self, request, queryset):
@@ -59,6 +59,26 @@ class UsuarioAdmin(UserAdmin):
             usuario.blanquear_pin()
             count += 1
         self.message_user(request, f"Se ha restablecido el PIN para {count} alumnos de forma exitosa.")
+
+    @admin.action(description="Desbloquear temporalmente (Prórroga de 15 días)")
+    def desbloquear_prorroga_15_dias(self, request, queryset):
+        from datetime import date, timedelta
+        hoy = date.today()
+        count = queryset.update(
+            fecha_prorroga=hoy + timedelta(days=15),
+            ultima_prorroga_solicitada=hoy
+        )
+        self.message_user(request, f"Se ha otorgado prórroga de 15 días y desbloqueado a {count} alumnos.")
+
+    @admin.action(description="Activar/Dar de alta (Extender vencimiento 30 días)")
+    def dar_de_alta_30_dias(self, request, queryset):
+        from datetime import date, timedelta
+        hoy = date.today()
+        count = queryset.update(
+            fecha_vencimiento_cuota=hoy + timedelta(days=30),
+            fecha_prorroga=None
+        )
+        self.message_user(request, f"Se ha extendido el vencimiento y activado a {count} alumnos por 30 días.")
 
     fieldsets = (
         ("Acceso", {"fields": ("username", "password")}),

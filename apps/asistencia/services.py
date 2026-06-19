@@ -33,11 +33,22 @@ class ScannerService:
             descuenta_paquete = True
         
         if not es_valido:
+            monto_estimado = 0
+            actividad_id = None
+            actividad = alumno.actividades.first()
+            if actividad:
+                monto_estimado = actividad.precio_mes
+                actividad_id = actividad.id
+
             return {
                 'success': False,
                 'message': f"Bloqueado: {alumno.nombre} (Deuda / Sin Clases)",
                 'color': 'red',
-                'alertas': ["CUOTA VENCIDA"]
+                'alertas': ["CUOTA VENCIDA"],
+                'alumno_id': alumno.id,
+                'alumno_nombre': alumno.nombre_completo,
+                'actividad_id': actividad_id,
+                'monto_estimado': float(monto_estimado)
             }
         
         if not alumno.apto_medico:

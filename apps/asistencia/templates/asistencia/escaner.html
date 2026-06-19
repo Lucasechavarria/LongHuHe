@@ -34,7 +34,7 @@
             <h3 class="text-5xl font-black text-white uppercase tracking-tighter leading-tight" x-text="feedback.title"></h3>
             <p class="text-white/70 font-black uppercase tracking-[0.3em] text-[10px] mt-4" x-text="feedback.message"></p>
             
-            <!-- Info del Alumno (si tuvo éxito) -->
+            <!-- Info del Alumno (si tuvo éxito o tras acción) -->
             <template x-if="feedback.alumno">
                 <div class="mt-10 glass-card rounded-[2.5rem] p-8 border-white/20 w-full relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
@@ -43,6 +43,37 @@
                     <div class="inline-block mt-4 px-6 py-2 bg-black/40 rounded-full border border-white/5">
                         <p class="text-[10px] font-black text-orange-500 uppercase tracking-widest" x-text="feedback.alumno.grado"></p>
                     </div>
+                </div>
+            </template>
+
+            <!-- Acciones Rápidas del Profesor (si el escaneo falló por cuota vencida) -->
+            <template x-if="!feedback.success && feedback.alumnoId">
+                <div class="mt-8 w-full space-y-3 z-30">
+                    <p class="text-[9px] uppercase font-black text-white/50 tracking-[0.4em] mb-2">Acciones del Profesor</p>
+                    
+                    <!-- Botón Cobrar Efectivo -->
+                    <button @click="ejecutarAccionScanner('cobrar-efectivo')" 
+                            :disabled="feedback.cargandoAccion"
+                            class="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white py-4 px-6 rounded-2xl font-black uppercase tracking-widest text-xs transition-all transform active:scale-95 flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(16,185,129,0.2)]">
+                        <span x-show="!feedback.cargandoAccion">💵 Cobrar Efectivo ($<span x-text="feedback.montoEstimado"></span>)</span>
+                        <span x-show="feedback.cargandoAccion">Procesando...</span>
+                    </button>
+                    
+                    <!-- Botón Otorgar Prórroga -->
+                    <button @click="ejecutarAccionScanner('otorgar-prorroga')"
+                            :disabled="feedback.cargandoAccion"
+                            class="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white py-4 px-6 rounded-2xl font-black uppercase tracking-widest text-xs transition-all transform active:scale-95 flex items-center justify-center gap-2 shadow-[0_10px_20px_rgba(245,158,11,0.2)]">
+                        <span x-show="!feedback.cargandoAccion">🛡️ Otorgar Prórroga (15 días)</span>
+                        <span x-show="feedback.cargandoAccion">Procesando...</span>
+                    </button>
+                    
+                    <!-- Botón Forzar Ingreso -->
+                    <button @click="ejecutarAccionScanner('forzar-ingreso')"
+                            :disabled="feedback.cargandoAccion"
+                            class="w-full bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white py-4 px-6 rounded-2xl font-black uppercase tracking-widest text-xs transition-all transform border border-white/10 active:scale-95 flex items-center justify-center gap-2">
+                        <span x-show="!feedback.cargandoAccion">🚪 Forzar Asistencia (Clase Prueba)</span>
+                        <span x-show="feedback.cargandoAccion">Procesando...</span>
+                    </button>
                 </div>
             </template>
 
@@ -77,7 +108,11 @@ function scannerApp() {
             title: '',
             message: '',
             bgColor: '',
-            alumno: null
+            alumno: null,
+            alumnoId: null,
+            actividadId: null,
+            montoEstimado: 0,
+            cargandoAccion: false
         },
         scanner: null,
 
@@ -101,9 +136,6 @@ function scannerApp() {
 
         async processScan(uuid) {
             if (this.feedback.active) return;
-            
-            // Pausar escáner visualmente (opcional)
-            // this.scanner.pause();
 
             try {
                 const response = await fetch("{% url 'registrar_asistencia_qr' %}", {
@@ -117,6 +149,10 @@ function scannerApp() {
                 this.feedback.active = true;
                 this.feedback.success = result.success;
                 this.feedback.alumno = result.alumno;
+                this.feedback.alumnoId = result.alumno_id || null;
+                this.feedback.actividadId = result.actividad_id || null;
+                this.feedback.montoEstimado = result.monto_estimado || 0;
+                this.feedback.cargandoAccion = false;
                 
                 if (result.success) {
                     this.feedback.title = "¡ASISTENCIA OK!";
@@ -136,10 +172,55 @@ function scannerApp() {
             }
         },
 
+        async ejecutarAccionScanner(tipo) {
+            this.feedback.cargandoAccion = true;
+            let url = "";
+            let body = { alumno_id: this.feedback.alumnoId };
+            
+            if (tipo === 'cobrar-efectivo') {
+                url = "{% url 'api_registrar_pago_efectivo_scanner' %}";
+                body.actividad_id = this.feedback.actividadId;
+            } else if (tipo === 'otorgar-prorroga') {
+                url = "{% url 'api_otorgar_prorroga_scanner' %}";
+            } else if (tipo === 'forzar-ingreso') {
+                url = "{% url 'api_forzar_ingreso_scanner' %}";
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.feedback.success = true;
+                    this.feedback.title = "¡ASISTENCIA OK!";
+                    this.feedback.message = result.message;
+                    this.feedback.bgColor = "bg-emerald-600";
+                    this.feedback.alumno = {
+                        nombre: result.message.split("para ")[1] || "Ingreso Registrado",
+                        grado: tipo.replace('-', ' ').toUpperCase()
+                    };
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (err) {
+                console.error("Error al ejecutar acción del profesor:", err);
+                alert("Error al conectar con el servidor.");
+            } finally {
+                this.feedback.cargandoAccion = false;
+            }
+        },
+
         resetFeedback() {
             this.feedback.active = false;
             this.feedback.alumno = null;
-            // this.scanner.resume();
+            this.feedback.alumnoId = null;
+            this.feedback.actividadId = null;
+            this.feedback.montoEstimado = 0;
+            this.feedback.cargandoAccion = false;
         }
     }
 }

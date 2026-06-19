@@ -76,6 +76,10 @@ class PagoService:
         alumno = pago.alumno
 
         if pago.tipo == pago.TipoPago.MES:
+            # Si es reincorporación (vencimiento en el pasado) o alumno nuevo (sin vencimiento previo)
+            if not alumno.fecha_vencimiento_cuota or alumno.fecha_vencimiento_cuota < hoy:
+                alumno.dia_corte_cuota = hoy.day
+
             # Asegurar día de corte válido (evita ValueError en date())
             if not alumno.dia_corte_cuota or alumno.dia_corte_cuota <= 0:
                 alumno.dia_corte_cuota = hoy.day

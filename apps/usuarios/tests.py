@@ -36,8 +36,16 @@ class TestUsuarioModel:
 
     def test_estado_morosidad_sin_pagos(self):
         alumno = mixer.blend(Usuario, fecha_vencimiento_cuota=None)
+        # Seteamos la fecha de registro hace 10 días para que venza la cortesía
+        alumno.date_joined = timezone.now() - timedelta(days=10)
+        alumno.save()
         # Sin pagos y sin fecha -> Vencido
         assert alumno.estado_morosidad == "vencido"
+
+    def test_estado_morosidad_cortesia_nuevo(self):
+        # Alumno nuevo (creado hoy) sin pagos ni fecha de vencimiento -> Al día (Cortesía)
+        alumno = mixer.blend(Usuario, fecha_vencimiento_cuota=None)
+        assert alumno.estado_morosidad == "al_dia"
 
     def test_estado_morosidad_al_dia(self):
         vencimiento = timezone.now().date() + timedelta(days=10)
